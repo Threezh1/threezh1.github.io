@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Python之如何优雅的复制一个网站的所有页面
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-text">说在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E5%B9%B6%E4%BF%9D%E5%AD%98%E5%8D%95%E4%B8%AA%E9%A1%B5%E9%9D%A2"><span class="toc-text">处理并保存单个页面</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%AB%99%E5%A4%8D%E5%88%B6%E4%B9%8B%E9%9C%80%E8%A6%81%E4%BF%9D%E5%AD%98%E7%9A%84%E5%86%85%E5%AE%B9"><span class="toc-text">网站复制之需要保存的内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%AB%99%E5%A4%8D%E5%88%B6%E4%B9%8B%E9%93%BE%E6%8E%A5%E7%9A%84%E6%8F%90%E5%8F%96"><span class="toc-text">网站复制之链接的提取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%AB%99%E5%A4%8D%E5%88%B6%E4%B9%8B%E8%B7%AF%E5%BE%84%E7%9A%84%E5%A4%84%E7%90%86"><span class="toc-text">网站复制之路径的处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BD%91%E7%AB%99%E5%A4%8D%E5%88%B6%E4%B9%8B%E5%8D%95%E4%B8%AA%E9%A1%B5%E9%9D%A2%E7%9A%84%E5%A4%84%E7%90%86%E4%B8%8E%E4%BF%9D%E5%AD%98"><span class="toc-text">网站复制之单个页面的处理与保存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%9D%E5%AD%98%E6%96%87%E4%BB%B6%E7%9A%84%E6%80%BB%E7%BB%93"><span class="toc-text">保存文件的总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%BD%91%E7%AB%99%E7%9A%84%E6%89%80%E6%9C%89%E9%A1%B5%E9%9D%A2"><span class="toc-text">获取网站的所有页面</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%BD%91%E7%AB%99%E7%9A%84%E6%89%80%E6%9C%89%E9%A1%B5%E9%9D%A2%E7%9A%84%E9%93%BE%E6%8E%A5"><span class="toc-text">获取网站的所有页面的链接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A0%E5%BF%AB%E8%8E%B7%E5%8F%96%E9%93%BE%E6%8E%A5%E4%B8%8E%E4%BF%9D%E5%AD%98%E6%96%87%E4%BB%B6%E7%9A%84%E9%80%9F%E5%BA%A6"><span class="toc-text">加快获取链接与保存文件的速度</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Github%E9%A1%B9%E7%9B%AE"><span class="toc-text">Github项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">存在的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E5%88%B6%E7%BD%91%E7%AB%99%E6%B5%8B%E8%AF%95"><span class="toc-text">复制网站测试</span></a></li></ol></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>在业内由于某些不可抗力的因素，我们不得不去做一些麻烦的事情来备份资料。为了尽最大可能挽留那些知识，也就有了这篇文章和最后的脚本。(文章和脚本写的都异常粗糙，希望师傅们不要介意。)</p>
+<p>关于网站复制：</p>
+<p>网站复制，也可称为网站备份。是通过工具将网页上的内容全部保存下来。当然不仅仅只是保存了一个html页面，而是将网页源码内所包含的css、js和静态文件等全部保存，以在本地也可以完整的浏览整个网站。网络上也有一些类似的工具，但使用起来并不理想。于是我打算自己写一个Python脚本，方便个人对网站的备份，也方便一些网络资料的收集。</p>
+<a id="more"></a>
+
+<h2 id="处理并保存单个页面"><a href="#处理并保存单个页面" class="headerlink" title="处理并保存单个页面"></a>处理并保存单个页面</h2><h3 id="网站复制之需要保存的内容"><a href="#网站复制之需要保存的内容" class="headerlink" title="网站复制之需要保存的内容"></a>网站复制之需要保存的内容</h3><p>在开始动手写代码之前，我们需要确定一下要保存下来的内容，以便后期编写脚本来处理。</p>
+<p>暂且分为这么两个部分：</p>
+<ol>
+<li>网页源码(单个页面的html源码)</li>
+<li>css、js与图片文件(静态文件)</li>
+</ol>
+<p>css、js与图片文件的下载地址都是从网页源码中获取得到的，如图：</p>
+<p><img src="https://i.loli.net/2019/12/12/VmOx2BiWqSCGPkY.png" alt="pic_01.png"></p>
+<p>内容似乎不是很多，就只需要把静态文件的下载地址从网页源码中提取出来然后下载保存就行了。但是实际情况会比较麻烦，为什么呢？</p>
+<p>下图是一个静态文件的保存过程，文件在下载保存之前还需要处理相对地址进而得到文件的下载地址以及保存到本地的路径。除此之外，还要对HTML源码中原来的相对地址进行替换，让文件内容在本地也能够正常的使用并显示。这也是保存网页相对来说复杂的地方，在获取链接之后我们来看看如何处理这个情况。</p>
+<p><img src="https://i.loli.net/2019/12/12/oxnLjWqgrFNDiMy.png" alt="pic_02.png"></p>
+<h3 id="网站复制之链接的提取"><a href="#网站复制之链接的提取" class="headerlink" title="网站复制之链接的提取"></a>网站复制之链接的提取</h3><p>有了一个页面的链接，就可以通过这个链接获取HTML源码进而获取各类文件的相对地址。相较于路径处理，这里的方式就简单直接很多。用beautifulsoup直接获取标签，再获取链接即可。过程如图：</p>
+<p><img src="https://i.loli.net/2019/12/12/5xB8DsHlgLFebtf.png" alt="pic_04.png"></p>
+<p>通过构造一个ExtractLinks()函数来获取一个网页内所有同类标签的同种参数。可以节省一些重复的语句，方面获取到css、js、img、a标签的url地址。</p>
+<p>这里的过滤的内容如下：</p>
+<ol>
+<li>去重复</li>
+<li>丢弃无效url地址如：#、javascript伪协议等</li>
+</ol>
+<p>那获取了链接之后就需要对路径进行处理了。</p>
+<h3 id="网站复制之路径的处理"><a href="#网站复制之路径的处理" class="headerlink" title="网站复制之路径的处理"></a>网站复制之路径的处理</h3><p>在网页源码当中，相对地址的形式有很多种情况。</p>
+<p>需要正常应对的相对地址形式有多少种呢？ 用图片文件作为一个例子，简单总结了一些如下：</p>
+<table>
+<thead>
+<tr>
+<th align="left"></th>
+<th align="left">页面地址</th>
+<th align="left">源码中地址</th>
+<th align="left">下载地址</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">None</td>
+<td align="left">None</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">#</td>
+<td align="left">None</td>
+</tr>
+<tr>
+<td align="left">3</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">test/a.jpg</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/test/a.jpg">https://example.com/c/d/test/a.jpg</a></td>
+</tr>
+<tr>
+<td align="left">4</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">./test/a.jpg</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/test/a.jpg">https://example.com/c/d/test/a.jpg</a></td>
+</tr>
+<tr>
+<td align="left">5</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">../a.jpg</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/a.jpg">https://example.com/c/a.jpg</a></td>
+</tr>
+<tr>
+<td align="left">6</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">//example.com/a.jpg</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/a.jpg">https://example.com/a.jpg</a></td>
+</tr>
+<tr>
+<td align="left">7</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/a.jpg">https://example.com/a.jpg</a></td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/a.jpg">https://example.com/a.jpg</a></td>
+</tr>
+<tr>
+<td align="left">8</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">/test?id=1</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/test?id=1">https://example.com/test?id=1</a></td>
+</tr>
+<tr>
+<td align="left">9</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">/./a.jpg</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/a.jpg">https://example.com/a.jpg</a></td>
+</tr>
+<tr>
+<td align="left">10</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://example.com/c/d/a.html">https://example.com/c/d/a.html</a></td>
+<td align="left">data:image/png;base64,…</td>
+<td align="left">data:image/png;base64,…</td>
+</tr>
+</tbody></table>
+<p>(在确定的形式之外又会有很多种我们不能预测的情况。对于那些不确定的地址，就直接作丢弃处理。)</p>
+<p>从相对地址的类型也能看出来，要写处理的代码的话会有很多不同的情况，每种情况基本都需要进行单独的处理，并且其中的逻辑也是稍微有点绕。</p>
+<p>这里我们建立一个ProcessResourcePath的函数来处理文件相对地址的关系</p>
+<p>处理链接时需要的传入参数：</p>
+<ol>
+<li>页面地址：用于获取源码中的文件地址，并根据url的层级关系确定图片保存的路径。</li>
+<li>图片地址：根据页面地址与图片地址确定图片的下载地址</li>
+</ol>
+<p>返回的参数：</p>
+<ol>
+<li>页面地址</li>
+<li>图片地址</li>
+<li>图片的下载地址</li>
+<li>替换的图片地址</li>
+<li>保存的路径</li>
+<li>图片地址的类型(方便DEBUG)</li>
+</ol>
+<p>函数处理的过程如图：</p>
+<p><img src="https://i.loli.net/2019/12/12/PLRYgk5iCDbG7OB.png" alt="pic_03.png"></p>
+<p>函数解释：</p>
+<ul>
+<li>Md5Encrypt(): 是用作对站外文件的下载链接进行MD5加密，防止重复下载</li>
+<li>GetUrlPart(): 用于获取url中不同部分的值，方便对url的处理</li>
+<li>ProcessResourcePath(): 处理页面地址和图片地址的相对关系</li>
+</ul>
+<p>URL层级关系的处理就不解释了，比较麻烦。如果有对单个过程感兴趣可以直接跟我交流喔。</p>
+<p>通过这个函数的处理之后，保存网页时就变得非常方便。因为你只需要将css、js、图片等文件的链接提取出来进行处理，将处理完的地址进行替换即可。</p>
+<h3 id="网站复制之单个页面的处理与保存"><a href="#网站复制之单个页面的处理与保存" class="headerlink" title="网站复制之单个页面的处理与保存"></a>网站复制之单个页面的处理与保存</h3><p>那在保存单个页面之前，需要往前思考一点。最终的文件都是要保存到一个总文件夹里，这个文件夹的名字得提前确定。我这里想把一个网站保存到以域名为名称的文件夹中，比如 <a target="_blank" rel="noopener" href="http://www.bilibili.com/">www.bilibili.com</a> 的所有页面和资源就全部保存到www_bilibili_com的文件夹里。所以，保存单个页面所需要的参数就为页面的地址，再通过页面的地址获取域名来定义保存的文件夹。</p>
+<p>保存的时候需要将页面html源码中的地址进行替换。</p>
+<ul>
+<li>文件地址替换</li>
+</ul>
+<p>文件和页面都直接保存下来了，该怎么让页面可以正常调用本地的js和显示本地的图片呢？我们需要做的就是将页面中的文件地址都进行替换。</p>
+<p>配合之前的网址处理函数，将页面地址和文件地址通过ProcessResourcePath处理后得到适配本地的地址，然后进行替换即可。</p>
+<ul>
+<li>链接地址替换</li>
+</ul>
+<p>不止是css、js、图片文件需要处理好相对位置，单个页面也需要处理里面的各个链接。这样在本地就可以在各个页面正常切换。</p>
+<p>因为在服务器上的页面是动态生成的，我们把网页保存下来后，都应该修改为.html结尾的文件，于是就有这几种情况：</p>
+<ol>
+<li>以.html结尾的 =&gt; 直接以原文件名保存</li>
+<li>以.php等不适.html结尾的 =&gt; 在原来的文件名后添加.html后缀保存</li>
+<li>没有文件名的  =&gt; 保存为index.html</li>
+</ol>
+<p>在保存单个页面的时候进行一次这样的处理，在链接地址替换的时候对a标签内的地址也进行一次这样的处理就可以保证各个页面的地址之间的正常交互了。(对链接的处理仅限于同一个子域名)</p>
+<h3 id="保存文件的总结"><a href="#保存文件的总结" class="headerlink" title="保存文件的总结"></a>保存文件的总结</h3><p>保存并处理一个网页，就是要保证css、js、图片文件能够正常调用与显示。并且链接能够与多个页面进行交互。</p>
+<h2 id="获取网站的所有页面"><a href="#获取网站的所有页面" class="headerlink" title="获取网站的所有页面"></a>获取网站的所有页面</h2><h3 id="获取网站的所有页面的链接"><a href="#获取网站的所有页面的链接" class="headerlink" title="获取网站的所有页面的链接"></a>获取网站的所有页面的链接</h3><p>通过前面的内容，已经可以获取到单个页面的所有内容，并且可以较好的处理里面的链接关系。那该怎么获取得到整个网站的所有页面呢？</p>
+<p>非常的简单粗暴，就是遍历所有链接！(也没想到其他好的方式了)</p>
+<p>遍历网页url流程图：</p>
+<p><img src="https://i.loli.net/2019/12/12/WalmHwtD4RxhvgK.png" alt="pic_05.png"></p>
+<p>通过这个方式把网站所有的url获取到，然后批量进行单个页面的保存即可。</p>
+<h3 id="加快获取链接与保存文件的速度"><a href="#加快获取链接与保存文件的速度" class="headerlink" title="加快获取链接与保存文件的速度"></a>加快获取链接与保存文件的速度</h3><p>为了加快获取网站所有页面的链接和保存每个页面的文件，我们需要使用多线程和协程来加快执行效率。</p>
+<p>我使用的是自己写的一个简单的协程框架：</p>
+<p><a target="_blank" rel="noopener" href="https://threezh1.com/2019/08/22/%E7%AE%80%E5%8D%95%E7%9A%84%E5%8D%8F%E7%A8%8B%E5%88%A9%E7%94%A8%E6%A1%86%E6%9E%B6/">协程初体验之简单的利用框架</a></p>
+<p>这个框架的流程如下图所示：</p>
+<p><img src="https://i.loli.net/2019/08/22/1fUmqKRNigF89DV.png" alt="images"></p>
+<p>框架写的比较简陋，修改一下是可以直接用到复制网站脚本里面的。具体内容可以进文章里面细看。</p>
+<p>通过协程，可以显著加快获取网站所有页面与保存单个页面的速度。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="Github项目"><a href="#Github项目" class="headerlink" title="Github项目"></a>Github项目</h3><p>文章中各个部分的代码实现都在一个python脚本当中，github仓库地址如下：</p>
+<p>SiteCopy: <a target="_blank" rel="noopener" href="https://github.com/Threezh1/SiteCopy">https://github.com/Threezh1/SiteCopy</a></p>
+<ul>
+<li>使用命令：</li>
+</ul>
+<p>复制单个页面：</p>
+<p><code>python sitecopy.py -u &quot;https://threezh1.com&quot;</code></p>
+<p>复制整个网站(-t设置线程)：</p>
+<p><code>python sitecopy.py -u &quot;https://threezh1.com&quot; -e -t 30</code></p>
+<p>声明：</p>
+<p>对互联网任何网站的复制需在取得授权后方可进行，若使用者因此做出危害网络安全的行为后果自负，与作者无关，特此声明。</p>
+<h3 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h3><ol>
+<li>目录替换时在有些情况下会进行多次替换导致页面无法正常显示</li>
+<li>网站或图床有防爬措施时无法正常保存</li>
+<li>网络问题导致脚本无法正常执行</li>
+</ol>
+<p>非常希望能够和师傅们共同交流对这些问题的解决方式，我的邮箱：<a href="mailto:&#x6d;&#97;&#x6b;&#101;&#x66;&#x6f;&#120;&#109;&#64;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;">&#x6d;&#97;&#x6b;&#101;&#x66;&#x6f;&#120;&#109;&#64;&#113;&#x71;&#x2e;&#x63;&#x6f;&#109;</a></p>
+<h3 id="复制网站测试"><a href="#复制网站测试" class="headerlink" title="复制网站测试"></a>复制网站测试</h3><ul>
+<li>复制自己的博客：<a target="_blank" rel="noopener" href="https://threezh1.com/">https://threezh1.com</a> 花费时间：2分钟48秒</li>
+</ul>
+<p>运行截图：</p>
+<p><img src="https://s2.ax1x.com/2019/12/12/QcnOp9.jpg" alt="pic_11.jpg"></p>
+<p>目录截图：</p>
+<p><img src="https://i.loli.net/2019/12/12/MRmv4licZCb5OzD.jpg" alt="pic_07.jpg"></p>
+<p>页面截图：</p>
+<p><img src="https://i.loli.net/2019/12/12/4ydL371zCEiVJnZ.jpg" alt="pic_06.jpg"></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

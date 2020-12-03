@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Linux学习笔记
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0-%E9%83%A8%E7%BD%B2%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85Linux%E7%B3%BB%E7%BB%9F"><span class="toc-text">第一章,部署虚拟环境安装Linux系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RPM-%E7%BA%A2%E5%B8%BD%E8%BD%AF%E4%BB%B6%E5%8C%85%E7%AE%A1%E7%90%86%E5%99%A8"><span class="toc-text">RPM(红帽软件包管理器)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Yum%E8%BD%AF%E4%BB%B6%E4%BB%93%E5%BA%93"><span class="toc-text">Yum软件仓库</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0-%E6%96%B0%E6%89%8B%E5%BF%85%E9%A1%BB%E6%8E%8C%E6%8F%A1%E7%9A%84Linux%E5%91%BD%E4%BB%A4"><span class="toc-text">第二章,新手必须掌握的Linux命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%B3%BB%E7%BB%9F%E5%B7%A5%E4%BD%9C%E5%91%BD%E4%BB%A4"><span class="toc-text">常用系统工作命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E7%8A%B6%E6%80%81%E6%A3%80%E6%B5%8B%E5%91%BD%E4%BB%A4"><span class="toc-text">系统状态检测命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E7%9B%AE%E5%BD%95%E5%88%87%E6%8D%A2%E5%91%BD%E4%BB%A4"><span class="toc-text">工作目录切换命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E6%9C%AC%E6%96%87%E4%BB%B6%E7%BC%96%E8%BE%91%E5%91%BD%E4%BB%A4"><span class="toc-text">文本文件编辑命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E7%AE%A1%E7%90%86%E5%91%BD%E4%BB%A4"><span class="toc-text">文件目录管理命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E5%8E%8B%E7%BC%A9%E4%B8%8E%E6%90%9C%E7%B4%A2%E5%91%BD%E4%BB%A4"><span class="toc-text">打包压缩与搜索命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E7%AB%A0-%E7%AE%A1%E9%81%93%E7%AC%A6%E3%80%81%E9%87%8D%E5%AE%9A%E5%90%91%E4%B8%8E%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">第三章,管道符、重定向与环境变量</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-text">输入输出重定向</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%A1%E9%81%93%E5%91%BD%E4%BB%A4%E7%AC%A6"><span class="toc-text">管道命令符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%9A%84%E9%80%9A%E9%85%8D%E7%AC%A6"><span class="toc-text">命令行的通配符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E8%BD%AC%E4%B9%89%E5%AD%97%E7%AC%A6"><span class="toc-text">常用的转义字符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E8%A6%81%E7%9A%84%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">重要的环境变量</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E7%AB%A0-Vim%E7%BC%96%E8%BE%91%E5%99%A8%E4%B8%8EShell%E5%91%BD%E4%BB%A4%E8%84%9A%E6%9C%AC"><span class="toc-text">第四章,Vim编辑器与Shell命令脚本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Vim%E6%96%87%E6%9C%AC%E7%BC%96%E8%BE%91%E5%99%A8"><span class="toc-text">Vim文本编辑器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E5%86%99Shell%E8%84%9A%E6%9C%AC"><span class="toc-text">编写Shell脚本</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%A4%E6%96%AD%E7%94%A8%E6%88%B7%E7%9A%84%E5%8F%82%E6%95%B0"><span class="toc-text">判断用户的参数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6%E8%AF%AD%E5%8F%A5"><span class="toc-text">流程控制语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E6%9C%8D%E5%8A%A1%E7%A8%8B%E5%BA%8F"><span class="toc-text">计划任务服务程序</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%94%E7%AB%A0-%E7%94%A8%E6%88%B7%E8%BA%AB%E4%BB%BD%E4%B8%8E%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90"><span class="toc-text">第五章,用户身份与文件权限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E8%BA%AB%E4%BB%BD%E4%B8%8E%E8%83%BD%E5%8A%9B"><span class="toc-text">用户身份与能力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90%E4%B8%8E%E5%BD%92%E5%B1%9E"><span class="toc-text">文件权限与归属</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E7%9A%84%E7%89%B9%E6%AE%8A%E6%9D%83%E9%99%90"><span class="toc-text">文件的特殊权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E7%9A%84%E9%9A%90%E8%97%8F%E5%B1%9E%E6%80%A7"><span class="toc-text">文件的隐藏属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E5%88%97%E8%A1%A8%EF%BC%9A"><span class="toc-text">文件访问控制列表：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#su%E5%91%BD%E4%BB%A4%E4%B8%8Esudo%E5%91%BD%E4%BB%A4"><span class="toc-text">su命令与sudo命令</span></a></li></ol></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="第一章-部署虚拟环境安装Linux系统"><a href="#第一章-部署虚拟环境安装Linux系统" class="headerlink" title="第一章,部署虚拟环境安装Linux系统"></a>第一章,部署虚拟环境安装Linux系统</h2><h3 id="RPM-红帽软件包管理器"><a href="#RPM-红帽软件包管理器" class="headerlink" title="RPM(红帽软件包管理器)"></a>RPM(红帽软件包管理器)</h3><p>常用命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">安装软件		rpm -ivh filename.rpm</span><br><span class="line">升级软件		rpm -Uvh filename.rpm</span><br><span class="line">卸载软件		rpm -e filename.rpm</span><br><span class="line">查询软件描述信息	rpm -qpi filename.rpm</span><br><span class="line">列出软件文件信息	rpm -qpi filename.rpm</span><br><span class="line">查询文件属于哪个RPM	rpm -qf filename.rpm</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="Yum软件仓库"><a href="#Yum软件仓库" class="headerlink" title="Yum软件仓库"></a>Yum软件仓库</h3><p>常用Yum命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">yum repolist all			列出所有仓库</span><br><span class="line">yum list all				列出仓库中所有软件包</span><br><span class="line">yum info 软件包名称			查看软件包信息</span><br><span class="line">yum install 软件包名称		安装软件包</span><br><span class="line">yum reinstall 软件包名称		重新安装软件包</span><br><span class="line">yum update 软件包名称		升级软件包</span><br><span class="line">yum remove 软件包名称		移除软件包</span><br><span class="line">yum clean all				移除所有仓库缓存</span><br><span class="line">yum check-update			检查可更新的软件包</span><br><span class="line">yum grouplist				查看系统中已经安装的软件包组</span><br><span class="line">yum groupinstall 软件包组	安装指定的软件包组</span><br><span class="line">yum groupremove 软件包组		移除指定的软件包组</span><br><span class="line">yum groupinfo	软件包组		查询指定的软件包组信息</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="第二章-新手必须掌握的Linux命令"><a href="#第二章-新手必须掌握的Linux命令" class="headerlink" title="第二章,新手必须掌握的Linux命令"></a>第二章,新手必须掌握的Linux命令</h2><h3 id="常用系统工作命令"><a href="#常用系统工作命令" class="headerlink" title="常用系统工作命令"></a>常用系统工作命令</h3><ul>
+<li>1, echo 命令</li>
+</ul>
+<p>echo 命令用于在终端输出字符串或变量提取后的值，格式为“echo [字符串 | $变量]”。</p>
+<p>输出字符串：echo Hello World!!!</p>
+<p>提取变量SHELL的值：echo $SHELL</p>
+<ul>
+<li>2, date 命令</li>
+</ul>
+<p>date 命令用于显示及设置系统的时间或日期，格式为<code>date [选项] [+指定的格式]</code>。</p>
+<p>date 命令中的参数以及作用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">%t 	跳格[Tab键]</span><br><span class="line">%H 	小时（00～23）</span><br><span class="line">%I 	小时（00～12）</span><br><span class="line">%M 	分钟（00～59）</span><br><span class="line">%S 	秒（00～59）</span><br><span class="line">%j 	今年中的第几天</span><br></pre></td></tr></table></figure>
+
+<p>查看当前系统时间：date</p>
+<p>date 命令中输入以“+”号开头的参数，即可按照指定格式来输出系统的时间或日期</p>
+<p>按照“年-月-日 小时:分钟:秒”的格式查看当前系统时间：<br><code>date &quot;+%Y-%m-%d %H:%M:%S&quot;</code></p>
+<p>将系统的当前时间设置为 2017 年 9 月 1 日 8 点 30 分的 date 命令:<br><code>date -s &quot;20170901 8:30:00&quot;</code></p>
+<p>再次使用 date 命令并按照默认的格式查看当前的系统时间:<br><code>date</code></p>
+<p>date 命令中的参数%j 可用来查看今天是当年中的第几天。这个参数能够很好地区分备份时<br>间的新旧，即数字越大，越靠近当前时间。<br><code>date &quot;+%j&quot;</code></p>
+<ul>
+<li>3, reboot 命令</li>
+</ul>
+<p>重启计算机</p>
+<ul>
+<li>4, poweroff 命令</li>
+</ul>
+<p>关闭系统</p>
+<ul>
+<li>5, wget 命令</li>
+</ul>
+<p>wget 命令用于在终端中下载网络文件，格式为“wget [参数] 下载地址”。</p>
+<p>wget命令的参数以及作用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-b 后台下载模式</span><br><span class="line">-P 下载到指定目录</span><br><span class="line">-t 最大尝试次数</span><br><span class="line">-c 断点续传</span><br><span class="line">-p 下载页面内所有资源，包括图片、视频等</span><br><span class="line">-r 递归下载</span><br></pre></td></tr></table></figure>
+
+<p>下载一个pdf文档：<code>wget http://www.linuxprobe.com/docs/LinuxProbe.pdf</code></p>
+<p>使用 wget 命令递归下载 <code>www.linuxprobe.com</code> 网站内的所有页面数据以及<br>文件，下载完后会自动保存到当前路径下一个名为 <code>www.linuxprobe.com</code> 的目录中。</p>
+<p><code>wget -r -p http://www.linuxprobe.com，</code></p>
+<ul>
+<li>6, ps 命令</li>
+</ul>
+<p>ps 命令用于查看系统中的进程状态，格式为“ps [参数]”。</p>
+<p>ps命令的参数以及作用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-a 显示所有进程（包括其他用户的进程）</span><br><span class="line">-u 用户以及其他详细信息</span><br><span class="line">-x 显示没有控制终端的进程</span><br></pre></td></tr></table></figure>
+
+<p>Linux系统中进程状态：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">R(运行)		进程正在运行或在运行队列中等待。</span><br><span class="line">S(中断)		进程处于休眠中，当某个条件形成后或者接收到信号时，则脱离该状态。</span><br><span class="line">D(不可中断)	进程不响应系统异步信号，即便用 kill 命令也不能将其中断。</span><br><span class="line">Z(僵死)		进程已经终止，但进程描述符依然存在, 直到父进程调用 wait4()系统函数后将进程释放。</span><br><span class="line">T(停止)		进程收到停止信号后停止运行。</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>7, top 命令</li>
+</ul>
+<p>top 命令用于动态地监视进程活动与系统负载等信息，其格式为 top。</p>
+<p>第 1 行：系统时间、运行时间、登录终端数、系统负载（三个数值分别为 1 分钟、5分钟、15 分钟内的平均值，数值越小意味着负载越低）。  </p>
+<p>第 2 行：进程总数、运行中的进程数、睡眠中的进程数、停止的进程数、僵死的进程数。 </p>
+<p>第 3 行：用户占用资源百分比、系统内核占用资源百分比、改变过优先级的进程资源百分比、空闲的资源百分比等。  </p>
+<p>第 4 行：物理内存总量、内存使用量、内存空闲量、作为内核缓存的内存量。</p>
+<p>第 5 行：虚拟内存总量、虚拟内存使用量、虚拟内存空闲量、已被提前加载的内存量。</p>
+<ul>
+<li>8, pidof 命令</li>
+</ul>
+<p>pidof 命令用于查询某个指定服务进程的 PID 值，格式为<code>pidof [参数] [服务名称]</code>。</p>
+<ul>
+<li>9, kill 命令</li>
+</ul>
+<p>kill 命令用于终止某个指定 PID 的服务进程，格式为<code>kill [参数] [进程 PID]</code>。</p>
+<ul>
+<li>10, killall 命令</li>
+</ul>
+<p>killall 命令用于终止某个指定名称的服务所对应的全部进程，格式为：<code>killall [参数] [服务名称]</code>。</p>
+<h3 id="系统状态检测命令"><a href="#系统状态检测命令" class="headerlink" title="系统状态检测命令"></a>系统状态检测命令</h3><ul>
+<li>1, ifconfig 命令</li>
+</ul>
+<p>ifconfig 命令用于获取网卡配置与网络状态等信息，格式为<code>ifconfig [网络设备] [参数]”</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">主要查看的就是</span><br><span class="line">网卡名称、</span><br><span class="line">inet 参数后面的 IP 地址、</span><br><span class="line">ether 参数后面的网卡物理地址（又称为 MAC 地址），</span><br><span class="line">以及 RX、TX 的接收数据包与发送数据包的个数及累计流量</span><br><span class="line"></span><br><span class="line">eno16777728: flags&#x3D;4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        ether 00:0c:29:26:b9:b3  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 45  bytes 4992 (4.8 KiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 0  bytes 0 (0.0 B)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line"></span><br><span class="line">lo: flags&#x3D;73&lt;UP,LOOPBACK,RUNNING&gt;  mtu 65536</span><br><span class="line">        inet 127.0.0.1  netmask 255.0.0.0</span><br><span class="line">        inet6 ::1  prefixlen 128  scopeid 0x10&lt;host&gt;</span><br><span class="line">        loop  txqueuelen 0  (Local Loopback)</span><br><span class="line">        RX packets 770  bytes 62348 (60.8 KiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 770  bytes 62348 (60.8 KiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>2, uname 命令</li>
+</ul>
+<p>uname 命令用于查看系统内核与系统版本等信息，格式为“uname [-a]”。</p>
+<p>如果要查看当前系统版本的详细信息，则需要查看 redhat-release 文件，其命令以及相应的结果如下：</p>
+<p><code>cat /etc/redhat-release</code></p>
+<ul>
+<li>3, uptime 命令</li>
+</ul>
+<p>uptime 用于查看系统的负载信息，格式为 uptime。</p>
+<ul>
+<li>4, free 命令</li>
+</ul>
+<p>free 用于显示当前系统中内存的使用量信息，格式为“free [-h]”。</p>
+<ul>
+<li>5, who 命令</li>
+</ul>
+<p>who 用于查看当前登入主机的用户终端信息，格式为“who [参数]”。</p>
+<ul>
+<li>6, last 命令</li>
+</ul>
+<p>last 命令用于查看所有系统的登录记录，格式为“last [参数]”。</p>
+<ul>
+<li>7, history 命令</li>
+</ul>
+<p>history 命令用于显示历史执行过的命令，格式为“history [-c]”。</p>
+<p>历史命令会被保存到用户家目录中的.bash_history 文件中。</p>
+<p><code>cat ~/.bash_history</code></p>
+<p>清空历史记录信息： <code>history -c</code></p>
+<ul>
+<li>8, sosreport 命令</li>
+</ul>
+<p>sosreport 命令用于收集系统配置及架构信息并输出诊断文档，格式为 sosreport。</p>
+<h3 id="工作目录切换命令"><a href="#工作目录切换命令" class="headerlink" title="工作目录切换命令"></a>工作目录切换命令</h3><ul>
+<li>1, pwd 命令</li>
+</ul>
+<p>pwd 命令用于显示用户当前所处的工作目录，格式为“pwd [选项]”。</p>
+<ul>
+<li>2, cd 命令</li>
+</ul>
+<p>cd 命令用于切换工作路径，格式为“cd [目录名称]”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd - 命令回到上一次所处的目录</span><br><span class="line">cd. 命令进入上级目录</span><br><span class="line">cd ~ 命令切换到当前用户的家目录</span><br><span class="line">cd 路径</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>3, ls 命令</li>
+</ul>
+<p>ls 命令用于显示目录中的文件信息，格式为<code>ls [选项] [文件]</code>。</p>
+<p>使用 ls 命令的“-a”参数看到全部文件（包括隐藏文件），使用“-l”参数可以查看文件的属性、大小等详细信息。</p>
+<p><code>ls -al</code></p>
+<p>查看目录属性信息，则需要额外添加一个-d 参数。</p>
+<p><code>ls -ld /etc</code></p>
+<h3 id="文本文件编辑命令"><a href="#文本文件编辑命令" class="headerlink" title="文本文件编辑命令"></a>文本文件编辑命令</h3><ul>
+<li>1, cat 命令</li>
+</ul>
+<p>cat 命令用于查看纯文本文件（内容较少的），格式为<code>cat [选项] [文件]</code>。</p>
+<p>如果在查看文本内容时还想顺便显示行号的话，可以在 cat 命令后面追加一个-n 参数</p>
+<p><code>cat -n initial-setup-ks.cfg</code></p>
+<ul>
+<li>2, more 命令</li>
+</ul>
+<p>more 命令用于查看纯文本文件（内容较多的），格式为“more [选项]文件”。</p>
+<p>对于长篇的文本内容，推荐使用 more 命令来查看。more 命令会在最下面使用百分比的形式来提示您已经阅读了多少内容。您还可以使用空格键或回车键向下翻页。</p>
+<p><code> more initial-setup-ks.cfg</code></p>
+<ul>
+<li>3, head 命令</li>
+</ul>
+<p>head 命令用于查看纯文本文档的前 N 行，格式为<code>head [选项] [文件]</code>。</p>
+<p><code>head -n 20 initial-setup-ks.cfg</code></p>
+<ul>
+<li>4, tail 命令</li>
+</ul>
+<p>tail 命令用于查看纯文本文档的后 N 行或持续刷新内容，格式为<code>tail [选项] [文件]</code>。</p>
+<p>tail 命令最强悍的功能是可以持续刷新一个文件的内容，当想要实时查看最新日志文件时，这特别有用，此时的命令格式为“tail -f 文件名”：</p>
+<p><code>tail -f /var/log/messages</code></p>
+<ul>
+<li>5, tr 命令</li>
+</ul>
+<p>tr 命令用于替换文本文件中的字符，格式为<code>tr [原始字符] [目标字符]</code>。</p>
+<p>可以先使用 cat 命令读取待处理的文本，然后通过管道符（详见第 3 章）把这些文本内容传递给 tr 命令进行替换操作即可。例如，把某个文本内容中的英文全部替换为大写</p>
+<p><code>cat anaconda-ks.cfg | tr [a-z] [A-Z]</code></p>
+<ul>
+<li>6, wc 命令</li>
+</ul>
+<p>wc 命令用于统计指定文本的行数、字数、字节数，格式为“wc [参数] 文本”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-l 只显示行数</span><br><span class="line">-w 只显示单词数</span><br><span class="line">-c 只显示字节数</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>7, stat 命令</li>
+</ul>
+<p>stat 命令用于查看文件的具体存储信息和时间等信息，格式为“stat 文件名称”。</p>
+<ul>
+<li>8, cut 命令</li>
+</ul>
+<p>cut 命令用于按“列”提取文本字符，格式为“cut [参数] 文本”。</p>
+<p>使用-f 参数来设置需要看的列数，使用-d 参数来设置间隔符号。</p>
+<p>读取两行： <code>head -n 2 /etc/passwd</code>    </p>
+<p>读取按：间隔的第一列文本：<code>cut -d: -f1 /etc/passwd</code></p>
+<ul>
+<li>9, diff命令</li>
+</ul>
+<p>diff 命令用于比较多个文本文件的差异，格式为“diff [参数] 文件”。</p>
+<p>来使用 diff –brief 命令显示比较后的结果，判断文件是否相同：</p>
+<p><code>diff --brief diff_A.txt diff_B.txt</code></p>
+<p>使用带有-c 参数的 diff 命令来描述文件内容具体的不同：</p>
+<p><code>diff -c diff_A.txt diff_B.txt</code></p>
+<h3 id="文件目录管理命令"><a href="#文件目录管理命令" class="headerlink" title="文件目录管理命令"></a>文件目录管理命令</h3><ul>
+<li>1, touch 命令</li>
+</ul>
+<p>touch 命令用于创建空白文件或设置文件的时间，格式为<code>touch [选项] [文件]</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-a 仅修改“读取时间”（atime）</span><br><span class="line">-m 仅修改“修改时间”（mtime）</span><br><span class="line">-d 同时修改 atime 与 mtime</span><br></pre></td></tr></table></figure>
+
+<p>先使用 ls 命令查看一个文件的修改时间，然后修改这个文件，最后再通过 touch命令把修改后的文件时间设置成修改之前的时间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ls -l wordpress.txt</span><br><span class="line">echo &quot;This is a test!!!&quot; &gt;&gt; wordpress.txt</span><br><span class="line">ls -l wordpress.txt</span><br><span class="line">touch -d &quot;2019-2-25 20:06&quot; wordpress.txt</span><br><span class="line">ls -l wordpress.txt</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>2, mkdir 命令</li>
+</ul>
+<p>mkdir 命令用于创建空白的目录，格式为“mkdir [选项] 目录”</p>
+<p>除了能创建单个空白目录外，mkdir命令还可以结合-p 参数来递归创建出具有嵌套叠层关系的文件目录。</p>
+<p><code>mkdir -p a/b/c/d/e</code></p>
+<ul>
+<li>3, cp 命令</li>
+</ul>
+<p>cp 命令用于复制文件或目录，格式为“cp [选项] 源文件 目标文件”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-p 保留原始文件的属性</span><br><span class="line">-d 若对象为“链接文件”，则保留该“链接文件”的属性</span><br><span class="line">-r 递归持续复制（用于目录）</span><br><span class="line">-i 若目标文件存在则询问是否覆盖</span><br><span class="line">-a 相当于-pdr（p、d、r 为上述参数）</span><br></pre></td></tr></table></figure>
+
+<p>使用 touch 创建一个名为 install.log 的普通空白文件，然后将其复制为一份名为x.log 的备份文件。</p>
+<p><code>cp install.log x.log</code></p>
+<ul>
+<li>4, mv 命令</li>
+</ul>
+<p>mv 命令用于剪切文件或将文件重命名，格式为“mv [选项] 源文件 [目标路径|目标文件名]”。</p>
+<ul>
+<li>5, rm 命令</li>
+</ul>
+<p>rm 命令用于删除文件或目录，格式为“rm [选项] 文件”。</p>
+<p>在 Linux 系统中删除文件时，系统会默认向您询问是否要执行删除操作，如果不想总是看到这种反复的确认信息，可在 rm 命令后跟上-f 参数来强制删除。</p>
+<p><code>rm -f linux.log</code></p>
+<ul>
+<li>6, dd 命令</li>
+</ul>
+<p>dd 命令用于按照指定大小和个数的数据块来复制文件或转换文件，格式为“dd [参数]”。</p>
+<ul>
+<li>7 file 命令</li>
+</ul>
+<p>file 命令用于查看文件的类型，格式为“file 文件名”。</p>
+<h3 id="打包压缩与搜索命令"><a href="#打包压缩与搜索命令" class="headerlink" title="打包压缩与搜索命令"></a>打包压缩与搜索命令</h3><ul>
+<li>1, tar 命令</li>
+</ul>
+<p>tar 命令用于对文件进行打包压缩或解压，格式为<code>tar [选项] [文件]</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">-c 创建压缩文件</span><br><span class="line">-x 解开压缩文件</span><br><span class="line">-t 查看压缩包内有哪些文件</span><br><span class="line">-z 用 Gzip 压缩或解压</span><br><span class="line">-j 用 bzip2 压缩或解压</span><br><span class="line">-v 显示压缩或解压的过程</span><br><span class="line">-f 目标文件名</span><br><span class="line">-p 保留原始的权限与属性</span><br><span class="line">-P 使用绝对路径来压缩</span><br><span class="line">-C 指定解压到的目录</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tar -czvf 压缩包名称.tar.gz 要打包的目录</span><br><span class="line">tar -xzvf 压缩包名称.tar.gz 要解压的目录</span><br><span class="line">tar -czvf etc.tar.gz &#x2F;etc</span><br><span class="line">tar xzvf etc.tar.gz -C &#x2F;root&#x2F;etc</span><br></pre></td></tr></table></figure>
+
+<p>-C 参数用于指定要解压到哪个指定的目录。-f 参数特别重要，它必须放到参数的最后一位，代表要压缩或解压的软件包名称。</p>
+<ul>
+<li>2, grep 命令</li>
+</ul>
+<p>grep 命令用于在文本中执行关键词搜索，并显示匹配的结果，格式为<code>grep [选项] [文件]</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-b 将可执行文件（binary）当作文本文件（text）来搜索</span><br><span class="line">-c 仅显示找到的行数</span><br><span class="line">-i 忽略大小写</span><br><span class="line">-n 显示行号</span><br><span class="line">-v 反向选择—仅列出没有“关键词”的行</span><br></pre></td></tr></table></figure>
+
+<p>-n 参数用来显示搜索到信息的行号；-v 参数用于反选信息（即没有包含关键词的所有信息行）。</p>
+<p>使用 grep 命令来查找出当前系统中不允许登录系统的所有用户信息:</p>
+<p><code>grep /sbin/nologin /etc/passwd</code></p>
+<ul>
+<li>3, find 命令</li>
+</ul>
+<p>find 命令用于按照指定条件来查找文件，格式为“find [查找路径] 寻找条件 操作”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">-name 匹配名称</span><br><span class="line">-perm 匹配权限（mode 为完全匹配，-mode 为包含即可）</span><br><span class="line">-user 匹配所有者</span><br><span class="line">-group 匹配所有组</span><br><span class="line">-mtime -n +n 匹配修改内容的时间（-n 指 n 天以内，+n 指 n 天以前）</span><br><span class="line">-atime -n +n 匹配访问文件的时间（-n 指 n 天以内，+n 指 n 天以前）</span><br><span class="line">-ctime -n +n 匹配修改文件权限的时间（-n 指 n 天以内，+n 指 n 天以前）</span><br><span class="line">-nouser 匹配无所有者的文件</span><br><span class="line">-nogroup 匹配无所有组的文件</span><br><span class="line">-newer f1 !f2 匹配比文件 f1 新但比 f2 旧的文件</span><br><span class="line">--type</span><br><span class="line">b&#x2F;d&#x2F;c&#x2F;p&#x2F;l&#x2F;f</span><br><span class="line">匹配文件类型（后面的字母参数依次表示块设备、目录、字符设备、管</span><br><span class="line">道、链接文件、文本文件）</span><br><span class="line">-size</span><br><span class="line">匹配文件的大小（+50KB 为查找超过 50KB 的文件，而-50KB 为查找小</span><br><span class="line">于 50KB 的文件）</span><br><span class="line">-prune 忽略某个目录</span><br><span class="line">-exec …… &#123;&#125;\; 后面可跟用于进一步处理搜索结果的命令（下文会有演示）</span><br></pre></td></tr></table></figure>
+
+<p>Linux 系统中的配置文件会保存到/etc 目录中（详见第 6 章）。如果要想获取到该目录中所有以 host 开头的文件列表，可以执行如下命令：</p>
+<p><code>find /etc -name &quot;host*&quot; -print</code></p>
+<h2 id="第三章-管道符、重定向与环境变量"><a href="#第三章-管道符、重定向与环境变量" class="headerlink" title="第三章,管道符、重定向与环境变量"></a>第三章,管道符、重定向与环境变量</h2><h3 id="输入输出重定向"><a href="#输入输出重定向" class="headerlink" title="输入输出重定向"></a>输入输出重定向</h3><p>输入重定向是指把文件导入到命令中，而输出重定向则是指把原本要输出到屏幕的数据信息写入到指定文件中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">标准输入重定向（STDIN，文件描述符为 0）：默认从键盘输入，也可从其他文件或命令中输入。</span><br><span class="line">标准输出重定向（STDOUT，文件描述符为 1）：默认输出到屏幕。</span><br><span class="line">错误输出重定向（STDERR，文件描述符为 2）：默认输出到屏幕。</span><br></pre></td></tr></table></figure>
+
+<p>输入重定向中用到的符号及其作用:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">命令 &lt; 文件 				将文件作为命令的标准输入</span><br><span class="line">命令 &lt;&lt; 分界符 			从标准输入中读入，直到遇见分界符才停止</span><br><span class="line">命令 &lt; 文件 1 &gt; 文件 2 	将文件 1 作为命令的标准输入并将标准输出到文件 2</span><br></pre></td></tr></table></figure>
+
+<p>输出重定向中用到的符号及其作用:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">命令 &gt; 文件 		将标准输出重定向到一个文件中（清空原有文件的数据）</span><br><span class="line">命令 2&gt; 文件 	将错误输出重定向到一个文件中（清空原有文件的数据）</span><br><span class="line">命令 &gt;&gt; 文件 	将标准输出重定向到一个文件中（追加到原有内容的后面）</span><br><span class="line">命令 2&gt;&gt; 文件 	将错误输出重定向到一个文件中（追加到原有内容的后面）</span><br><span class="line">命令 &gt;&gt; 文件 2&gt;&amp;1或</span><br><span class="line">命令 &amp;&gt;&gt; 文件</span><br><span class="line">				将标准输出与错误输出共同写入到文件中（追加到原有内容的后面）</span><br></pre></td></tr></table></figure>
+
+<h3 id="管道命令符"><a href="#管道命令符" class="headerlink" title="管道命令符"></a>管道命令符</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">找出被限制登录用户的命令是 grep &quot;&#x2F;sbin&#x2F;nologin&quot; &#x2F;etc&#x2F;passwd；</span><br><span class="line">统计文本行数的命令则是 wc -l。</span><br></pre></td></tr></table></figure>
+
+<p>用翻页的形式查看/etc 目录中的文件列表及属性信息</p>
+<p><code>ls -l /etc/ | more</code></p>
+<h3 id="命令行的通配符"><a href="#命令行的通配符" class="headerlink" title="命令行的通配符"></a>命令行的通配符</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">通配符就是通用的匹配信息的符号，比如星号（*）代表匹配零个或多个字符，问号（?）代表匹配单个字符，中括号内加上数字[0-9]代表匹配 0～9 之间的单个数字的字符，而中括号内加上字母[abc]则是代表匹配 a、b、c 三个字符中的任意一个字符。</span><br><span class="line"></span><br><span class="line">匹配所有在&#x2F;dev 目录中且以 sda 开头的文件：</span><br><span class="line"></span><br><span class="line">ls -l &#x2F;dev&#x2F;sda*</span><br><span class="line"></span><br><span class="line">只想查看文件名为 sda 开头，但是后面还紧跟其他某一个字符的文件的相关信息.</span><br><span class="line"></span><br><span class="line">ls -l &#x2F;dev&#x2F;sda?</span><br><span class="line"></span><br><span class="line">除了使用[0-9]来匹配 0~9 之间的单个数字，也可以用[135]这样的方式仅匹配这三个指定</span><br><span class="line">数字中的一个，若没有匹配到，则不会显示出来.</span><br><span class="line"></span><br><span class="line">ls -l &#x2F;dev&#x2F;sda[0-9]</span><br></pre></td></tr></table></figure>
+
+<h3 id="常用的转义字符"><a href="#常用的转义字符" class="headerlink" title="常用的转义字符"></a>常用的转义字符</h3><p>4 个最常用的转义字符：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">反斜杠（\）：使反斜杠后面的一个变量变为单纯的字符串。</span><br><span class="line">单引号（&#39;&#39;）：转义其中所有的变量为单纯的字符串。</span><br><span class="line">双引号（&quot;&quot;）：保留其中的变量属性，不进行转义处理。</span><br><span class="line">反引号（&#96;&#96;）：把其中的命令执行后返回结果。</span><br></pre></td></tr></table></figure>
+
+<p>先定义一个名为 PRICE 的变量并赋值为 5，然后输出以双引号括起来的字符串与变量信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">THREE&#x3D;3</span><br><span class="line">echo &quot;I&#39;m $THREE&quot;</span><br></pre></td></tr></table></figure>
+<h3 id="重要的环境变量"><a href="#重要的环境变量" class="headerlink" title="重要的环境变量"></a>重要的环境变量</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">HOME 用户的主目录（即家目录）</span><br><span class="line">SHELL 用户在使用的 Shell 解释器名称</span><br><span class="line">HISTSIZE 输出的历史命令记录条数</span><br><span class="line">HISTFILESIZE 保存的历史命令记录条数</span><br><span class="line">MAIL 邮件保存路径</span><br><span class="line">LANG 系统语言、语系名称</span><br><span class="line">RANDOM 生成一个随机数字</span><br><span class="line">PS1 Bash 解释器的提示符</span><br><span class="line">PATH 定义解释器搜索用户执行命令的路径</span><br><span class="line">EDITOR 用户默认的文本编辑器</span><br></pre></td></tr></table></figure>
+
+<p>以使用 export 命令将其提升为全局变量，这样其他用户也就可以使用它了</p>
+<p><code>export WORKDIR</code></p>
+<h2 id="第四章-Vim编辑器与Shell命令脚本"><a href="#第四章-Vim编辑器与Shell命令脚本" class="headerlink" title="第四章,Vim编辑器与Shell命令脚本"></a>第四章,Vim编辑器与Shell命令脚本</h2><h3 id="Vim文本编辑器"><a href="#Vim文本编辑器" class="headerlink" title="Vim文本编辑器"></a>Vim文本编辑器</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">命令模式：控制光标移动，可对文本进行复制、粘贴、删除和查找等工作。</span><br><span class="line">输入模式：正常的文本录入。</span><br><span class="line">末行模式：保存或退出文档，以及设置编辑环境。</span><br><span class="line"></span><br><span class="line">命令模式：</span><br><span class="line">	a,i,o等键：输入模式</span><br><span class="line">	：键		末行模式</span><br><span class="line">	ESC返回命令模式</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Vim 中常用的命令：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">dd 删除（剪切）光标所在整行</span><br><span class="line">5dd 删除（剪切）从光标处开始的 5 行</span><br><span class="line">yy 复制光标所在整行</span><br><span class="line">5yy 复制从光标处开始的 5 行</span><br><span class="line">n 显示搜索命令定位到的下一个字符串</span><br><span class="line">N 显示搜索命令定位到的上一个字符串</span><br><span class="line">u 撤销上一步的操作</span><br><span class="line">p 将之前删除（dd）或复制（yy）过的数据粘贴到光标后面</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>末行模式中可用的命令：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">:w 保存</span><br><span class="line">:q 退出</span><br><span class="line">:q! 强制退出（放弃对文档的修改内容）</span><br><span class="line">:wq! 强制保存退出</span><br><span class="line">:set nu 显示行号</span><br><span class="line">:set nonu 不显示行号</span><br><span class="line">:命令 执行该命令</span><br><span class="line">:整数 跳转到该行</span><br><span class="line">:s&#x2F;one&#x2F;two 将当前光标所在行的第一个 one 替换成 two</span><br><span class="line">:s&#x2F;one&#x2F;two&#x2F;g 将当前光标所在行的所有 one 替换成 two</span><br><span class="line">:%s&#x2F;one&#x2F;two&#x2F;g 将全文中的所有 one 替换成 two</span><br><span class="line">?字符串 在文本中从下至上搜索该字符串</span><br><span class="line">&#x2F;字符串 在文本中从上至下搜索该字符串</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>配置主机名称：</li>
+</ul>
+<ol>
+<li>使用 Vim 编辑器修改“/etc/hostname”主机名称文件。</li>
+<li>把原始主机名称删除后追加“linuxprobe.com”。注意，使用 Vim 编辑器修改主机名称文件后，要在末行模式下执行:wq!命令才能保存并退出文档。</li>
+<li>保存并退出文档，然后使用 hostname 命令检查是否修改成</li>
+</ol>
+<ul>
+<li>配置网卡信息：</li>
+</ul>
+<ol>
+<li>首先切换到/etc/sysconfig/network-scripts 目录中（存放着网卡的配置文件）。</li>
+<li>使用 Vim 编辑器修改网卡文件 ifcfg-eno16777736，逐项写入下面的配置参数并保存退出。由于每台设备的硬件及架构是不一样的，因此请读者使用 ifconfig 命令自行确认各自网卡的默认名称。 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">设备类型：TYPE&#x3D;Ethernet</span><br><span class="line">地址分配模式：BOOTPROTO&#x3D;static</span><br><span class="line">网卡名称：NAME&#x3D;eno16777736</span><br><span class="line">是否启动：ONBOOT&#x3D;yes</span><br><span class="line">IP 地址：IPADDR&#x3D;192.168.10.10</span><br><span class="line">子网掩码：NETMASK&#x3D;255.255.255.0</span><br><span class="line">网关地址：GATEWAY&#x3D;192.168.10.1</span><br><span class="line">DNS 地址：DNS1&#x3D;192.168.10.1</span><br></pre></td></tr></table></figure></li>
+<li>重启网络服务并测试网络是否联通。进入到网卡配置文件所在的目录，然后编辑网卡配置文件，在其中填入下面的信息： <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd &#x2F;etc&#x2F;sysconfig&#x2F;network-scripts&#x2F;</span><br><span class="line">vim ifcfg-eno16777736</span><br><span class="line">systemctl restart network</span><br><span class="line">ping 192.168.10.10</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>配置Yum软件仓库</li>
+</ul>
+<ol>
+<li>进入到/etc/yum.repos.d/目录中（因为该目录存放着 Yum 软件仓库的配置文件）。</li>
+<li>使用 Vim 编辑器创建一个名为 rhel7.repo 的新配置文件（文件名称可随意，但后缀必须为.repo），逐项写入下面加粗的配置参数并保存退出（不要写后面的中文注释）。 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[rh2l-media]:Yum 软件仓库唯一标识符，避免与其他仓库冲突。</span><br><span class="line">name&#x3D;linuxprobe:Yum 软件仓库的名称描述，易于识别仓库用处。</span><br><span class="line">baseurl&#x3D;file:&#x2F;&#x2F;&#x2F;media&#x2F;cdrom:提供的方式包括 FTP（ftp:&#x2F;&#x2F;..）、HTTP（http:&#x2F;&#x2F;..）、本地（file:&#x2F;&#x2F;&#x2F;..）。</span><br><span class="line">enabled&#x3D;1:设置此源是否可用；1 为可用，0 为禁用。</span><br><span class="line">gpgcheck&#x3D;1:设置此源是否校验文件；1 为校验，0 为不校验。</span><br><span class="line">gpgkey&#x3D;file:&#x2F;&#x2F;&#x2F;media&#x2F;cdrom&#x2F;RPM-GPG-KEY-redhat-release:若上面参数开启校验，那么请指定公钥文件地址。</span><br></pre></td></tr></table></figure></li>
+<li>按配置参数的路径挂载光盘，并把光盘挂载信息写入到/etc/fstab 文件中。 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p &#x2F;media&#x2F;cdrom</span><br><span class="line">mount &#x2F;dev&#x2F;cdrom &#x2F;media&#x2F;cdrom</span><br><span class="line">vim &#x2F;etc&#x2F;fstab</span><br><span class="line">yum install httpd</span><br></pre></td></tr></table></figure></li>
+<li>使用“yum install httpd -y”命令检查 Yum 软件仓库是否已经可用</li>
+</ol>
+<p>尝试使用 Yum 软件仓库来安装 Web 服务，出现 Complete！则代表配置正确.</p>
+<h3 id="编写Shell脚本"><a href="#编写Shell脚本" class="headerlink" title="编写Shell脚本"></a>编写Shell脚本</h3><p>交互式（Interactive）：用户每输入一条命令就立即执行。</p>
+<p>批处理（Batch）：由用户事先编写好一个完整的 Shell 脚本，Shell 会一次性执行脚本中诸多的命令。</p>
+<p>echo $SHELL 输出当前命令终端解释器</p>
+<ul>
+<li>编写简单的脚本： (查看当前所在工作路径并列出当前目录下所有的文件及属性信息)</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">#For Example BY linuxprobe.com</span><br><span class="line">pwd</span><br><span class="line">ls -al</span><br></pre></td></tr></table></figure>
+
+<p>第一行的脚本声明（#!）用来告诉系统使用哪种 Shell 解释器来执行该脚本;</p>
+<p>第二行的注释信息（#）是对脚本功能和某些命令的介绍信息;</p>
+<p>第三、四行的可执行语句也就是我们平时执行的 Linux 命令了。</p>
+<ul>
+<li>接收用户的参数：</li>
+</ul>
+<p>内设的用于接受参数的变量：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$0 对应的是当前 Shell 脚本程序的名称</span><br><span class="line">$# 对应的是总共有几个参数</span><br><span class="line">$* 对应的是所有位置的参数值</span><br><span class="line">$? 对应的是显示上一次命令的执行返回值</span><br><span class="line">而$1、$2、$3……则分别对应着第 N 个位置的参数值</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">#For Example BY linuxprobe.com</span><br><span class="line">script&#39;s name is $0&quot;</span><br><span class="line">echo &quot;All we have $# parameter, which is $*.&quot;</span><br><span class="line">echo &quot;The first parameter is $1, the fifth is $5.&quot;</span><br></pre></td></tr></table></figure>
+
+<h4 id="判断用户的参数"><a href="#判断用户的参数" class="headerlink" title="判断用户的参数"></a>判断用户的参数</h4><p>测试语句的格式： [ 条件表达式 ]</p>
+<p>按照测试对象来划分，条件测试语句可以分为 4 种：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">文件测试语句；</span><br><span class="line">逻辑测试语句；</span><br><span class="line">整数值比较语句；</span><br><span class="line">字符串比较语句。</span><br></pre></td></tr></table></figure>
+
+<p>文件测试所用的参数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-d 测试文件是否为目录类型</span><br><span class="line">-e 测试文件是否存在</span><br><span class="line">-f 判断是否为一般文件</span><br><span class="line">-r 测试当前用户是否有权限读取</span><br><span class="line">-w 测试当前用户是否有权限写入</span><br><span class="line">-x 测试当前用户是否有权限执行</span><br></pre></td></tr></table></figure>
+
+<p>面使用文件测试语句来判断/etc/fstab 是否为一个目录类型的文件，然后通过 Shell 解释器的内设$?变量显示上一条命令执行后的返回值。如果返回值为 0，则目录存在；如果返回值为非零的值，则意味着目录不存在：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ -d &#x2F;etc&#x2F;fstab ]</span><br><span class="line">echo $?</span><br></pre></td></tr></table></figure>
+
+<p>再使用文件测试语句来判断/etc/fstab 是否为一般文件，如果返回值为 0，则代表文件存在，且为一般文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@linuxprobe ~]# [ -f &#x2F;etc&#x2F;fstab ]</span><br><span class="line">[root@linuxprobe ~]# echo $?</span><br></pre></td></tr></table></figure>
+
+<p>在 Shell终端中逻辑“与”的运算符号是&amp;&amp;，它表示当前面的命令执行成功后才会执行它后面的命令.</p>
+<p>判断/dev/cdrom 文件是否存在，若存在则输出 Exist 字样。</p>
+<p><code>[ -e /dev/cdrom ] &amp;&amp; echo &quot;Exist&quot;</code></p>
+<p>逻辑“或”，它在 Linux 系统中的运算符号为||，表示当前面的命令执行失败后才会执行它后面的命令.</p>
+<p>“非”，在 Linux 系统中的运算符号是一个叹号（！），它表示把条件测试中的判断结果取相反值。</p>
+<p>来结合系统环境变量 USER 来判断当前登录的用户是否为非管理员身份：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">echo $USER</span><br><span class="line">[ $USER &#x3D; root ] || echo &quot;user&quot;</span><br><span class="line">[ ! $USER &#x3D; root ] || echo &quot;user&quot;</span><br><span class="line"></span><br><span class="line">[ ! $USER &#x3D; root ] &amp;&amp; echo &quot;user&quot; || echo &quot;root&quot;</span><br></pre></td></tr></table></figure>
+
+<p>可用的整数比较运算符：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">-eq 是否等于</span><br><span class="line">-ne 是否不等于</span><br><span class="line">-gt 是否大于</span><br><span class="line">-lt 是否小于</span><br><span class="line">-le 是否等于或小于</span><br><span class="line">-ge 是否大于或等于</span><br></pre></td></tr></table></figure>
+
+<p>10 是否大于 10 以及 10 是否等于 10（通过输出的返回值内容来判断）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[ 10 -gt 10]</span><br><span class="line">[ 10 -eq 10 ]</span><br></pre></td></tr></table></figure>
+
+<p>来先使用 free -m 命令查看内存使用量情况（单位为 MB），然后通过 grep Mem:命令过滤出剩余内存量的行，再用 awk ‘{print $4}’命令只保留第四列，最后用 FreeMem=<code>语句</code>的方式把语句内执行的结果赋值给变量。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FreeMem&#x3D;&#96;free -m | grep Mem: | awk &#39;&#123;print $4&#125;&#39;&#96;</span><br></pre></td></tr></table></figure>
+
+<p>使用整数运算符来判断内存可用量的值是否小于 1024，若小于则会提示“Insufficient Memory”（内存不足）的字样：</p>
+<p><code>[ $FreeMem -lt 1024 ] &amp;&amp; echo &quot;Insufficient Memory&quot;</code></p>
+<p>字符串比较语句用于判断测试字符串是否为空值，或两个字符串是否相同。它经常用来判断某个变量是否未被定义（即内容为空值）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x3D; 比较字符串内容是否相同</span><br><span class="line">!&#x3D; 比较字符串内容是否不同</span><br><span class="line">-z 判断字符串内容是否为空</span><br></pre></td></tr></table></figure>
+
+<p>过判断 String 变量是否为空值，进而判断是否定义了这个变量。<code>[ -z $String]</code></p>
+<h3 id="流程控制语句"><a href="#流程控制语句" class="headerlink" title="流程控制语句"></a>流程控制语句</h3><ul>
+<li>if 语句</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">if 条件测试操作</span><br><span class="line">	then 命令序列</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">DIR&#x3D;&quot;&#x2F;media&#x2F;cdrom&quot;</span><br><span class="line">if [ ! -e $DIR ]</span><br><span class="line">then</span><br><span class="line">mkdir -p $DIR</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">判断是否创建成功：</span><br><span class="line"></span><br><span class="line">bash mkcdrom.sh</span><br><span class="line">ls -d &#x2F;media&#x2F;cdrom</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if 条件测试操作</span><br><span class="line">	then 命令序列1</span><br><span class="line">	else 命令序列2</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if 条件测试操作1</span><br><span class="line">	then 命令序列1</span><br><span class="line">elif 条件测试操作2</span><br><span class="line">	then 命令序列2</span><br><span class="line">else</span><br><span class="line">	命令序列3</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<p>使用双分支的 if 条件语句来验证某台主机是否在线，然后根据返回值的结果，要么显示主机在线信息，要么显示主机不在线信息。</p>
+<p>脚本主要使用 ping 命令来测试与对方主机的网络联通性，而 Linux 系统中的 ping 命令不像 Windows 一样尝试 4 次就结束，因此为了避免用户等待时间过长，<strong>需要通过-c 参数来规定尝试的次数，并使用-i 参数定义每个数据包的发送间隔，以及使用-W 参数定义等待超时时间。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">ping -c 3 -i 0.2 -w 3 $1 &amp;&gt; &#x2F;dev&#x2F;null</span><br><span class="line">if [ $? -eq 0 ]</span><br><span class="line">then</span><br><span class="line">echo &quot;Host $1 is On-line.&quot;</span><br><span class="line">else</span><br><span class="line">echo &quot;Host $1 is Off-line&quot;</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">Test:bash chkhost.sh 192.168.10.10</span><br></pre></td></tr></table></figure>
+
+<p>read 是用来读取用户输入信息的命令，能够把接收到的用户输入信息赋值给后面的指定变量，-p 参数用于向用户显示一定的提示信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">read -p &quot;Enter your score (0-100): &quot; GRADE</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>for 条件循环语句：</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for 变量名 in 取值列表</span><br><span class="line">do</span><br><span class="line">	命令序列</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<p>来编写 Shell 脚本 Example.sh。在脚本中使用 read 命令读取用户输入的密码值，然后赋值给 PASSWD 变量，并通过-p 参数向用户显示一段提示信息，告诉用户正在输入的内容即将作为账户密码。在执行该脚本后，会自动使用从列表文件 users.txt 中获取到所有的用户名称，然后逐一使用“id 用户名”命令查看用户的信息，并使用$?判断这条命令是否执行成功，也就是判断该用户是否已经存在。</p>
+<p><code>/dev/null 是一个被称作 Linux 黑洞的文件，把输出信息重定向到这个文件等同于删除数据（类似于没有回收功能的垃圾箱</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#/bin/bash</span></span><br><span class="line"><span class="built_in">read</span> -p <span class="string">&quot;Enter The Users Password : &quot;</span> PASSWD</span><br><span class="line"><span class="keyword">for</span> UNAME <span class="keyword">in</span> `cat users.txt`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">id <span class="variable">$UNAME</span> &amp;&gt; /dev/null</span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Already exists&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">useradd <span class="variable">$UNAME</span> &amp;&gt; /dev/null</span><br><span class="line"><span class="comment">## 存在疑问</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$PASSWD</span>&quot;</span> | passwd --stdin <span class="variable">$UNAME</span> &amp;&gt; /dev/null</span><br><span class="line"><span class="comment">## passwd --stdin? 这是一条修改密码的命令，为$UNAME用户的密码修改为$PSSWD。</span></span><br><span class="line"><span class="keyword">if</span> [ $? -eq 0 ]</span><br><span class="line"><span class="keyword">then</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$UNAME</span>, Create success&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$UNAME</span>, Create failure&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<p>让脚本从文本中自动读取主机列表，然后自动逐个测试这些主机是否在线。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">HLIST &#x3D; $(cat ~&#x2F;ipadds.txt)</span><br><span class="line">for IP in $HLIST</span><br><span class="line">do</span><br><span class="line">ping -c 3 -i 0.2 -w 3 $IP &amp;&gt; &#x2F;dev&#x2F;null</span><br><span class="line">if [ $? -eq 0 ] ; then</span><br><span class="line">echo &quot;Host $IP is On-line.&quot;</span><br><span class="line">else</span><br><span class="line">echo &quot;Host $IP is Off-line.&quot;</span><br><span class="line">fi</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">192.168.10.10</span><br><span class="line">192.168.10.11</span><br><span class="line">192.168.10.12</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>while 条件循环语句</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">while 条件测试操作</span><br><span class="line">do</span><br><span class="line">	命令序列</span><br><span class="line">done</span><br><span class="line"></span><br><span class="line">exit 0 退出循环</span><br><span class="line"></span><br><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">PRICE&#x3D;$(expr $RANDOM % 1000)</span><br><span class="line">TIMES&#x3D;0</span><br><span class="line">echo &quot;商品实际价格为 0-999 之间，猜猜看是多少？&quot;</span><br><span class="line">while true</span><br><span class="line">do</span><br><span class="line">read -p &quot;请输入您猜测的价格数目：&quot; INT</span><br><span class="line">let TIMES++</span><br><span class="line">if [ $INT -eq $PRICE ] ; then</span><br><span class="line">echo &quot;恭喜您答对了，实际价格是 $PRICE&quot;</span><br><span class="line">echo &quot;您总共猜 g $TIMES 次&quot;</span><br><span class="line">exit 0</span><br><span class="line">elif [ $INT -gt $PRICE ] ; then</span><br><span class="line">echo &quot;太高了！&quot;</span><br><span class="line">else</span><br><span class="line">echo &quot;太低了！&quot;</span><br><span class="line">fi</span><br><span class="line">done</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>case 条件测试语句</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">case 变量值 in</span><br><span class="line">模式1)</span><br><span class="line">	命令序列 1</span><br><span class="line">	;;</span><br><span class="line">模式2)</span><br><span class="line">	命令序列 2</span><br><span class="line">	;;</span><br><span class="line">	......</span><br><span class="line">*)</span><br><span class="line">	默认命令序列</span><br><span class="line">esac</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#!&#x2F;bin&#x2F;bash</span><br><span class="line">read -p &quot;请输入一个字符，并按 Enter 键确认：&quot; KEY</span><br><span class="line">case &quot;$KEY&quot; in</span><br><span class="line">[a-z]|[A-Z])</span><br><span class="line">echo &quot;您输入的是 字母。&quot;</span><br><span class="line">;;</span><br><span class="line">[0-9])</span><br><span class="line">echo &quot;您输入的是 数字。&quot;</span><br><span class="line">;;</span><br><span class="line">*)</span><br><span class="line">echo &quot;您输入的是 空格、功能键或其他控制字符。&quot;</span><br><span class="line">esac</span><br><span class="line">[root@linuxprobe ~]# bash Checkkeys.sh</span><br><span class="line">请输入一个字符，并按 Enter 键确认：6</span><br><span class="line">您输入的是 数字。</span><br><span class="line">[root@linuxprobe ~]# bash Checkkeys.sh</span><br><span class="line">请输入一个字符，并按 Enter 键确认：p</span><br><span class="line">您输入的是 字母。</span><br><span class="line">[root@linuxprobe ~]# bash Checkkeys.sh</span><br><span class="line">请输入一个字符，并按 Enter 键确认：^[[15~</span><br><span class="line">您输入的是 空格、功能键或其他控制字符。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="计划任务服务程序"><a href="#计划任务服务程序" class="headerlink" title="计划任务服务程序"></a>计划任务服务程序</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">at 时间</span><br><span class="line"></span><br><span class="line">查看已设置好但还未执行的一次性计划任务： at -l</span><br><span class="line"></span><br><span class="line">删除： atrm 任务序号</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>将系统设置为在今晚 23:30 分自动重启网站服务。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">at 23:30</span><br><span class="line"></span><br><span class="line">at &gt; systemctl restart httpd</span><br><span class="line"></span><br><span class="line">at &gt; 此处请同时按下 Ctrl + D 组合键来结束编写计划任务</span><br><span class="line"></span><br><span class="line">echo &quot;systemctl restart httpd&quot; | at 23:30</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>能够周期性地、有规律地执行某些具体的任务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">创建、编辑计划任务的命令为“crontab -e”</span><br><span class="line">查看当前计划任务的命令为“crontab -l”</span><br><span class="line">删除某条计划任务的命令为“crontab -r”</span><br><span class="line">如果您是以管理员的身份登录的系统，还可以在 crontab 命令中加上-u 参数来编辑他人的计划任务。</span><br><span class="line"></span><br><span class="line">在 crond 服务的计划任务参数中，所有命令一定要用绝对路径的方式来写</span><br><span class="line"></span><br><span class="line">如果不知道绝对路径，请用 whereis 命令进行查询，rm 命令路径为下面输出信息中加粗部分。</span><br><span class="line"></span><br><span class="line">格式为：分、时、日、月、星期 命令</span><br><span class="line">(需要注意的是，如果有些字段没有设置，则需要使用星号（*）占位)</span><br><span class="line"></span><br><span class="line">使用 crond 设置任务的参数字段说明:</span><br><span class="line"></span><br><span class="line">分 取值为 0～59 的整数</span><br><span class="line">时 取值为 0～23 的任意整数</span><br><span class="line">日 取值为 1～31 的任意整数</span><br><span class="line">月 取值为 1～12 的任意整数</span><br><span class="line">星期 取值为 0～7 的任意整数，其中 0 与 7 均为星期日</span><br><span class="line">命令 要执行的命令或程序脚本</span><br></pre></td></tr></table></figure>
+
+<p>假设在每周一、三、五的凌晨 3 点 25 分，都需要使用 tar 命令把某个网站的数据目录进行打包处理，使其作为一个备份文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">crontab -e</span><br><span class="line">no crontab for root - using an empty one</span><br><span class="line">crontab: installing new crontab</span><br></pre></td></tr></table></figure>
+
+<p>需要说明的是，除了用逗号（,）来分别表示多个时间段，例如“8,9,12”表示 8 月、9 月和 12 月。还可以用减号（-）来表示一段连续的时间周期（例如字段“日”的取值为“12-15”，则表示每月的 12～15 日）。以及用除号（/）表示执行任务的间隔时间（例如<code>*/2</code>表示每隔2 分钟执行一次任务）</p>
+<p>如果在 crond 服务中需要同时包含多条计划任务的命令语句，应每行仅写一条。</p>
+<p>每周一至周五的凌晨 1 点钟自动清空/tmp 目录内的所有文件。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">whereis em</span><br><span class="line">crontab -e</span><br><span class="line">crontab -l</span><br><span class="line">25 3 * * 1,3,5 &#x2F;usr&#x2F;bin&#x2F;tar -czvf backup.tar.gz &#x2F;home&#x2F;wwwroot</span><br><span class="line">0 1 * * 1-5 &#x2F;usr&#x2F;bin&#x2F;rm -rf &#x2F;tmp&#x2F;*</span><br></pre></td></tr></table></figure>
+
+<h2 id="第五章-用户身份与文件权限"><a href="#第五章-用户身份与文件权限" class="headerlink" title="第五章,用户身份与文件权限"></a>第五章,用户身份与文件权限</h2><h3 id="用户身份与能力"><a href="#用户身份与能力" class="headerlink" title="用户身份与能力"></a>用户身份与能力</h3><ul>
+<li>useradd 命令</li>
+</ul>
+<p>useradd 命令用于创建新的用户，格式为“useradd [选项] 用户名”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-d 指定用户的家目录（默认为&#x2F;home&#x2F;username）</span><br><span class="line">-e 账户的到期时间，格式为 YYYY-MM-DD.</span><br><span class="line">-u 指定该用户的默认 UID</span><br><span class="line">-g 指定一个初始的用户基本组（必须已存在）</span><br><span class="line">-G 指定一个或多个扩展用户组</span><br><span class="line">-N 不创建与用户同名的基本用户组</span><br><span class="line">-s 指定该用户的默认 Shell 解释器</span><br></pre></td></tr></table></figure>
+
+<p>创建一个普通用户并指定家目录的路径、用户的 UID 以及 Shell 解释器。在下面的命令中，请注意/sbin/nologin，它是终端解释器中的一员，与 Bash 解释器有着天壤之别。一旦用户的解释器被设置为 nologin，则代表该用户不能登录到系统中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">useradd -d &#x2F;home&#x2F;linux -u 8888 -s &#x2F;sbin&#x2F;nologin linuxtest</span><br><span class="line">id linuxtest</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>groupadd 命令</li>
+</ul>
+<p>groupadd 命令用于创建用户组，格式为“groupadd [选项] 群组名”。</p>
+<p><code>groupadd ronny</code></p>
+<ul>
+<li>usermod 命令</li>
+</ul>
+<p>usermod 命令用于修改用户的属性，格式为“usermod [选项] 用户名”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">-c 填写用户账户的备注信息</span><br><span class="line">-d -m 参数-m 与参数-d 连用，可重新指定用户的家目录并自动把旧的数据转移过去</span><br><span class="line">-e 账户的到期时间，格式为 YYYY-MM-DD</span><br><span class="line">-g 变更所属用户组</span><br><span class="line">-G 变更扩展用户组</span><br><span class="line">-L 锁定用户禁止其登录系统</span><br><span class="line">-U 解锁用户，允许其登录系统</span><br><span class="line">-s 变更默认终端</span><br><span class="line">-u 修改用户的 UID</span><br></pre></td></tr></table></figure>
+
+<p>后将用户 linuxprobe 加入到 root 用户组中，这样扩展组列表中则会出现 root 用户组的字样，而基本组不会受到影响。</p>
+<p><code>usermod -G root linuxprobe</code></p>
+<p>用-u 参数修改 linuxprobe 用户的 UID 号码值。</p>
+<p><code>usermod -u 8888 linuxprobe</code></p>
+<ul>
+<li>passwd 命令</li>
+</ul>
+<p>passwd 命令用于修改用户密码、过期时间、认证信息等，格式为<code>passwd [选项] [用户名]</code>。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-l 锁定用户，禁止其登录</span><br><span class="line">-u 解除锁定，允许用户登录</span><br><span class="line">--stdin 允许通过标准输入修改用户密码，如 echo &quot;NewPassWord&quot; | passwd --stdinUsername</span><br><span class="line">-d 使该用户可用空密码登录系统</span><br><span class="line">-e 强制用户在下次登录时修改密码</span><br><span class="line">-S 显示用户的密码是否被锁定，以及密码所采用的加密算法名称</span><br><span class="line"></span><br><span class="line">修改自己的密码：passwd</span><br><span class="line">修改别人的密码：passwd linuxprobe</span><br><span class="line">锁定别人的账号：passwd -l linuxprobe</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>userdel 命令</li>
+</ul>
+<p>userdel 命令用于删除用户，格式为“userdel [选项] 用户名”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-f 强制删除用户</span><br><span class="line">-r 同时删除用户及用户家目录</span><br></pre></td></tr></table></figure>
+
+<h3 id="文件权限与归属"><a href="#文件权限与归属" class="headerlink" title="文件权限与归属"></a>文件权限与归属</h3><p>Linux文件类型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-：普通文件。</span><br><span class="line">d：目录文件。</span><br><span class="line">l：链接文件。</span><br><span class="line">b：块设备文件。</span><br><span class="line">c：字符设备文件。</span><br><span class="line">p：管道文件。</span><br><span class="line"></span><br><span class="line">可读（r）、可写（w）、可执行（x）</span><br><span class="line">分别用数字 4、2、1 来表示</span><br><span class="line"></span><br><span class="line">在有这样一个文件，其所有者拥有可读、可写、可执行的权限，其文件所属组拥有可读、可写的权限；而且其他人只有可读的权限。那么，这个文件的权限就是 rwxrw-r--，数字法表示即为 764。</span><br></pre></td></tr></table></figure>
+
+<h3 id="文件的特殊权限"><a href="#文件的特殊权限" class="headerlink" title="文件的特殊权限"></a>文件的特殊权限</h3><p>文件最大的 777 权限（rwxrwxrwx）</p>
+<ul>
+<li>SUID</li>
+</ul>
+<p>SUID 是一种对二进制程序进行设置的特殊权限，可以让二进制程序的执行者临时拥有属主的权限（仅对拥有执行权限的二进制程序有效）。</p>
+<p>查看 passwd 命令属性时发现所有者的权限由 rwx 变成了 rws，其中 x 改变成 s 就意味着该文件被赋予了 SUID 权限。</p>
+<ul>
+<li>SGID</li>
+</ul>
+<p>SGID 主要实现如下两种功能：</p>
+<p>让执行者临时拥有属组的权限（对拥有执行权限的二进制程序进行设置）<br>在某个目录中创建的文件自动继承该目录的用户组（只可以对目录进行设置。</p>
+<p>SGID 的第一种功能是参考 SUID 而设计的，不同点在于执行程序的用户获取的不再是文件所有者的临时权限，而是获取到文件所属组的权限。</p>
+<p>chmod : 设置文件或目录的权限 <code>chmod[参数] 权限 文件或目录名称 chmod -Rf 777 testdir/</code></p>
+<p>chown : 以设置文件或目录的所有者和所属组 <code>chown [参数] 所有者:所属组 文件或目录名称</code>。</p>
+<p><code>chown root:bin test</code></p>
+<p>录进行操作时需要加上大写参数-R 来表示递归操作，即对目录内所有的文件进行整体操作。</p>
+<ul>
+<li>SBIT</li>
+</ul>
+<p>SBIT 特殊权限位可确保用户只能删除自己的文件，而不能删除其他用户的文件。</p>
+<p>当目录被设置 SBIT 特殊权限位后，文件的其他人权限部分的 x 执行权限就会被替换成 t 或者 T，原本有 x 执行权限则会写成 t，原本没有 x 执行权限则会被写成 T。</p>
+<p><code>chmod -R o+t linux/</code></p>
+<h3 id="文件的隐藏属性"><a href="#文件的隐藏属性" class="headerlink" title="文件的隐藏属性"></a>文件的隐藏属性</h3><ul>
+<li>chattr</li>
+</ul>
+<p>chattr 命令用于设置文件的隐藏权限，格式为“chattr [参数] 文件”。</p>
+<p>chattr 命令中用于隐藏权限的参数及其作用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">i 无法对文件进行修改；若对目录设置了该参数，则仅能修改其中的子文件内容而不能新建或删除文件</span><br><span class="line">a 仅允许补充（追加）内容，无法覆盖&#x2F;删除内容（Append Only）</span><br><span class="line">S 文件内容在变更后立即同步到硬盘（sync）</span><br><span class="line">s 彻底从硬盘中删除，不可恢复（用 0 填充原文件所在硬盘区域）</span><br><span class="line">A 不再修改这个文件或目录的最后访问时间（atime）</span><br><span class="line">b 不再修改文件或目录的存取时间</span><br><span class="line">D 检查压缩文件中的错误</span><br><span class="line">d 使用 dump 命令备份时忽略本文件&#x2F;目录</span><br><span class="line">c 默认将文件或目录进行压缩</span><br><span class="line">u 当删除该文件后依然保留其在硬盘中的数据，方便日后恢复</span><br><span class="line">t 让文件系统支持尾部合并（tail-merging）</span><br><span class="line">X 可以直接访问压缩文件中的内容</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>lsattr 命令</li>
+</ul>
+<p>lsattr 命令用于显示文件的隐藏权限，格式为“lsattr [参数] 文件”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ls -al Linuxprobe #不能看到隐藏的权限</span><br><span class="line">lsattr linuxprobe #能看懂隐藏的权限</span><br></pre></td></tr></table></figure>
+
+<h3 id="文件访问控制列表："><a href="#文件访问控制列表：" class="headerlink" title="文件访问控制列表："></a>文件访问控制列表：</h3><ul>
+<li>setfacl 命令</li>
+</ul>
+<p>setfacl 命令用于管理文件的 ACL 规则，格式为“setfacl [参数] 文件名称”。</p>
+<p>其中，针对目录文件需要使用-R 递归参数；针对普通文件则使用-m 参数；如果想要删除某个文件的 ACL，则可以使用-b 参数。</p>
+<p>文件的权限最后一个点（.）变成了加号（+）,这就意味着该文件已经设置了 ACL 了。</p>
+<ul>
+<li>getfacl 命令</li>
+</ul>
+<p>getfacl 命令用于显示文件上设置的 ACL 信息，格式为“getfacl 文件名称”。</p>
+<p><code>getfacl /root</code></p>
+<h3 id="su命令与sudo命令"><a href="#su命令与sudo命令" class="headerlink" title="su命令与sudo命令"></a>su命令与sudo命令</h3><p>从管理员切换到普通用户： <code>su - linuxprobe</code></p>
+<p>su 命令与用户名之间有一个减号（-），这意味着完全切换到新的用户，即把环境变量信息也变更为新用户的相应信息，而不是保留原始的信息。强烈建议在切换用户身份时添加这个减号（-）。</p>
+<p>也可以使用 exit 来返回root权限</p>
+<p>sudo 命令用于给普通用户提供额外的权限来完成原本 root 管理员才能完成的任务，格式为“sudo [参数] 命令名称”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">-h 列出帮助信息</span><br><span class="line">-l 列出当前用户可执行的命令</span><br><span class="line">-u 用户名或 UID 值 以指定的用户身份执行命令</span><br><span class="line">-k 清空密码的有效时间，下次执行 sudo 时需要再次进行密码验证</span><br><span class="line">-b 在后台执行指定的命令</span><br><span class="line">-p 更改询问密码的提示语</span><br><span class="line"></span><br><span class="line">限制用户执行指定的命令：</span><br><span class="line">记录用户执行的每一条命令；</span><br><span class="line">配置文件（&#x2F;etc&#x2F;sudoers）提供集中的用户管理、权限与主机等参数；</span><br><span class="line">验证密码的后 5 分钟内（默认值）无须再让用户再次验证密码。</span><br><span class="line"></span><br><span class="line">部分权限：</span><br><span class="line"></span><br><span class="line">visudo</span><br><span class="line"></span><br><span class="line">96 ##</span><br><span class="line">97 ## Allow root to run any commands anywhere</span><br><span class="line">98 root ALL&#x3D;(ALL) ALL</span><br><span class="line">99 linuxprobe ALL&#x3D;(ALL) &#x2F;usr&#x2F;bin&#x2F;cat</span><br><span class="line"></span><br><span class="line">不用输入一次密码：</span><br><span class="line"></span><br><span class="line">whereis poweroff</span><br><span class="line">poweroff: &#x2F;usr&#x2F;sbin&#x2F;poweroff &#x2F;usr&#x2F;share&#x2F;man&#x2F;man8&#x2F;poweroff.8.gz</span><br><span class="line"></span><br><span class="line">visudo</span><br><span class="line"></span><br><span class="line">………………省略部分文件内容………………</span><br><span class="line">96 ##</span><br><span class="line">97 ## Allow root to run any commands anywhere</span><br><span class="line">98 root ALL&#x3D;(ALL) ALL</span><br><span class="line">99 linuxprobe ALL&#x3D;NOPASSWD: &#x2F;usr&#x2F;sbin&#x2F;poweroff</span><br><span class="line">………………省略部分文件内容………………</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

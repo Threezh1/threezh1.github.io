@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            XSS_01_从浏览器编码开始说起
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%EF%BC%9A"><span class="toc-text">浏览器如何工作：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%B2%E6%9F%93%E5%BC%95%E6%93%8E%EF%BC%9A"><span class="toc-text">渲染引擎：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E6%9E%90%EF%BC%9A"><span class="toc-text">解析：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#HTML%E8%A7%A3%E6%9E%90%E5%99%A8%EF%BC%9A"><span class="toc-text">HTML解析器：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BC%96%E7%A0%81"><span class="toc-text">编码</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="toc-text">编码方式：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E8%A7%A3%E7%A0%81%E5%A4%84%E7%90%86%E6%B5%81"><span class="toc-text">浏览器解码处理流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84%E7%BC%96%E7%A0%81%E8%A1%A8-From-s0md3v"><span class="toc-text">常用的编码表 (From s0md3v)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="toc-text">总结：</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <ul>
+<li><a target="_blank" rel="noopener" href="http://xuelinf.github.io/2016/05/18/%E7%BC%96%E7%A0%81%E4%B8%8E%E8%A7%A3%E7%A0%81-%E6%B5%8F%E8%A7%88%E5%99%A8%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88/">编码与解码-浏览器做了什么</a></li>
+<li><a target="_blank" rel="noopener" href="http://taligarsiel.com/Projects/howbrowserswork1.htm">How browsers work</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/41945326">浏览器的编码与解码-低级解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5b72458a5258">XSS编码绕过之浏览器解析顺序</a></li>
+</ul>
+<p>更多信息可以到文章内细看，这里只做简要记录。</p>
+<a id="more"></a>
+
+<h2 id="浏览器如何工作："><a href="#浏览器如何工作：" class="headerlink" title="浏览器如何工作："></a>浏览器如何工作：</h2><p><strong>浏览器的主要功能：</strong></p>
+<p>通过从服务器请求并在浏览器窗口中显示它来显示您选择的Web资源。资源的位置由用户使用URI（统一资源标识符）指定。</p>
+<p><strong>浏览器的主要组件：</strong></p>
+<ol>
+<li>用户界面</li>
+<li>浏览器引擎 - 用于查询和操作渲染引擎的界面。</li>
+<li>渲染引擎 - 负责显示请求的内容。如解析HTML和CSS并在屏幕上显示解析的内容。</li>
+<li>网络 - 用于网络呼叫，如HTTP请求。它具有平台独立接口和每个平台的底层实现。</li>
+<li>UI后端 - 用于绘制组合框和窗口等基本小部件。它公开了一个非平台特定的通用接口。它下面使用操作系统用户界面方法。</li>
+<li>JavaScript解释器。用于解析和执行JavaScript代码。</li>
+<li>数据存储。这是一个持久层。浏览器需要保存硬盘上的各种数据，例如cookie。新的HTML规范（HTML5）定义了“web数据库”，它是浏览器中一个完整的（尽管很轻的）数据库。</li>
+</ol>
+<p><img src="http://taligarsiel.com/Projects/layers.png" alt="例图"></p>
+<h3 id="渲染引擎："><a href="#渲染引擎：" class="headerlink" title="渲染引擎："></a>渲染引擎：</h3><p>Firefox使用Gecko–一种“自制”Mozilla渲染引擎。Safari和Chrome都使用Webkit。</p>
+<p>Webkit是一个开源渲染引擎，起初是Linux平台的引擎，并由Apple修改以支持Mac和Windows。<a target="_blank" rel="noopener" href="http://webkit.org/">Webkit详细</a></p>
+<p><strong>主要流程：</strong></p>
+<p>渲染引擎将开始从网络层获取所请求文档的内容。这通常是以8K块的形式完成的。</p>
+<p><img src="http://taligarsiel.com/Projects/flow.png" alt="例图"></p>
+<ol>
+<li><p>渲染引擎开始解析HTML文档并将标记转换为名为“内容树”的DOM节点。它解析外部CSS文件和样式元素中的样式数据。样式信息与HTML中的可视指令一起用于创建另一个树 - 渲染树。</p>
+</li>
+<li><p>渲染树包含具有视觉属性（如颜色和尺寸）的矩形。矩形的顺序正确的在屏幕上显示。</p>
+</li>
+<li><p>在构建渲染树之后，它将经历“ 布局 ”过程。这意味着为每个节点提供它应该出现在屏幕上的精确坐标。下一个阶段是绘制 - 将遍历渲染树，并使用UI后端层绘制每个节点。</p>
+</li>
+</ol>
+<p>在开始构建和布局渲染树之前，它不会等到解析所有HTML。将解析和显示部分内容，同时继续处理来自网络的其余内容。</p>
+<p><img src="http://taligarsiel.com/Projects/webkitflow.png" alt="例图"></p>
+<p><strong>Webkit 流程：</strong></p>
+<p><img src="http://taligarsiel.com/Projects/image008.jpg" alt="例图"></p>
+<p><strong>URL 解析器 &gt; HTML 解析器 &gt; CSS 解析器 &gt; JS解析器</strong></p>
+<h3 id="解析："><a href="#解析：" class="headerlink" title="解析："></a>解析：</h3><p><strong>解析器的类型：</strong></p>
+<ol>
+<li>自上向下解析器：会看到语法的高级结构，并尝试匹配其中一个。</li>
+<li>自下而上解析器：从输入开始，逐渐将其转换为语法规则，从低级规则开始，直到满足高级规则。</li>
+</ol>
+<h4 id="HTML解析器："><a href="#HTML解析器：" class="headerlink" title="HTML解析器："></a>HTML解析器：</h4><p>HTML不能轻易解析，不能通过传统解析器解析，因为它的语法不是无上下文语法，也不是XML解析器。</p>
+<p>HTML解析器的工作是将HTML标记解析为解析树。</p>
+<p>HTML定义采用DTD格式。</p>
+<p>HTML5规范详细描述了解析算法。该算法包括两个阶段 - 标记化和树形结构。</p>
+<ul>
+<li>标记化是词法分析，将输入解析为标记。HTML标记包括开始标记，结束标记，属性名称和属性值。</li>
+<li>标记生成器识别标记，将其提供给树构造函数并使用下一个字符来识别下一个标记，依此类推，直到输入结束。</li>
+</ul>
+<p><img src="http://taligarsiel.com/Projects/image017.png" alt="例图"></p>
+<p>两种算法：The tokenization algorithm(标记化算法) AND Tree construction algorithm.(树构造算法)(没有深入了解)</p>
+<p><strong>解析完成后的操作:</strong></p>
+<p>在此阶段，浏览器将文档标记为交互式，并开始解析处于“延迟”模式的脚本 - 在解析文档后应执行的脚本。然后将文档状态设置为“完成”，并将触发“加载”事件。</p>
+<p><strong>其后还包括CSS解析，DOM解析与布局等，这里都不深入了解了。主要了解渲染流程即可。</strong></p>
+<h2 id="编码"><a href="#编码" class="headerlink" title="编码"></a>编码</h2><h3 id="编码方式："><a href="#编码方式：" class="headerlink" title="编码方式："></a>编码方式：</h3><ol>
+<li><p><strong>url编码：</strong></p>
+<p> 标准的url结构是:</p>
+<p> <code>scheme://login:password@address:port/path?quesry_string#fragment</code></p>
+<p> 例：<a target="_blank" rel="noopener" href="http://example.com/test.php?uid=27&amp;content=on#main">http://example.com/test.php?uid=27&amp;content=on#main</a></p>
+<p> 平常的URL：像开头的 “ http: “，协议后面跟一个冒号，还有之后的两个正斜杠” // “, 后面再跟域名，再跟地址，再跟参数字符串，再跟片段id…</p>
+<p> 一些符号非常”常规”，比如冒号，正斜杠，问号…这些都是浏览器/服务器用来解析url用于语义分隔的保留字符，如果出现在url里就会破坏语法，影响正常解析，导致一些问题的发生。</p>
+<p> 于是就有了url编码，因为有些保留字符可能确实有必要需要在url里出现，它以一个百分号%和该字符的ASCII对应的2位十六进制数去替换这些字符</p>
+<p> 一些常见的URL字符以及其编码值： 详情 <a target="_blank" rel="noopener" href="http://www.w3school.com.cn/tags/html_ref_urlencode.html">HTML URL 编码</a></p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">字符		URL编码值</span><br><span class="line">空格		%20</span><br><span class="line">&quot;		%22</span><br><span class="line">#		%23</span><br><span class="line">%		%25</span><br><span class="line">&amp;		%26</span><br><span class="line">(		%28</span><br><span class="line">)		%29</span><br><span class="line">+		%2B</span><br><span class="line">,		%2C</span><br><span class="line">&#x2F;		%2F</span><br><span class="line">:		%3A</span><br><span class="line">;		%3B</span><br><span class="line">&lt;		%3C</span><br><span class="line">&#x3D;		%3D</span><br><span class="line">&gt;		%3E</span><br><span class="line">?		%3F</span><br><span class="line">@		%4o</span><br><span class="line">\		%5C</span><br><span class="line">|		%7C</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ol>
+<ol start="2">
+<li><p><strong>html编码：</strong></p>
+<p> url的问题类似，为了避免在标签内容中出现以及应对某些攻击，某些保留字符出现在文本节点和标签值里是不安全的，比如说多重标签，xss…等等。于是就有了html编码。</p>
+<p> 一般以 &amp; 开头，以分号 ; 结尾</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">常用HTML编码：</span><br><span class="line">结果		描述					实体名称		实体编号</span><br><span class="line">&quot;		quotation mark		&quot;		&amp;#34;</span><br><span class="line">&#39;		apostrophe 			&amp;apos;		&#39;</span><br><span class="line">&amp;		ampersand			&amp;		&amp;#38;</span><br><span class="line">&lt;		less-than			&lt;		&amp;#60;</span><br><span class="line">&gt;		greater-than		&gt;		&amp;#62;</span><br></pre></td></tr></table></figure>
+
+<p> 还可以插入以任意十进制ASCII码或Unicode字符编码，样式为：&amp;#数值;</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">左尖括号 &lt; 写作 &amp;#60</span><br><span class="line">右尖括号 &gt; 写作 &amp;#62;</span><br></pre></td></tr></table></figure>
+
+<p> <a target="_blank" rel="noopener" href="http://www.w3school.com.cn/tags/html_ref_entities.html">HTML ISO-8859-1 参考手册</a><br> <a target="_blank" rel="noopener" href="https://www.jb51.net/onlineread/htmlchar.htm">HTML特殊字符编码对照表</a></p>
+</li>
+<li><p><strong>js编码：</strong></p>
+<p> JS解析（\uxxxx）只支持UNICODE。</p>
+<p> js常见的反斜杠方式编码处理：</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">\b退格符，\t制表符，\v垂直制表符等</span><br><span class="line">3位数字，不足位数用0补充，按8位原字符八进制字符编码，如 \145 代表 e</span><br><span class="line">2位数字，不足位数用0补充，按8位原字符16进制字符编码，前缀 x ，如 \x65 代表 e</span><br><span class="line">4位数字，不足为数用0补充，按16位原字符16进制Unicode数值编码，前缀 u ，如 \u0065 代表 e</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>CSS编码</strong></p>
+<p> CSS的属性和值都可以进行CSS编码和解析，冒号:不可以</p>
+<p> CSS 解析器并不会等到所有的html都解析完成之后再去构建和布局render树。它是解析完一部分内容就显示一部分内容，同时，可能还在通过网络下载其余内容。</p>
+<p> CSS 编码解析是用了一套不太正统的转义策略：用一个反斜杠，后边跟<code>1~6</code>位十六进制数字构成。，所以字母e 可以编码为 \65, \065,\000065。而因为这样，后边就不能直接紧跟数字或字母，否则会被当成转义里的内容处理，所以CSS 选择了空格作为终止标识，在解码的时候，再将空格去除。</p>
+</li>
+</ol>
+<p>5 .<strong>DOM</strong></p>
+<pre><code>一个例子。
+
+`document.getElementById(&quot;pic1&quot;).innerHTML = &quot;&quot;;`
+
+如果将pic1也编码的话，也会先解码再添加到HTML里。
+
+DOM 操作实际上是js强势介入HTML和CSS的结果，导致HTML标签的属性和值都可以做JS编码和解析。</code></pre>
+<h3 id="浏览器解码处理流"><a href="#浏览器解码处理流" class="headerlink" title="浏览器解码处理流"></a>浏览器解码处理流</h3><p>浏览器接收时一般不需要对url进行解码处理，只有在发送后，服务器才需要对url进行解码来确定接收参数和定位资源。</p>
+<p><strong>HTML</strong></p>
+<p><strong>HTML解码是在浏览器构建完DOM树以后才进行解码的</strong></p>
+<p>一段HTML例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;html&gt;</span><br><span class="line">    &lt;h1&gt;Main Title&lt;&#x2F;h1&gt;</span><br><span class="line">    &lt;div class&#x3D;&quot;content&quot;&gt;</span><br><span class="line">        &lt;h2&gt;Second Title&lt;&#x2F;h2&gt;</span><br><span class="line">        &lt;p&gt;Content&lt;&#x2F;p&gt;</span><br><span class="line">    &lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>当我们把<code>&lt;h1&gt;Main Title&lt;/h1&gt;</code>进行编码成：</p>
+<ol>
+<li><code>&lt;&amp;#104;1&gt;Main Title&lt;/h1&gt;</code></li>
+<li><code>&lt;h1&gt;M&amp;#97;in T&amp;#105;tle&lt;/h1&gt;</code></li>
+</ol>
+<p>会发现，第一个没有HTML标签，第二个是正常的。</p>
+<p>当解析器对前者(对标签进行html编码)进行解析时，无法识别为html标签，所以构建不了DOM节点，后者不同，于是成功构建了DOM节点。 而在解析器解析完后，就会进行html解码，于是两者都会解码显示。</p>
+<p><strong>JS编码：</strong></p>
+<p>不管是外部引用还是直接写在script标签里，又或者是在html标签的属性里，对于js编码的解码都是相同的。</p>
+<p>一个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">alert(&quot;Hello World&quot;);</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>编码为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">\u0061lert(&quot;Hello World&quot;);</span><br><span class="line">&lt;&#x2F;script&gt;</span><br><span class="line"></span><br><span class="line">或</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">alert(&quot;\u0048ello World&quot;);</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>js的脚本处理模型是按照 源码处理-函数解析-代码执行这个执行流来的。两种代码都会经过解码再显示出来，所以两种效果都是相同的。</p>
+<p>不能用这种方式来替换掉圆括号或引号，会判定为失败。因为对于JavaScript，转义编码应当只出现在标示符部分，不能用于对语法有真正影响的符号。</p>
+<p><strong>HTML + CSS</strong></p>
+<p>一个例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;div id&#x3D;&quot;content&quot;&gt;&lt;&#x2F;div&gt;</span><br><span class="line"></span><br><span class="line">&lt;img src&#x3D;&quot;y.com&quot; onerror&#x3D;&quot;alert(2)&quot;&#x2F;&gt;</span><br><span class="line">&lt;p&gt;Hello Parser!&lt;&#x2F;p&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">var content &#x3D; document.getElementById(&quot;content&quot;);</span><br><span class="line">var img &#x3D; document.createElement(&quot;img&quot;);</span><br><span class="line">img.src &#x3D;   &quot;x.com&quot;;</span><br><span class="line">img.setAttribute(&quot;onerror&quot;,&quot;&amp;#97;lert(1)&quot;);</span><br><span class="line"></span><br><span class="line">content.appendChild(img);</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>script脚本创建了一个属性src=x.com的img标签，并将其作为id=content的div标签的子元素。</p>
+<p>script脚本中改变了DOM节点树，最后按照顺序解析，先响应2后响应1，如果把script标签移到img标签之前，结果相反。</p>
+<p>浏览器是按一种顺序流执行解析的，html解析完生成DOM树，js解析器会对js编码进行解码，然后对DOM树进行修改，最后修改完的DOM树再进行HTML解码。</p>
+<p><strong>可以触发JS解析器的方式：</strong></p>
+<ul>
+<li>直接嵌入&lt; script&gt; 代码块。</li>
+<li>通过&lt; script sr=… &gt; 加载代码。</li>
+<li>各种HTML CSS 参数支持JavaScript：URL 触发调用。</li>
+<li>CSS expression(…) 语法和某些浏览器的XBL 绑定。</li>
+<li>事件处理器(Event handlers),比如 onload, onerror, onclick等等。</li>
+<li>定时器，Timer(setTimeout, setInterval)</li>
+<li>eval(…) 调用。</li>
+</ul>
+<h3 id="常用的编码表-From-s0md3v"><a href="#常用的编码表-From-s0md3v" class="headerlink" title="常用的编码表 (From s0md3v)"></a>常用的编码表 (From s0md3v)</h3><table>
+<thead>
+<tr>
+<th>HTML</th>
+<th>Char</th>
+<th>Numeric</th>
+<th>Description</th>
+<th>Hex</th>
+<th>CSS (ISO)</th>
+<th>JS (Octal)</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&amp;quot;</code></td>
+<td>“</td>
+<td><code>&amp;#34;</code></td>
+<td>quotation mark</td>
+<td>u+0022</td>
+<td>\0022</td>
+<td>\42</td>
+<td>%22</td>
+</tr>
+<tr>
+<td><code>&amp;num;</code></td>
+<td>#</td>
+<td><code>&amp;#35;</code></td>
+<td>number sign</td>
+<td>u+0023</td>
+<td>\0023</td>
+<td>\43</td>
+<td>%23</td>
+</tr>
+<tr>
+<td><code>&amp;dollar;</code></td>
+<td>$</td>
+<td><code>&amp;#36;</code></td>
+<td>dollar sign</td>
+<td>u+0024</td>
+<td>\0024</td>
+<td>\44</td>
+<td>%24</td>
+</tr>
+<tr>
+<td><code>&amp;percnt;</code></td>
+<td>%</td>
+<td><code>&amp;#37;</code></td>
+<td>percent sign</td>
+<td>u+0025</td>
+<td>\0025</td>
+<td>\45</td>
+<td>%25</td>
+</tr>
+<tr>
+<td><code>&amp;amp;</code></td>
+<td>`&amp;</td>
+<td><code>&amp;#38;</code></td>
+<td>ampersand</td>
+<td>u+0026</td>
+<td>\0026</td>
+<td>\46</td>
+<td>%26</td>
+</tr>
+<tr>
+<td><code>&amp;apos;</code></td>
+<td>‘</td>
+<td><code>&amp;#39;</code></td>
+<td>apostrophe</td>
+<td>u+0027</td>
+<td>\0027</td>
+<td>\47</td>
+<td>%27</td>
+</tr>
+<tr>
+<td><code>&amp;lpar;</code></td>
+<td>(</td>
+<td><code>&amp;#40;</code></td>
+<td>left parenthesis</td>
+<td>u+0028</td>
+<td>\0028</td>
+<td>\50</td>
+<td>%28</td>
+</tr>
+<tr>
+<td><code>&amp;rpar;</code></td>
+<td>)</td>
+<td><code>&amp;#41;</code></td>
+<td>right parenthesis</td>
+<td>u+0029</td>
+<td>\0029</td>
+<td>\51</td>
+<td>%29</td>
+</tr>
+<tr>
+<td><code>&amp;ast;</code></td>
+<td>*</td>
+<td><code>&amp;#42;</code></td>
+<td>asterisk</td>
+<td>u+002A</td>
+<td>\002a</td>
+<td>\52</td>
+<td>%2A</td>
+</tr>
+<tr>
+<td><code>&amp;plus;</code></td>
+<td>+</td>
+<td><code>&amp;#43;</code></td>
+<td>plus sign</td>
+<td>u+002B</td>
+<td>\002b</td>
+<td>\53</td>
+<td>%2B</td>
+</tr>
+<tr>
+<td><code>&amp;comma;</code></td>
+<td>,</td>
+<td><code>&amp;#44;</code></td>
+<td>comma</td>
+<td>u+002C</td>
+<td>\002c</td>
+<td>\54</td>
+<td>%2C</td>
+</tr>
+<tr>
+<td><code>&amp;minus;</code></td>
+<td>-</td>
+<td><code>&amp;#45;</code></td>
+<td>hyphen-minus</td>
+<td>u+002D</td>
+<td>\002d</td>
+<td>\55</td>
+<td>%2D</td>
+</tr>
+<tr>
+<td><code>&amp;period;</code></td>
+<td>.</td>
+<td><code>&amp;#46;</code></td>
+<td>full stop; period</td>
+<td>u+002E</td>
+<td>\002e</td>
+<td>\56</td>
+<td>%2E</td>
+</tr>
+<tr>
+<td><code>&amp;sol;</code></td>
+<td>/</td>
+<td><code>&amp;#47;</code></td>
+<td>solidus; slash</td>
+<td>u+002F</td>
+<td>\002f</td>
+<td>\57</td>
+<td>%2F</td>
+</tr>
+<tr>
+<td><code>&amp;colon;</code></td>
+<td>:</td>
+<td><code>&amp;#58;</code></td>
+<td>colon</td>
+<td>u+003A</td>
+<td>\003a</td>
+<td>\72</td>
+<td>%3A</td>
+</tr>
+<tr>
+<td><code>&amp;semi;</code></td>
+<td>;`</td>
+<td><code>&amp;#59;</code></td>
+<td>semicolon</td>
+<td>u+003B</td>
+<td>\003b</td>
+<td>\73</td>
+<td>%3B</td>
+</tr>
+<tr>
+<td><code>&amp;lt;</code></td>
+<td>&lt;</td>
+<td><code>&amp;#60;</code></td>
+<td>less-than</td>
+<td>u+003C</td>
+<td>\003c</td>
+<td>\74</td>
+<td>%3C</td>
+</tr>
+<tr>
+<td><code>&amp;equals;</code></td>
+<td>=</td>
+<td><code>&amp;#61;</code></td>
+<td>equals</td>
+<td>u+003D</td>
+<td>\003d</td>
+<td>\75</td>
+<td>%3D</td>
+</tr>
+<tr>
+<td><code>&amp;gt;</code></td>
+<td>&gt;</td>
+<td><code>&amp;#62;</code></td>
+<td>greater-than sign</td>
+<td>u+003E</td>
+<td>\003e</td>
+<td>\76</td>
+<td>%3E</td>
+</tr>
+<tr>
+<td><code>&amp;quest;</code></td>
+<td>?</td>
+<td><code>&amp;#63;</code></td>
+<td>question mark</td>
+<td>u+003F</td>
+<td>\003f</td>
+<td>\77</td>
+<td>%3F</td>
+</tr>
+<tr>
+<td><code>&amp;commat;</code></td>
+<td>@</td>
+<td><code>&amp;#64;</code></td>
+<td>at sign; commercial at</td>
+<td>u+0040</td>
+<td>\0040</td>
+<td>\100</td>
+<td>%40</td>
+</tr>
+<tr>
+<td><code>&amp;lsqb;</code></td>
+<td>[</td>
+<td><code>&amp;#91;</code></td>
+<td>left square bracket</td>
+<td>u+005B</td>
+<td>\005b</td>
+<td>\133</td>
+<td>%5B</td>
+</tr>
+<tr>
+<td><code>&amp;bsol;</code></td>
+<td>/</td>
+<td><code>&amp;#92;</code></td>
+<td>backslash</td>
+<td>u+005C</td>
+<td>\005c</td>
+<td>\134</td>
+<td>%5C</td>
+</tr>
+<tr>
+<td><code>&amp;rsqb;</code></td>
+<td>]</td>
+<td><code>&amp;#93;</code></td>
+<td>right square bracket</td>
+<td>u+005D</td>
+<td>\005d</td>
+<td>\135</td>
+<td>%5D</td>
+</tr>
+<tr>
+<td><code>&amp;Hat;</code></td>
+<td>^</td>
+<td><code>&amp;#94;</code></td>
+<td>circumflex accent</td>
+<td>u+005E</td>
+<td>\005e</td>
+<td>\136</td>
+<td>%5E</td>
+</tr>
+<tr>
+<td><code>&amp;lowbar;</code></td>
+<td>_</td>
+<td><code>&amp;#95;</code></td>
+<td>low line</td>
+<td>u+005F</td>
+<td>\005f</td>
+<td>\137</td>
+<td>%5F</td>
+</tr>
+<tr>
+<td><code>&amp;grave;</code></td>
+<td>`</td>
+<td><code>&amp;#96;</code></td>
+<td>grave accent</td>
+<td>u+0060</td>
+<td>\0060</td>
+<td>\u0060</td>
+<td>%60</td>
+</tr>
+<tr>
+<td><code>&amp;lcub;</code></td>
+<td>{</td>
+<td><code>&amp;#123;</code></td>
+<td>left curly bracket</td>
+<td>u+007b</td>
+<td>\007b</td>
+<td>\173</td>
+<td>%7b</td>
+</tr>
+<tr>
+<td><code>&amp;verbar;</code></td>
+<td>|</td>
+<td><code>&amp;#124;</code></td>
+<td>vertical bar</td>
+<td>u+007c</td>
+<td>\007c</td>
+<td>\174</td>
+<td>%7c</td>
+</tr>
+<tr>
+<td><code>&amp;rcub;</code></td>
+<td>}</td>
+<td><code>&amp;#125;</code></td>
+<td>right curly bracket</td>
+<td>u+007d</td>
+<td>\007d</td>
+<td>\175</td>
+<td>%7d</td>
+</tr>
+</tbody></table>
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>大多数都是摘抄于其他文章的，自己所写甚少。只作为一个简要笔记用作以后参考。</p>
+<p>编码过程是一直都想整理的，也是学习XSS过程中必不可少的环节，这笔记也就算是打下XSS的一点基础了。</p>
+<p>XSS的绕过主要是在于以下几个方面(目前的一点拙见)：</p>
+<ol>
+<li>对编码内容的过滤不严格</li>
+<li>对解码，编码的顺序逻辑出错</li>
+<li>待补充</li>
+</ol>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

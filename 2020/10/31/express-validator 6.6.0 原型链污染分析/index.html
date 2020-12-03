@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            express-validator 6.6.0 原型链污染分析
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B"><span class="toc-text">测试用例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%87%E6%BB%A4%E5%99%A8-sanitizer-%E5%AE%9E%E7%8E%B0%E6%B5%81%E7%A8%8B"><span class="toc-text">过滤器(sanitizer)实现流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#lodash-lt-4-17-17-%E5%8E%9F%E5%9E%8B%E9%93%BE%E6%B1%A1%E6%9F%93"><span class="toc-text">lodash &lt; 4.17.17 原型链污染</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#express-validator%E4%B8%ADlodash%E5%8E%9F%E5%9E%8B%E9%93%BE%E6%B1%A1%E6%9F%93%E6%BC%8F%E6%B4%9E%E6%94%BB%E5%87%BB%E9%9D%A2"><span class="toc-text">express-validator中lodash原型链污染漏洞攻击面</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%B7%E6%B1%82%E4%B8%AD%E5%80%BC%E7%9A%84%E4%BC%A0%E5%85%A5%E8%BF%87%E7%A8%8B"><span class="toc-text">请求中值的传入过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#lodash-get%E6%96%B9%E6%B3%95%E4%B8%AD%E8%AF%BB%E5%8F%96%E9%94%AE%E5%80%BC%E7%9A%84%E5%A6%99%E7%94%A8"><span class="toc-text">lodash.get方法中读取键值的妙用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%E6%80%9D%E8%80%83"><span class="toc-text">总结思考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这次在打X-AUCN2020比赛过程中遇到了一道Nodejs原型链污染的题，赛后看到0ops的师傅竟然可以污染任意值，所以想对这个过程进行再次的分析梳理。</p>
+<p>题目中的污染空值过程与污染任意值的payload均参考于比赛中的Writeup：<br><a target="_blank" rel="noopener" href="https://github.com/NeSE-Team/XNUCA2020Qualifier/tree/main/Web/oooooooldjs">https://github.com/NeSE-Team/XNUCA2020Qualifier/tree/main/Web/oooooooldjs</a></p>
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><p>测试例子:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> app = express()</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> port = <span class="number">9000</span></span><br><span class="line"></span><br><span class="line">app.use(express.json())</span><br><span class="line">app.use(express.urlencoded(&#123;</span><br><span class="line">	extended: <span class="literal">true</span></span><br><span class="line">&#125;))</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123;</span><br><span class="line">    body,</span><br><span class="line">    validationResult</span><br><span class="line">&#125; = <span class="built_in">require</span>(<span class="string">&#x27;express-validator&#x27;</span>)</span><br><span class="line"></span><br><span class="line">middlewares = [</span><br><span class="line">    body(<span class="string">&#x27;*&#x27;</span>).trim() <span class="comment">// 对所以键值进行trim处理</span></span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">app.use(middlewares)</span><br><span class="line"></span><br><span class="line">app.post(<span class="string">&quot;/user&quot;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> foo = <span class="string">&quot;hellowrold&quot;</span></span><br><span class="line">    <span class="keyword">return</span> res.status(<span class="number">200</span>).send(foo)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app.listen(port, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">`server listening on <span class="subst">$&#123;port&#125;</span>`</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>依赖包版本：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">npm init</span><br><span class="line">npm install lodash@4.17.16</span><br><span class="line">npm install express-validator@6.6.0</span><br><span class="line">npm install express</span><br></pre></td></tr></table></figure>
+
+<p>express-validator参考：<a target="_blank" rel="noopener" href="https://express-validator.github.io/docs/">https://express-validator.github.io/docs/</a></p>
+<p>在分析这个原型链污染漏洞之前，我们先对express-validator的过滤器(sanitizer)的实现流程进行一个分析。</p>
+<h2 id="过滤器-sanitizer-实现流程"><a href="#过滤器-sanitizer-实现流程" class="headerlink" title="过滤器(sanitizer)实现流程"></a>过滤器(sanitizer)实现流程</h2><p>在src/middlewares/validation-chain-builders.js文件中找到body的实现</p>
+<p><img src="https://i.imgur.com/mK6RsTV.jpg" alt="-w1264"></p>
+<p>传递到了check_1.check方法中，跟入check.js文件</p>
+<p><img src="https://i.imgur.com/U8CJ4uC.jpg" alt="-w1278"></p>
+<p>location传递进来后传递到setLocations方法里创建了一个builder对象，并传入到chain_1.SanitizersImpl方法中。对于return，在题目的Wirteup中有以下的描述：</p>
+<blockquote>
+<p>先看return的地方，check函数里的middleware就是express-validator最终对接express的中间件。utils_1.bindAll函数做的事情就是把对象原型链上的函数绑定成了对象的一个属性，因为Object.assign只做浅拷贝，utils.bindAll之后Object.assign就可以把sanitizers和validators上面的方法都拷贝到middleware上面了，这样就能通过这个middleware调用所有的验证和过滤函数。</p>
+</blockquote>
+<p>针对bindAll，我个人的理解是：bindAll函数就是把需要调用的方法都绑定到middleware上进而实现链式调用。</p>
+<ul>
+<li>什么是链式调用：<a target="_blank" rel="noopener" href="https://juejin.im/post/6844904030221631495">https://juejin.im/post/6844904030221631495</a></li>
+<li>bindAll方法: <a target="_blank" rel="noopener" href="https://my.oschina.net/cangy/blog/301038">https://my.oschina.net/cangy/blog/301038</a></li>
+</ul>
+<p>传入bindAll的参数值是通过Chain_1.SanitizersImpl返回的，可以通过chain.js确定到这个函数的定义位置为src/chain/sanitizers-impl.js。</p>
+<p><img src="https://i.imgur.com/bzCbe7v.jpg" alt="-w1281"></p>
+<p>在这个类中存在很多的过滤器(sanitizer)，过滤器实现的方法都调用了this.addStandardSanitization()将过滤器传入到sanitization_1.Sanitization()方法中，得到的结果最终传递给this.builder.addItem()。</p>
+<p>先来看sanitization_1.Sanitization()方法，位置在：src/context-items/sanitization.js：</p>
+<p><img src="https://i.imgur.com/176loJV.jpg" alt="-w1256"></p>
+<p>这个Sanitization类中的run方法最终通过调用sanitizer方法设置了context的值。(context后面的处理过程在漏洞分析部分)</p>
+<p>再来看this.builder.addItem()做了什么，位置在src/context-builder.js</p>
+<p><img src="https://i.imgur.com/lzUsc0k.jpg" alt="-w1279"></p>
+<p>就是把传入进来的值压入this.stack栈中。</p>
+<p>回到Sanitization类中的run方法，这个run方法是在哪调用的呢？再看到check.js，这里创建了一个runner对象，并在middleware里调用了run方法：</p>
+<p><img src="https://i.imgur.com/YTMt4uc.jpg" alt="-w1289"></p>
+<p>同样可以从chain/index.js中找到实现runner.run方法的具体位置为：</p>
+<p><img src="https://i.imgur.com/bm39pQ6.jpg" alt="-w1252"></p>
+<p>这里可以看到是从context.stack里面循环遍历了contextItem，并调用了其run方法。在这条循环语句处下断点查看一下context的内容：</p>
+<p><img src="https://i.imgur.com/h1k1iBN.jpg" alt="-w984"></p>
+<p>在stack里面就是包含了我们所调用的过滤器，而这个context.stack也就是this.builder.addItem()所设置的值。</p>
+<p>这就是完整的express-validator的过滤器(sanitizer)的实现流程，wp中对这个过程有一个总结：</p>
+<blockquote>
+<p>express-validator的做法是把各种validator和sanitizers的方法绑定到check函数返回的middleware上，这些validator和sanitizer的方法通过往context.stack属性里面push context-items，最终在ContextRunnerImpl.run()方法里遍历context.stack上面的context-items，逐一调用run方法实现validation或者是sanitization</p>
+</blockquote>
+<p>我这里画了一个流程图来梳理这一过程：</p>
+<p><img src="https://i.imgur.com/Nd1gleK.jpg" alt="-w1096"><br>(这个流程图画的比较复杂，如果你尝试跟过一遍的话再来看这个流程图就会比较容易理解一些</p>
+<h2 id="lodash-lt-4-17-17-原型链污染"><a href="#lodash-lt-4-17-17-原型链污染" class="headerlink" title="lodash &lt; 4.17.17 原型链污染"></a>lodash &lt; 4.17.17 原型链污染</h2><p><a target="_blank" rel="noopener" href="https://snyk.io/vuln/SNYK-JS-LODASH-608086">https://snyk.io/vuln/SNYK-JS-LODASH-608086</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lod &#x3D; require(&#39;lodash&#39;)</span><br><span class="line">lod.setWith(&#123;&#125;, &quot;__proto__[test]&quot;, &quot;123&quot;)</span><br><span class="line">lod.set(&#123;&#125;, &quot;__proto__[test2]&quot;, &quot;456&quot;)</span><br><span class="line">console.log(Object.prototype)</span><br></pre></td></tr></table></figure>
+
+<h2 id="express-validator中lodash原型链污染漏洞攻击面"><a href="#express-validator中lodash原型链污染漏洞攻击面" class="headerlink" title="express-validator中lodash原型链污染漏洞攻击面"></a>express-validator中lodash原型链污染漏洞攻击面</h2><p>在题目环境中<code>npm install</code>的时候就会有提示，express-validator库中的所依赖的lodash库存在原型链污染漏洞。</p>
+<p><img src="https://i.imgur.com/b1TSrjZ.jpg" alt="-w738"></p>
+<p>这是因为express-validator的依赖包中，lodash的安装版本最低为4.17.15的，所以在一定条件下会存在原型链污染漏洞。(这里的测试环境我们安装的是4.17.16版本，lodash在4.17.17以下存在原型链污染漏洞)</p>
+<p><img src="https://i.imgur.com/E1o32By.jpg" alt="-w830"></p>
+<p>继续分析：</p>
+<p>跟着上面过滤器(sanitizer)实现流程的最后几步，runner.run方法在context.stack里面循环遍历了contextItem，并调用了其run方法。</p>
+<p>我们先来看看这个值的传入过程是怎么样的。</p>
+<h3 id="请求中值的传入过程"><a href="#请求中值的传入过程" class="headerlink" title="请求中值的传入过程"></a>请求中值的传入过程</h3><p>测试数据包：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;__proto__[test]&quot;: &quot;123 &quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在调用run方法时传入了一个instance.value的变量，这个变量的值是我们传入json数据当中的值，run方法在调用过滤器处理后给其赋予了一个新的值。<br>我们下断点来查看一下：</p>
+<p><img src="https://i.imgur.com/4zw27N5.jpg" alt="-w1593"></p>
+<p>经过过滤器处理后(也就是经过了一个<code>trim()</code>处理)：</p>
+<p><img src="https://i.imgur.com/YZQ3OLL.jpg" alt="-w1564"></p>
+<p>可以看到，newvalue是instance.value经过run方法处理后得到的值，一直往上推可以得知instance的实现方法是this.selectFields，位置是在select-fields.js文件中：</p>
+<p><img src="https://i.imgur.com/r3Ztg6q.jpg" alt="-w1282"></p>
+<p>select-fields.js:<br><img src="https://i.imgur.com/STLq1rI.jpg" alt="-w1612"></p>
+<p>这个文件的处理过程中我们需要了解到的就是在segments.reduce函数中对输入的值进行了一些判断和替换。重要的点就是当传入的键中存在<code>.</code> ，则会在字符两边加上<code>[&quot; &quot;]</code>，并且最终返回的是一个字符串形式的结果。(对于这些语句更为详细的原因可以参考writeup中对这一段的描述)</p>
+<p>接着之前的过程，在经过了过滤器的处理之后，会通过lodash.set对指定的path设置新值，也就是如图中的<code>_.set(req[location], path, newValue)</code>过程。</p>
+<p>现在可以尝试一下能不能通过lodash.set原型链污染来污染指定的值：</p>
+<p><img src="https://i.imgur.com/P5u0vRO.jpg" alt="-w1613"></p>
+<p>尝试污染<strong>proto</strong>[test]，结果发现是污染并没有成功：</p>
+<p><img src="https://i.imgur.com/NjNFrxd.jpg" alt="-w1160"></p>
+<p>原因是因为，当lodash.set中第一个参数存在一个与第二个参数同名的键时，污染就会失败，测试如下：</p>
+<p><img src="https://i.imgur.com/cVHoPNp.jpg" alt="-w903"></p>
+<p>所以，我们就要尝试去绕过这个点。<br>我们来看一下这个语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">path !&#x3D;&#x3D; &#39;&#39; ? _.set(req[location], path, newValue) : _.set(req, location, newValue);</span><br></pre></td></tr></table></figure>
+
+<p>这里的第一个参数是从请求中直接取出来的，path是经过先前处理后的出来的值。所以能不能通过这个处理来进行绕过呢？当然是可以的。<br>当我们传入：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;\&quot;].__proto__[\&quot;test&quot;:&quot;123 &quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的键为<code>&quot;].__proto__[&quot;test</code>，由于字符里面存在<code>.</code>，所以在segments.reduce函数处理时会对其左右加双引号和中括号，最终变成：<code>[&quot;&quot;].__proto__[&quot;test&quot;]</code>。这时在调用set函数时，值的情况就为：</p>
+<p><img src="https://i.imgur.com/L27y5Fl.jpg" alt="-w1600"></p>
+<p>这时就不存在同名的键了，于是查看污染的后的值发现：</p>
+<p><img src="https://i.imgur.com/D1lGtc3.jpg" alt="-w426"></p>
+<p>我们设置的值并没有传递进去，而是污染为了一个空值。为什么传递进来的newValue为空值呢？ </p>
+<p>从select-fields.js中可以看到，是因为取值时，使用的是lodash.get方法从req[‘body’]中取被处理后的键值，处理后的键是不存在的，所以取出来的值就为undefined。</p>
+<p><img src="https://i.imgur.com/TWvrmCj.jpg" alt="-w1589"></p>
+<p>当undefined传递到Sanitization.run方法中后，经过了一个<code>.toString()</code>的处理变成了<code>&#39;&#39;</code>空字符串。</p>
+<p><img src="https://i.imgur.com/u2hdcHK.jpg" alt="-w1381"></p>
+<h3 id="lodash-get方法中读取键值的妙用"><a href="#lodash-get方法中读取键值的妙用" class="headerlink" title="lodash.get方法中读取键值的妙用"></a>lodash.get方法中读取键值的妙用</h3><p>那我们还有没有办法污染呢？结果肯定是有的，我们跟入这个lodash.get方法，这个方法的具体实现位置位于：lodash/get.js</p>
+<p><img src="https://i.imgur.com/AR29Ckr.jpg" alt="-w1365"></p>
+<p>继续跟踪到lodash/_baseGet.js</p>
+<p><img src="https://i.imgur.com/nX5O5iS.jpg" alt="-w1126"></p>
+<p>从中我们可以看到这个函数取值的一些逻辑，首先，path经过了castPath处理将字符串形式的路径转为了列表，如下面的内容所示。转换完后通过一个while循环将值循环取出，并在object这个字典里去取出对应的值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 初始值</span><br><span class="line">[&#39;a&#39;].__proto__.[&#39;b&#39;]</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 转换完后的值</span><br><span class="line">[&quot;a&quot;,&quot;__proto__&quot;,&quot;b&quot;,]</span><br></pre></td></tr></table></figure>
+
+<p>那这个地方能不能利用呢？当然也是可以的，我们来看下最终的payload：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;a&quot;: &#123;&quot;__proto__&quot;: &#123;&quot;test&quot;: &quot;testvalue&quot;&#125;&#125;, &quot;a\&quot;].__proto__[\&quot;test&quot;: 222&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个时候我们在这个函数处下断点就可以看到，<code>a\&quot;].__proto__[\&quot;test</code>经过castPath处理变成了[“a”, “<strong>proto</strong>“, “test”]，在Object循环取值最终取到的是<code>&quot;a&quot;: &#123;&quot;__proto__&quot;: &#123;&quot;test&quot;: &#39;testvalue&#39;&#125;</code>中的test键的值，这样就达到了控制value的目的。</p>
+<p>还未遍历前：<br><img src="https://i.imgur.com/IDLpOtM.jpg" alt="-w1314"><br>最后一次遍历：<br><img src="https://i.imgur.com/Tmp5I4n.jpg" alt="-w1290"></p>
+<p>最终污染成功：</p>
+<p><img src="https://i.imgur.com/CfHgI1v.jpg" alt="-w623"></p>
+<h2 id="总结思考"><a href="#总结思考" class="headerlink" title="总结思考"></a>总结思考</h2><p>整个流程下来，能够污染任意值的关键点在于：</p>
+<ol>
+<li>lodash.set存在原型链污染漏洞</li>
+<li>express-validator对键名的处理</li>
+<li>lodash.get取值逻辑</li>
+</ol>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

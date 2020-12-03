@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            协程初体验之简单的利用框架
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%88%E7%9C%8B%E6%A1%86%E6%9E%B6"><span class="toc-text">先看框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A1%86%E6%9E%B6%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">框架的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%8F%E7%A8%8B%E7%AC%94%E8%AE%B0"><span class="toc-text">协程笔记</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E5%AD%A6%E4%B9%A0"><span class="toc-text">参考学习</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p><em>Threezh1 2019年8月22日</em></p>
+<p>最近在接触一下协程，上手不易，拖了很长时间才把这个小框架完成。有些地方很简陋，后面慢慢完善吧。</p>
+<p>做这个的想法是方便自己后面编写需要用到协程的脚本。(还有忘记协程的知识点了就过来复习)</p>
+<a id="more"></a>
+<h2 id="先看框架"><a href="#先看框架" class="headerlink" title="先看框架"></a>先看框架</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio, functools</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">SomeFunction</span>(<span class="params">parameter</span>):</span></span><br><span class="line">	<span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">	这里是目标函数，脚本的功能都应在此函数当中。</span></span><br><span class="line"><span class="string">	参数个数都由自己确定，需要与functools.partial调用的参数一致。</span></span><br><span class="line"><span class="string">	&quot;&quot;&quot;</span></span><br><span class="line">	time.sleep(<span class="number">1</span>)</span><br><span class="line">	<span class="keyword">return</span> parameter</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">coroutine_execution</span>(<span class="params">function, param1</span>):</span></span><br><span class="line">	<span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">	通过run_in_executor方法来新建一个线程来执行耗时函数。</span></span><br><span class="line"><span class="string">	注意：functools.partial调用的参数应与目标函数一致</span></span><br><span class="line"><span class="string">	&quot;&quot;&quot;</span></span><br><span class="line">	loop = asyncio.get_event_loop()</span><br><span class="line">	result = <span class="keyword">await</span> loop.run_in_executor(<span class="literal">None</span>,functools.partial(function, parameter=param1)) </span><br><span class="line">	<span class="comment"># result为目标函数返回的值</span></span><br><span class="line">	print(result)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">coroutine_init</span>(<span class="params">function, parameters, threads</span>):</span></span><br><span class="line">	<span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">	处理线程</span></span><br><span class="line"><span class="string">	coroutine_execution()调用协程函数，可自行修改参数个数内容等。 </span></span><br><span class="line"><span class="string">	&quot;&quot;&quot;</span></span><br><span class="line">	times = <span class="built_in">int</span>(<span class="built_in">len</span>(parameters) / threads) + <span class="number">1</span></span><br><span class="line">	<span class="keyword">if</span> <span class="built_in">len</span>(parameters) == threads <span class="keyword">or</span> <span class="built_in">int</span>(<span class="built_in">len</span>(parameters) % threads) == <span class="number">0</span>: times -= <span class="number">1</span></span><br><span class="line">	<span class="keyword">for</span> num <span class="keyword">in</span> <span class="built_in">range</span>(times):</span><br><span class="line">		tasks = []</span><br><span class="line">		Minimum = threads * num</span><br><span class="line">		Maximum = threads * (num + <span class="number">1</span>)</span><br><span class="line">		<span class="keyword">if</span> num == times - <span class="number">1</span> <span class="keyword">and</span> <span class="built_in">len</span>(parameters) % threads != <span class="number">0</span>:</span><br><span class="line">			Minimum = (times - <span class="number">1</span>) * threads</span><br><span class="line">			Maximum = <span class="built_in">len</span>(parameters)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(parameters) &lt;= threads:</span><br><span class="line">			Minimum = <span class="number">0</span></span><br><span class="line">			Maximum = <span class="built_in">len</span>(parameters)</span><br><span class="line">		<span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(Minimum, Maximum):</span><br><span class="line">			<span class="comment"># 此处的parameters[i]就是取目标参数的单个值，可自行调整</span></span><br><span class="line">			future = asyncio.ensure_future(coroutine_execution(function, param1=parameters[i]))</span><br><span class="line">			tasks.append(future)</span><br><span class="line">		loop = asyncio.get_event_loop()</span><br><span class="line">		loop.run_until_complete(asyncio.wait(tasks))</span><br><span class="line">		print(<span class="string">&quot;[*] The &#123;&#125;th thread ends&quot;</span>.<span class="built_in">format</span>(<span class="built_in">str</span>(num + <span class="number">1</span>)))</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">	words = [<span class="string">&quot;Hello World.&quot;</span>, <span class="string">&quot;I&#x27;m Threezh1.&quot;</span>, <span class="string">&quot;Welcome to my blog.&quot;</span>, <span class="string">&quot;One&quot;</span>, <span class="string">&quot;Tow&quot;</span>, <span class="string">&quot;Three&quot;</span>, <span class="string">&quot;Four&quot;</span>]</span><br><span class="line">	coroutine_init(SomeFunction, parameters=words, threads=<span class="number">3</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>脚本运行的结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">I&#39;m Threezh1.</span><br><span class="line">Hello World.</span><br><span class="line">Welcome to my blog.</span><br><span class="line">[*] The 1th thread ends</span><br><span class="line">One</span><br><span class="line">Three</span><br><span class="line">Tow</span><br><span class="line">[*] The 2th thread ends</span><br><span class="line">Four</span><br><span class="line">[*] The 3th thread ends</span><br><span class="line">[Finished in 3.2s]</span><br></pre></td></tr></table></figure>
+
+<p>一共只花费3秒</p>
+<h2 id="框架的使用"><a href="#框架的使用" class="headerlink" title="框架的使用"></a>框架的使用</h2><ul>
+<li>SomeFunction()         需要实现并发的函数</li>
+<li>coroutine_execution() 新建一个线程来执行并发函数</li>
+<li>coroutine_init()        处理线程与调配任务</li>
+</ul>
+<p>流程图：</p>
+<p><img src="https://i.loli.net/2019/08/22/1fUmqKRNigF89DV.png" alt="process.png"></p>
+<p>需要调整的内容：</p>
+<p>一. 传递的参数列表</p>
+<pre><code>列表中单个成员最后都会被赋值到目标函数。
+比如：批量获取网站标题，这里的成员就为单个url。</code></pre>
+<p>二. 目标函数的参数</p>
+<pre><code>通过调整目标函数的参数个数，可以使框架适用于更加复杂的场景。
+需要注意的是各个函数互相调用，其中的参数要尽量保持一致。</code></pre>
+<p>三. 返回结果的获取</p>
+<pre><code>在单个线程当中无法对全局变量进行修改，对结果的处理可以放在coroutine_execution()当中。
+coroutine_execution()中也可以直接return结果，则会返回到coroutine_init()中。</code></pre>
+<h2 id="协程笔记"><a href="#协程笔记" class="headerlink" title="协程笔记"></a>协程笔记</h2><ul>
+<li><p>一些概念和方法</p>
+<ul>
+<li>event_loop事件循环：程序开启一个无限的循环，当把一些函数注册到事件循环上时，满足事件发生条件即调用相应的函数。</li>
+<li>coroutine协程对象：指一个使用async关键字定义的函数，它的调用不会立即执行函数，而是会返回一个协程对象，协程对象需要注册到事件循环，由事件循环调用。</li>
+<li>task任务：一个协程对象就是一个原生可以挂起的函数，任务则是对协程进一步封装，其中包含任务的各种状态。</li>
+<li>future：代表将来执行或没有执行的任务的结果，它和task上没有本质的区别</li>
+<li>async/await关键字：python3.5用于定义协程的关键字，async定义一个协程，await用于挂起阻塞的异步调用接口。</li>
+</ul>
+</li>
+<li><p>事件循环</p>
+</li>
+</ul>
+<p>asyncio.get_event_loop方法可以创建一个事件循环，然后使用run_until_complete将协程注册到事件循环，并启动事件循环。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line">loop.run_until_complete(test1())</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>任务</li>
+</ul>
+<p>所谓task对象是Future类的子类，保存了协程运行后的状态，用于未来获取协程的结果。</p>
+<p>第一种方式就是等到task状态为finish时，调用task的result方法获取返回值。</p>
+<pre><code>asyncio.ensure_future() 等同于asyncio.create_task(coro)
+将 coro 协程 打包为一个 Task 排入日程准备执行。返回 Task 对象。</code></pre>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line">task = asyncio.ensure_future(test1())</span><br><span class="line">loop.run_until_complete(task)</span><br><span class="line">print(task.result())</span><br></pre></td></tr></table></figure>
+
+<p>第二种是创建回调函数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">callback</span>(<span class="params">future</span>):</span></span><br><span class="line">    print(<span class="string">&#x27;Callback:&#x27;</span>,future.result()) <span class="comment"># 通过future对象的result方法可以获取协程函数的返回值</span></span><br><span class="line"></span><br><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line">task = asyncio.ensure_future(test1()) <span class="comment"># 创建task，test1()是一个协程对象</span></span><br><span class="line">task.add_done_callback(callback) <span class="comment"># 绑定回调函数</span></span><br><span class="line">loop.run_until_complete(task)</span><br></pre></td></tr></table></figure>
+<p>同样可以使用functools.partial偏导数添加多个参数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">callback</span>(<span class="params">param1,param2,future</span>):</span></span><br><span class="line">    print(param1,param2)</span><br><span class="line">    print(<span class="string">&#x27;Callback:&#x27;</span>,future.result())</span><br><span class="line"></span><br><span class="line">task.add_done_callback(functools.partial(callback,<span class="string">&quot;param1&quot;</span>,<span class="string">&quot;param2&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>协程停止</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    loop.run_until_complete(asyncio.wait(tasks))</span><br><span class="line"><span class="keyword">except</span> KeyboardInterrupt <span class="keyword">as</span> e:</span><br><span class="line">    <span class="keyword">for</span> task <span class="keyword">in</span> asyncio.Task.all_tasks():</span><br><span class="line">        task.cancel()</span><br><span class="line">    loop.stop()</span><br><span class="line">    loop.run_forever()</span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    loop.close()</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>协程并发</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">tasks = [</span><br><span class="line">    asyncio.ensure_future(test1()),</span><br><span class="line">    asyncio.ensure_future(test1()),</span><br><span class="line">    asyncio.ensure_future(test1()),</span><br><span class="line">]</span><br><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line">loop.run_until_complete(asyncio.wait(tasks)) <span class="comment"># 注意asyncio.wait方法</span></span><br></pre></td></tr></table></figure>
+<p>重点在asyncio.wait。当任务ALL_COMPLETED的时候才会结束。</p>
+<pre><code>coroutine asyncio.wait(aws, *, loop=None, timeout=None, return_when=ALL_COMPLETED)
+并发运行 aws 指定的 可等待对象 并阻塞线程直到满足 return_when 指定的条件。</code></pre>
+<ul>
+<li>对一些情况的处理</li>
+</ul>
+<p>阻塞函数(例如io读写，requests网络请求)阻塞了客户代码与asycio事件循环的唯一线程，因此在执行调用时，整个应用程序都会冻结。</p>
+<p>解决方法是使用事件循环对象的run_in_executor方法。asyncio的事件循环在背后维护着一个ThreadPoolExecutor对象，我们可以调用run_in_executor方法，把可调用对象发给它执行，即可以通过run_in_executor方法来新建一个线程来执行耗时函数。<br>(羡慕大佬的总结总是这么简单明了…)</p>
+<p>大佬的这个例子也是这个小框架的灵魂。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span>(<span class="params">url</span>):</span></span><br><span class="line">    print(<span class="string">&quot;start &quot;</span>,url)</span><br><span class="line">    loop = asyncio.get_event_loop()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">await</span> loop.run_in_executor(<span class="literal">None</span>,time.sleep,<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        print(e)</span><br><span class="line">    print(<span class="string">&quot;stop &quot;</span>,url)</span><br><span class="line">url_list = [<span class="string">&quot;https://thief.one&quot;</span>,<span class="string">&quot;https://home.nmask.cn&quot;</span>,<span class="string">&quot;https://movie.nmask.cn&quot;</span>,<span class="string">&quot;https://tool.nmask.cn&quot;</span>]</span><br><span class="line">tasks = [asyncio.ensure_future(run(url)) <span class="keyword">for</span> url <span class="keyword">in</span> url_list]</span><br><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line">loop.run_until_complete(asyncio.wait(tasks))</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考学习"><a href="#参考学习" class="headerlink" title="参考学习"></a>参考学习</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://thief.one/2018/06/21/1/">Python3.5协程学习研究</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.python.org/zh-cn/3/library/asyncio-task.html#asyncio-awaitables">协程与任务</a></li>
+<li><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/42231161/asyncio-gather-vs-asyncio-wait">Asyncio.gather vs asyncio.wait</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

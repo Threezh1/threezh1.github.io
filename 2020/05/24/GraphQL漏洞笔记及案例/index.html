@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            GraphQL漏洞笔记及案例
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#GraphQL%E7%9A%84%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-text">GraphQL的基础知识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E6%95%B4%E7%90%86"><span class="toc-text">相关漏洞整理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%8F%E6%84%9F%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2%E4%B8%8E%E8%B6%8A%E6%9D%83"><span class="toc-text">敏感信息泄露与越权</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Express-GraphQL-Endpoint-CSRF%E6%BC%8F%E6%B4%9E"><span class="toc-text">Express-GraphQL Endpoint CSRF漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GraphQL%E7%9A%84%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E"><span class="toc-text">GraphQL的注入漏洞</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Graphene-Django-DEBUG"><span class="toc-text">Graphene-Django DEBUG</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%AE%9E%E4%BE%8B-%E8%B6%8A%E6%9D%83%E4%B8%8E%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2"><span class="toc-text">漏洞实例 - 越权与信息泄露</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D"><span class="toc-text">修复</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>之前打CTF的时候也遇到GraphQL，但没有整理。这次遇到一个实例，就把相关的漏洞都整理了一下。文章包含了以下内容：</p>
+<ol>
+<li>敏感信息泄露与越权</li>
+<li>Express-GraphQL Endpoint CSRF漏洞</li>
+<li>GraphQL注入</li>
+<li>Graphene-Django DEBUG</li>
+<li>一个漏洞的实例<a id="more"></a>
+
+</li>
+</ol>
+<h2 id="GraphQL的基础知识"><a href="#GraphQL的基础知识" class="headerlink" title="GraphQL的基础知识"></a>GraphQL的基础知识</h2><p>强烈推荐这一篇：<a target="_blank" rel="noopener" href="https://juejin.im/post/5cd56b1f6fb9a0321e16bde3">https://juejin.im/post/5cd56b1f6fb9a0321e16bde3</a></p>
+<p>以及：<a target="_blank" rel="noopener" href="https://juejin.im/post/5c87b1776fb9a049ac7a0247#heading-9">https://juejin.im/post/5c87b1776fb9a049ac7a0247</a></p>
+<h2 id="相关漏洞整理"><a href="#相关漏洞整理" class="headerlink" title="相关漏洞整理"></a>相关漏洞整理</h2><p>这里的笔记整理自：<a target="_blank" rel="noopener" href="https://xzfile.aliyuncs.com/upload/zcon/2018/7_%E6%94%BB%E5%87%BBGraphQL_phithon.pdf">https://xzfile.aliyuncs.com/upload/zcon/2018/7_攻击GraphQL_phithon.pdf</a></p>
+<h3 id="敏感信息泄露与越权"><a href="#敏感信息泄露与越权" class="headerlink" title="敏感信息泄露与越权"></a>敏感信息泄露与越权</h3><p>利用GraphQL的内省，可以查询出GraphQL中所有的Query、Mutaion、ObjectType、Field、Arguments。</p>
+<p>内省：<a target="_blank" rel="noopener" href="https://graphql.cn/learn/introspection/">https://graphql.cn/learn/introspection/</a></p>
+<p>一些工具自带解析内省，可以快速查看GraphQL的Schema。</p>
+<p>工具：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://chrome.google.com/webstore/detail/chromeiql/fkkiamalmpiidkljmicmjfbieiclmeij">https://chrome.google.com/webstore/detail/chromeiql/fkkiamalmpiidkljmicmjfbieiclmeij</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/apollographql/apollo-client-devtools">https://github.com/apollographql/apollo-client-devtools</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/skevy/graphiql-app">https://github.com/skevy/graphiql-app</a></li>
+</ul>
+<p>手动查询：</p>
+<ul>
+<li>查询存在的类型</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  __schema &#123;</span><br><span class="line">    types &#123;</span><br><span class="line">      name</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2020/05/24/2GBV7U6dlFZsuEn.png" alt="Untitled.png"></p>
+<ul>
+<li>查询一个类型的所有字段</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  __type (name: &quot;Query&quot;) &#123;</span><br><span class="line">    name</span><br><span class="line">    fields &#123;</span><br><span class="line">      name</span><br><span class="line">      type &#123;</span><br><span class="line">        name</span><br><span class="line">        kind</span><br><span class="line">        ofType &#123;</span><br><span class="line">          name</span><br><span class="line">          kind</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2020/05/24/CZuK4cvUz3bOqPQ.png" alt="Untitled 1.png"></p>
+<p>对于内省找出来的字段，要关注敏感信息相关的字段。比如P神PPT中所列的字段：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">email</span><br><span class="line">password</span><br><span class="line">secretKey</span><br><span class="line">token</span><br><span class="line">licenseKey</span><br><span class="line">session</span><br></pre></td></tr></table></figure>
+
+<p>根据所发现的字段，再构造语句进行调用查询或者修改。</p>
+<h3 id="Express-GraphQL-Endpoint-CSRF漏洞"><a href="#Express-GraphQL-Endpoint-CSRF漏洞" class="headerlink" title="Express-GraphQL Endpoint CSRF漏洞"></a>Express-GraphQL Endpoint CSRF漏洞</h3><p>在Express-GraphQL中，如果一个Mutaion对应的是敏感操作，把Content-Type修改为application/x-www-form-urlencoded之后，操作仍可正常执行。</p>
+<p><img src="https://i.loli.net/2020/05/24/sarCKElJL5GqoTj.png" alt="Untitled 2.png"></p>
+<p><img src="https://i.loli.net/2020/05/24/loyXBnwfR7pjkSO.png" alt="Untitled 3.png"></p>
+<p>可以用Brupsuite生成CSRF POC即可利用。</p>
+<h3 id="GraphQL的注入漏洞"><a href="#GraphQL的注入漏洞" class="headerlink" title="GraphQL的注入漏洞"></a>GraphQL的注入漏洞</h3><p>和SQL注入漏洞类似，都是破坏语句 ⇒ 构建恶意语句来进行利用的。没有漏洞环境，就记录一下PPT中的内容了。</p>
+<p>思考：使用GraphQL获取内容 ⇒ 再拼接SQL语句 ⇒ 导致SQL注入</p>
+<p><img src="https://i.loli.net/2020/05/24/aWGn1dK6Hz5EFho.png" alt="Untitled 4.png"></p>
+<p><img src="https://i.loli.net/2020/05/24/MnNIwzCal2bf1j9.png" alt="Untitled 5.png"></p>
+<h3 id="Graphene-Django-DEBUG"><a href="#Graphene-Django-DEBUG" class="headerlink" title="Graphene-Django DEBUG"></a>Graphene-Django DEBUG</h3><p>在Graphene-Django下，可以通过添加__debug字段来获取每次查询的详细信息，比如完整的SQL语句等</p>
+<p><img src="https://i.loli.net/2020/05/24/uvzAwbmU6jEtfkN.png" alt="Untitled 6.png"></p>
+<h2 id="漏洞实例-越权与信息泄露"><a href="#漏洞实例-越权与信息泄露" class="headerlink" title="漏洞实例 - 越权与信息泄露"></a>漏洞实例 - 越权与信息泄露</h2><p>这次遇到一个GraphQL站，但后台使用了一个自研框架进行了包装，测试之后发现基本的情况如下：</p>
+<ol>
+<li>可以执行query、mutation操作</li>
+<li>无法查询__schema（原因是后台框架对所有接口进行了一个包装，只能访问框架内定义的接口）</li>
+<li>只有一两个接口是已知的</li>
+</ol>
+<p>在无法使用内省的情况下，这里的字段都是未知的。只能通过fuzz来进行测试。（结果是我没有fuzz出来）但是也不妨碍我把这个未授权复现成功（通过看开发者定义的文档得到字段）</p>
+<p>直接通过chrome的GraphQL插件查询出所有用户的信息，并且还可以越权生成校验码！</p>
+<p>以下操作都是在没有任何用户权限的情况下进行的：</p>
+<p>查询所有用户信息：</p>
+<p><img src="https://i.loli.net/2020/05/24/5VgNkhWeXOFRCYt.png" alt="Untitled 7.png"></p>
+<p>创建校验码：</p>
+<p><img src="https://i.loli.net/2020/05/24/ZIjpRoFB6QL8YuX.png" alt="Untitled 8.png"></p>
+<p>实际上所有的接口都是未授权的，主要的问题是不知道字段名就很鸡肋。</p>
+<h2 id="修复"><a href="#修复" class="headerlink" title="修复"></a>修复</h2><p>在GraphQL和数据直接多加一个校验层，参考Hackone对GraphQL的问题提出的解决办法：</p>
+<p><a target="_blank" rel="noopener" href="https://www.hackerone.com/blog/the-30-thousand-dollar-gem-part-1">https://www.hackerone.com/blog/the-30-thousand-dollar-gem-part-1</a></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

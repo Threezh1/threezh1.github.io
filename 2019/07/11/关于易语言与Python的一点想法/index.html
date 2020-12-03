@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            关于易语言与Python的一点想法
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-text">说在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%93%E8%AF%AD%E8%A8%80%E4%B8%8EPython%E7%9A%84%E4%B8%8D%E5%90%8C"><span class="toc-text">易语言与Python的不同</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%93%E8%AF%AD%E8%A8%80%E8%83%BD%E5%92%8CPython%E7%BB%93%E5%90%88%E8%B5%B7%E6%9D%A5%E5%90%97%EF%BC%9F"><span class="toc-text">易语言能和Python结合起来吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E5%90%88%E7%9A%84%E6%96%B9%E5%BC%8F%E5%BA%94%E8%AF%A5%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">结合的方式应该是怎样的？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%9B%B4%E6%8E%A5%E7%94%A8DOS%E8%B0%83%E7%94%A8%E5%8F%96%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-text">1. 直接用DOS调用取运行结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%9B%B4%E6%8E%A5%E5%9C%A8%E6%98%93%E8%AF%AD%E8%A8%80%E5%BD%93%E4%B8%AD%E6%89%A7%E8%A1%8CPython%E8%AF%AD%E5%8F%A5"><span class="toc-text">2. 直接在易语言当中执行Python语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Python%E8%B0%83%E7%94%A8%E6%98%93%E8%AF%AD%E8%A8%80%E7%9A%84%E5%87%BD%E6%95%B0"><span class="toc-text">3. Python调用易语言的函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%80%E5%AE%9A%E8%A6%81%E4%BA%92%E7%9B%B8%E8%B0%83%E7%94%A8%E5%91%A2%EF%BC%9F"><span class="toc-text">4. 为什么一定要互相调用呢？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E5%90%88%E8%B5%B7%E6%9D%A5%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8%EF%BC%9F"><span class="toc-text">结合起来有什么用？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%90%8E"><span class="toc-text">最后</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>最近吃饭的时候总是会想很多关于易语言的事情。易语言是我学会的第一门语言，虽然它被喷的很惨很惨，具体可见：<a target="_blank" rel="noopener" href="https://www.zhihu.com/topic/19706107/hot">易语言 知乎</a>。但是由于它极高的上手性，还是成为我高中时期最喜欢的编程工具。(当时我还没听说过Python)易语言画界面是非常简单的，用鼠标拖动一下组件，简简单单的几句代码就可以写一个简单的GUI程序。我想，在界面化的程序上，除了Web程序上用Javascript和CSS画界面。对于我这样懒惰的人，易语言无非是一个比较好的选择。Python，熟悉易语言的我在刚学Python时极度不适应，但是在学习了一段时间之后，我就改变了我的想法，Python真的太舒服了…</p>
+<a id="more"></a>
+<p>不说得太远了，先说下我最近的想法(疑问)：</p>
+<ol>
+<li>易语言能和Python结合起来吗？</li>
+<li>结合的方式应该是怎样的？</li>
+<li>结合起来有什么用？</li>
+</ol>
+<p>在自问自答上面的问题之前，先来看一看易语言与Python有什么不同点：</p>
+<h2 id="易语言与Python的不同"><a href="#易语言与Python的不同" class="headerlink" title="易语言与Python的不同"></a>易语言与Python的不同</h2><p>先来看看易语言与Python编程环境的不同：</p>
+<ul>
+<li>易语言：</li>
+</ul>
+<p><img src="https://i.loli.net/2019/07/11/5d2624b473b7970443.jpg" alt="environment_e.jpg"></p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624b05ea9896024.jpg" alt="environment_e_script.jpg"></p>
+<p>易语言这个弹出输入的内容，我只写了一行代码，其他的只是组件的大小和位置，这些易语言都已经安排好了，只需要添加参数即可。</p>
+<p>那用Python写一个这样的弹出输入框的程序需要多少行代码呢？</p>
+<ul>
+<li>Python：</li>
+</ul>
+<p>GUI编程上手并不容易，可以参考以下两篇：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/bailang_zhizun/article/details/79310419">Python - 编写可视化界面（Python+PyCharm+PyQt）</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/mawei7510/article/details/81450032">Python GUI: PyCahrm结合Pyqt5开发图形化界面 详细步骤 踩坑!</a></p>
+<p>可见Python直接写界面，比起语言还是要多很多代码量的。(而且环境配置要踩很多坑)我比较烦的也就是这一点，每一个参数都得有一行代码的话，实在太麻烦了。(其实就是懒得学？)</p>
+<p>当然，易语言除了界面以外和Python相比起来有很多的缺点，而Python做界面比较麻烦，却在其他方面比易语言稳定高效。这也是我想总结易语言与Python结合方式的一个原因。那有没有方式把这两部分结合起来，比如用易语言做界面部分，Python做功能部分又会怎么样呢？</p>
+<p>回到上面的问题。</p>
+<h2 id="易语言能和Python结合起来吗？"><a href="#易语言能和Python结合起来吗？" class="headerlink" title="易语言能和Python结合起来吗？"></a>易语言能和Python结合起来吗？</h2><p>可以！</p>
+<h2 id="结合的方式应该是怎样的？"><a href="#结合的方式应该是怎样的？" class="headerlink" title="结合的方式应该是怎样的？"></a>结合的方式应该是怎样的？</h2><h3 id="1-直接用DOS调用取运行结果"><a href="#1-直接用DOS调用取运行结果" class="headerlink" title="1. 直接用DOS调用取运行结果"></a>1. 直接用DOS调用取运行结果</h3><p>需要用到精易模块-&gt;系统_取DOS运行结果()</p>
+<pre><code>系统_取DOS执行结果 (“python ” ＋ 取运行目录 () ＋ “\test.py”)</code></pre>
+<p>test.py中的内容：</p>
+<pre><code>print(&quot;Hello World.&quot;)</code></pre>
+<p>运行会返回执行的结果。之后在易语言当中对结果进行下一步的操作。</p>
+<p>如图：</p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624b4da65f97244.jpg" alt="example1_e.jpg"></p>
+<p>这种方式是最直接的也是最简单的，在一些简单的命令输入，单一内容返回的脚本中比较适用。</p>
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://bbs.125.la/forum.php?mod=viewthread&tid=14389045">如何用易语言调用CMD 运行 python</a></p>
+<h3 id="2-直接在易语言当中执行Python语句"><a href="#2-直接在易语言当中执行Python语句" class="headerlink" title="2. 直接在易语言当中执行Python语句"></a>2. 直接在易语言当中执行Python语句</h3><p>感谢师傅们的分享，前者还直接将功能写成了模块来简化调用。</p>
+<p>我觉得直接调用Python的API这个方式蛮有意思的，但是又比较鸡肋。</p>
+<p>我尝试了简单的python语句，如简单的循环之类的，可以正常执行并返回结果，但我使用稍微复杂一点的命令如requests获取网页源码，就直接不返回内容了。</p>
+<p>简单的命令在易语言当中就能做到，又为何用到python呢。 所以这个也只能作为易语言和Python结合的一种方式吧。个人认为实用性太低了。</p>
+<p>例子：</p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624b56072a57724.jpg" alt="example2_e.jpg"></p>
+<p>参考：</p>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/yingshaoxo/E_Python">https://github.com/yingshaoxo/E_Python</a></p>
+<p>还有原篇帖子：<a target="_blank" rel="noopener" href="https://bbs.125.la/forum.php?mod=viewthread&amp;tid=14359854">https://bbs.125.la/forum.php?mod=viewthread&amp;tid=14359854</a></p>
+<h3 id="3-Python调用易语言的函数"><a href="#3-Python调用易语言的函数" class="headerlink" title="3. Python调用易语言的函数"></a>3. Python调用易语言的函数</h3><p>参考地址：<a target="_blank" rel="noopener" href="https://bbs.125.la/forum.php?mod=viewthread&amp;tid=14140784">https://bbs.125.la/forum.php?mod=viewthread&amp;tid=14140784</a></p>
+<p>由于这个方法需要32位的Python，环境搭建比较麻烦就不演示了。</p>
+<p>我还没想到什么样的脚本需要用Python调用易语言的dll，暂且留着把。</p>
+<h3 id="4-为什么一定要互相调用呢？"><a href="#4-为什么一定要互相调用呢？" class="headerlink" title="4. 为什么一定要互相调用呢？"></a>4. 为什么一定要互相调用呢？</h3><p>在看了前面几种方式之后，我还是觉得不是很方便。为什么一定要互相调用呢？</p>
+<p>我想到了一种形式，就是用数据库做为“中间件”，易语言和Python都单独运行。</p>
+<p>一个简单的程序逻辑如下：</p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624afbb1b682030.jpg" alt="e_db_py.jpg"></p>
+<p>易语言提供操作界面，将任务插入到数据库中的任务列表里。Python脚本取数据库内的任务列表逐一执行，将执行的结果插入到结果列表里，易语言读取结果列表，将结果展示。</p>
+<p>就用批量获取网页状态工具作为一个简单的例子：</p>
+<p>用易语言做的界面如下图所示：</p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624b1e799745074.jpg" alt="get_statu.jpg"></p>
+<p>源码部分：</p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624b2bdb5223995.jpg" alt="get_statu_code1.jpg"></p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624b56050041044.jpg" alt="get_statu_code2.jpg"></p>
+<p>数据库结构：</p>
+<p><img src="https://i.loli.net/2019/07/11/5d2624afa52bf96713.jpg" alt="database.jpg"></p>
+<p>Python脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> pymysql, requests, base64, time</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置数据库</span></span><br><span class="line">mysql_host = <span class="string">&quot;127.0.0.1&quot;</span></span><br><span class="line">mysql_user = <span class="string">&quot;root&quot;</span></span><br><span class="line">mysql_passwd = <span class="string">&quot;*&quot;</span></span><br><span class="line">mysql_db = <span class="string">&quot;html&quot;</span></span><br><span class="line">mysql_table = <span class="string">&quot;task&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">run_tasks</span>():</span></span><br><span class="line">	conn = pymysql.connect(host=mysql_host, user=mysql_user, passwd=mysql_passwd, db=mysql_db)</span><br><span class="line">	cur = conn.cursor()</span><br><span class="line">	cur.execute(<span class="string">&quot;SELECT id,link,html FROM &quot;</span> + mysql_table)</span><br><span class="line">	links = cur.fetchall()</span><br><span class="line">	<span class="keyword">for</span> link <span class="keyword">in</span> links:</span><br><span class="line">		<span class="keyword">if</span> link[<span class="number">2</span>] == <span class="string">&quot;&quot;</span>:</span><br><span class="line">			<span class="keyword">try</span>:</span><br><span class="line">				html_raw = requests.get(link[<span class="number">1</span>])</span><br><span class="line">				html_statu = html_raw.status_code</span><br><span class="line">			<span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">				print(e)</span><br><span class="line">				html_statu = <span class="string">&quot;error&quot;</span></span><br><span class="line">			cur.execute(<span class="string">&quot;UPDATE `html`.`task` SET `html` = &#x27;&#123;0&#125;&#x27; WHERE `id` = &#123;1&#125;;&quot;</span>.<span class="built_in">format</span>(html_statu, link[<span class="number">0</span>]))</span><br><span class="line">			print(link[<span class="number">1</span>] + <span class="string">&quot; update success&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">	time.sleep(<span class="number">10</span>)</span><br><span class="line">	run_tasks()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>运行过程：</p>
+<ol>
+<li>运行Python脚本，保存脚本运行</li>
+<li>输入网址添加到数据库的任务序列</li>
+<li>Python脚本读取任务序列并获取网页状态</li>
+<li>刷新获取结果</li>
+</ol>
+<p>那这样做的好处就是：不用再考虑易语言如何调用Python，而是各自单独运行，只需要操作数据库就行了。</p>
+<p>暂时想到的几个缺点：</p>
+<ol>
+<li>无法做到瞬时反应，都需要通过sleep，时钟来控制任务的执行和结果显示</li>
+<li>易语言支持的数据库太少，本想用Mongodb来做例子的，发现易语言的mongodb库实在是…麻烦。</li>
+<li>当程序庞大起来，易语言-数据库-Python的逻辑也会非常复杂</li>
+</ol>
+<p>只是作为一个简单的例子，可以按照这样的逻辑满足更复杂的项目需求。</p>
+<p>写完这个例子之后发现，这种结合应该适用于任何语言。或者说这个不能称作结合，只能叫做各自完成任务罢了。不过这也能算得上易语言与其他语言的一种合作方式了？如果达到这点也就差不多了。</p>
+<h2 id="结合起来有什么用？"><a href="#结合起来有什么用？" class="headerlink" title="结合起来有什么用？"></a>结合起来有什么用？</h2><p>就如前面所说，易语言开发界面简单方便，Python实现功能点更加高效稳定。两者结合起来，岂不美哉？</p>
+<h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>写的不是很好，很多内容都没有往深里探究，没这么多的心思，也没那个水平。暂且把其看作是我胡思乱想的出来的结论吧。</p>
+<p>另外，如果师傅们有更好的方式能够使易语言的优势发挥出来，还请师傅不吝赐教。 我的邮箱 <a href="mailto:&#109;&#97;&#107;&#x65;&#102;&#x6f;&#120;&#x6d;&#x40;&#113;&#113;&#46;&#99;&#x6f;&#x6d;">&#109;&#97;&#107;&#x65;&#102;&#x6f;&#120;&#x6d;&#x40;&#113;&#113;&#46;&#99;&#x6f;&#x6d;</a></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

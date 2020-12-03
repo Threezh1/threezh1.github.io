@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            Python动态加载模块、类、函数的几种方式
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-exec"><span class="toc-text">1. exec()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-import"><span class="toc-text">2. __import__()</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-importlib"><span class="toc-text">3. importlib</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="1-exec"><a href="#1-exec" class="headerlink" title="1. exec()"></a>1. exec()</h2><p>使用exec来执行Python导入模块的命令。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">module_name = <span class="string">&quot;module01&quot;</span></span><br><span class="line">exec(<span class="string">&quot;import &quot;</span> + module_name)</span><br><span class="line">module01.echo()</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-import"><a href="#2-import" class="headerlink" title="2. __import__()"></a>2. <code>__import__()</code></h2><p>单独使用<code>__import__()</code> 可以直接加载模块，但是当需要动态加载类、函数时，就需要配合getattr来实现。</p>
+<p>实现步骤：</p>
+<ol>
+<li>获取模块名(module_name)</li>
+<li>使用<code>__import__(module_name)</code>导入Python模块</li>
+<li>使用<code>getattr(module_name, class_name/function_name)</code>获取类、方法的对象<a id="more"></a>
+例子：</li>
+</ol>
+<p>模块(module01.py)中包含一个Index类和一个echo方法。主程序(main.py)使用模块名动态调用其echo方法。</p>
+<p>module01.py:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Index</span>:</span></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">echo</span>(<span class="params">self, content</span>):</span></span><br><span class="line">		print(self)</span><br><span class="line">		print(content)</span><br></pre></td></tr></table></figure>
+
+<p>main.py:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">module_name = <span class="string">&quot;module01&quot;</span></span><br><span class="line">class_name = <span class="string">&quot;Index&quot;</span></span><br><span class="line">function_name = <span class="string">&quot;echo&quot;</span></span><br><span class="line"></span><br><span class="line">module_object = <span class="built_in">__import__</span>(module_name) <span class="comment">#将模块加载为对象</span></span><br><span class="line">module_class = <span class="built_in">getattr</span>(module_object, class_name) <span class="comment">#获取模块当中的类对象</span></span><br><span class="line">module_class_object = module_class() <span class="comment">#将类实例化</span></span><br><span class="line">module_class_object.echo(<span class="string">&quot;Hello World&quot;</span>) <span class="comment">#调用echo方法</span></span><br></pre></td></tr></table></figure>
+
+<p>此外，还可以这样调用类中的函数：</p>
+<p>main.py:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">module_name = <span class="string">&quot;module01&quot;</span></span><br><span class="line">class_name = <span class="string">&quot;Index&quot;</span></span><br><span class="line">function_name = <span class="string">&quot;echo&quot;</span></span><br><span class="line"></span><br><span class="line">module_object = <span class="built_in">__import__</span>(module_name) <span class="comment">#将模块加载为对象</span></span><br><span class="line">module_class = <span class="built_in">getattr</span>(module_object, class_name) <span class="comment">#获取模块当中的类对象</span></span><br><span class="line">module_function = <span class="built_in">getattr</span>(module_class, function_name) <span class="comment">#获取类中方法对象</span></span><br><span class="line">module_function(<span class="string">&quot;Hello World&quot;</span>)</span><br><span class="line"><span class="comment"># 或者直接 module_class.echo()</span></span><br><span class="line"><span class="comment"># 需要注意的是，使用这种方式调用方法，方法的参数值不需要加self。</span></span><br></pre></td></tr></table></figure>
+
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/bluefrog/archive/2012/05/11/2496439.html">python 动态调用模块&amp;类&amp;方法</a></p>
+<h2 id="3-importlib"><a href="#3-importlib" class="headerlink" title="3. importlib"></a>3. importlib</h2><p>这种方式其实是<code>__import__()</code> 方式的扩展。Python官方文档推荐程序式地导入模块时应该使用 import_module() 而不是<code>__import__</code>。</p>
+<p>实现动态加载的方式与第二种类似：</p>
+<p>module01.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Index</span>:</span></span><br><span class="line">	<span class="function"><span class="keyword">def</span> <span class="title">echo</span>(<span class="params">self, content</span>):</span></span><br><span class="line">		print(self)</span><br><span class="line">		print(content)</span><br></pre></td></tr></table></figure>
+
+<p>main.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> importlib</span><br><span class="line"></span><br><span class="line">module_name = <span class="string">&quot;module01&quot;</span></span><br><span class="line">class_name = <span class="string">&quot;Index&quot;</span></span><br><span class="line"></span><br><span class="line">module_object = importlib.import_module(module_name) <span class="comment">#将模块加载为对象</span></span><br><span class="line">module_class_object = module_object.Index() <span class="comment">#将类实例化</span></span><br><span class="line">module_class_object.echo(<span class="string">&quot;Hello World&quot;</span>) <span class="comment">#调用echo方法</span></span><br></pre></td></tr></table></figure>
+
+<p>(同样的这里可以配合getattr()使用)</p>
+<p>使用importlib的一个好处就是还可以使用reload方法。在模块已经被导入的情况下，使用importlib.reload导入新的模块。</p>
+<p>详情可见：<a target="_blank" rel="noopener" href="https://docs.python.org/zh-cn/3/library/importlib.html">importlib — import 的实现</a></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

