@@ -1242,3 +1242,6 @@ div .page-number {
 div .extend {
   margin-left: 20px;
 }
+div .current {
+  font-weight: bolder;
+}
