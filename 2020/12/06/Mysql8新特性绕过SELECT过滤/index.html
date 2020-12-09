@@ -50,6 +50,8 @@
 <li>根据题目环境特性针对性的绕过(大小写、双写等)</li>
 </ol>
 <p>但是今天遇到的这道题把2、3、4的关键函数都过滤了，没有办法，只能寻找新的思路。我在看了version之后也尝试过去寻找Mysql8的新特性，没找到相关内容。最后在队友的提示下才记起来P神圈子里有一篇文章讲到了Mysql8下的新利用。这篇文章也算是对这个知识点的笔记(以后遇到新知识还是要好好做记录)</p>
+<a id="more"></a>
+
 <h2 id="MYSQL8的新特性"><a href="#MYSQL8的新特性" class="headerlink" title="MYSQL8的新特性"></a>MYSQL8的新特性</h2><h3 id="TABLE-Statement"><a href="#TABLE-Statement" class="headerlink" title="TABLE Statement"></a>TABLE Statement</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">TABLE table_name [ORDER BY column_name] [LIMIT number [OFFSET number]]</span><br></pre></td></tr></table></figure>
 
 <p>文档参考：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/table.html">https://dev.mysql.com/doc/refman/8.0/en/table.html</a><br>这条命令的功能跟<code>SELECT * FROM xxx</code>是一样的，查询一个表里面的所有内容，返回的也就是“表数据”。并且支持<code>ORDER BY</code>、<code>TABLE</code>、<code>LIMIT</code>三种限定符。</p>
