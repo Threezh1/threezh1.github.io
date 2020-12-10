@@ -40,11 +40,13 @@
             </div>
         
         <!--Table of Contents end -->
-        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>于前天在推特上看到Hpdoger师傅转了一个推：<br><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/11/16076219424271.jpg" alt="-w746"></p>
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>于前天在推特上看到Hpdoger师傅转了一个推：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/11/16076219424271.jpg" alt="-w746"></p>
 <p>是一个人分享了一段javascript代码，在DevTools上执行可以直接获取到html所有标签属性里的url。代码如下：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">urls = []</span><br><span class="line">$$(<span class="string">&#x27;*&#x27;</span>).forEach(<span class="function"><span class="params">element</span> =&gt;</span> &#123;</span><br><span class="line">  urls.push(element.src)</span><br><span class="line">  urls.push(element.href)</span><br><span class="line">  urls.push(element.url)</span><br><span class="line">&#125;); <span class="built_in">console</span>.log(...new <span class="built_in">Set</span>(urls))</span><br></pre></td></tr></table></figure>
 
-<p>以小米官网为例：<br><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/11/16076221055725.jpg" alt="-w1790"></p>
+<p>以小米官网为例：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/11/16076221055725.jpg" alt="-w1790"></p>
 <p>这段js代码的作用把我吓到了，6行代码把jsfinder的功能实现的差不多了…我仔细研究了一下，发现它只是遍历的标签的属性，却没有对js文件里的url进行提取。只是简单的遍历的话没什么太大的用，所以我打算自己根据这个思路，把jsfinder上的功能往这个上面挪一挪。</p>
 <p>下面就是三个不同的程度的利用：</p>
 <ol>
