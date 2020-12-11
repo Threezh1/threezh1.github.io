@@ -29,6 +29,9 @@
         <hr>
     </div>
     <div class="post-content">
+        <div class="post-date">
+            <p> January 1st 2019, 12:00:00 pm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        </div>
         <!--Table of Contents begin-->
         
             <div id="toc" class="toc-article">
@@ -553,7 +556,6 @@
 <p>sudo 命令用于给普通用户提供额外的权限来完成原本 root 管理员才能完成的任务，格式为“sudo [参数] 命令名称”。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">-h 列出帮助信息</span><br><span class="line">-l 列出当前用户可执行的命令</span><br><span class="line">-u 用户名或 UID 值 以指定的用户身份执行命令</span><br><span class="line">-k 清空密码的有效时间，下次执行 sudo 时需要再次进行密码验证</span><br><span class="line">-b 在后台执行指定的命令</span><br><span class="line">-p 更改询问密码的提示语</span><br><span class="line"></span><br><span class="line">限制用户执行指定的命令：</span><br><span class="line">记录用户执行的每一条命令；</span><br><span class="line">配置文件（&#x2F;etc&#x2F;sudoers）提供集中的用户管理、权限与主机等参数；</span><br><span class="line">验证密码的后 5 分钟内（默认值）无须再让用户再次验证密码。</span><br><span class="line"></span><br><span class="line">部分权限：</span><br><span class="line"></span><br><span class="line">visudo</span><br><span class="line"></span><br><span class="line">96 ##</span><br><span class="line">97 ## Allow root to run any commands anywhere</span><br><span class="line">98 root ALL&#x3D;(ALL) ALL</span><br><span class="line">99 linuxprobe ALL&#x3D;(ALL) &#x2F;usr&#x2F;bin&#x2F;cat</span><br><span class="line"></span><br><span class="line">不用输入一次密码：</span><br><span class="line"></span><br><span class="line">whereis poweroff</span><br><span class="line">poweroff: &#x2F;usr&#x2F;sbin&#x2F;poweroff &#x2F;usr&#x2F;share&#x2F;man&#x2F;man8&#x2F;poweroff.8.gz</span><br><span class="line"></span><br><span class="line">visudo</span><br><span class="line"></span><br><span class="line">………………省略部分文件内容………………</span><br><span class="line">96 ##</span><br><span class="line">97 ## Allow root to run any commands anywhere</span><br><span class="line">98 root ALL&#x3D;(ALL) ALL</span><br><span class="line">99 linuxprobe ALL&#x3D;NOPASSWD: &#x2F;usr&#x2F;sbin&#x2F;poweroff</span><br><span class="line">………………省略部分文件内容………………</span><br></pre></td></tr></table></figure>
     </div>
-
     
 </div>
     <div class="footer" id="footer">
