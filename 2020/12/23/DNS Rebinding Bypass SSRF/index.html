@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            DNS Rebinding Bypass SSRF
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <div class="post-date">
+            <p> December 23rd 2020, 9:00:00 pm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        </div>
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFDNS-Rebinding%EF%BC%9F"><span class="toc-text">什么是DNS Rebinding？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9FSSRF%E8%BF%87%E6%BB%A4%E6%B5%81%E7%A8%8B"><span class="toc-text">传统SSRF过滤流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DNS-Rebinding%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8%EF%BC%9F"><span class="toc-text">DNS Rebinding如何利用？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DNS-Rebinding-%E9%A2%98%E7%9B%AE%E5%9C%BA%E6%99%AF"><span class="toc-text">DNS Rebinding 题目场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D"><span class="toc-text">修复</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="什么是DNS-Rebinding？"><a href="#什么是DNS-Rebinding？" class="headerlink" title="什么是DNS Rebinding？"></a>什么是DNS Rebinding？</h2><p>维基百科上是这样描述的：</p>
+<blockquote>
+<p>DNS重新绑定是计算机攻击的一种形式。 在这种攻击中，恶意网页会导致访问者运行客户端脚本，攻击网络上其他地方的计算机。 从理论上讲，同源策略可防止发生这种情况：客户端脚本只能访问为脚本提供服务的同一主机上的内容。 比较域名是实施此策略的重要部分，因此DNS重新绑定通过滥用域名系统（DNS）来绕过这种保护。<br>这种攻击可以通过让受害者的网络浏览器访问专用IP地址的机器并将结果返回给攻击者来破坏专用网络。 它也可以用于使用受害者机器发送垃圾邮件，分布式拒绝服务攻击或其他恶意活动。</p>
+</blockquote>
+<p>由于我们是用它来绕过SSRF漏洞，所以简单理解就是：当某一个SSRF检测是通过DNS解析后的<code>ip地址</code>来判断是否为安全地址的话，我们可以通过<code>DNS rebinding</code>来进行绕过。</p>
+<h2 id="传统SSRF过滤流程"><a href="#传统SSRF过滤流程" class="headerlink" title="传统SSRF过滤流程"></a>传统SSRF过滤流程</h2><ol>
+<li>获取到输入的URL，从该URL中提取host</li>
+<li>对该host进行DNS解析，获取到解析的IP</li>
+<li>检测该IP是否是合法的，比如是否是私有IP等</li>
+<li>如果IP检测为合法的，则进入curl的阶段发包</li>
+</ol>
+<p>从DNS解析的角度来看，这个过程一共有两次解析，第一次是<code>对该host进行DNS解析</code>，第二次是<code>进入curl的阶段发包</code>，这两次请求之间存在一个时间差，如果我们能够修改DNS地址在第一次请求的时候为合法地址，第二次请求时为恶意地址，就可以绕过这个检测了。</p>
+<h2 id="DNS-Rebinding如何利用？"><a href="#DNS-Rebinding如何利用？" class="headerlink" title="DNS Rebinding如何利用？"></a>DNS Rebinding如何利用？</h2><blockquote>
+<p>攻击者注册一个域名（如attacker.com），并在攻击者控制下将其代理给DNS服务器。 服务器配置为很短响应时间的TTL记录，防止响应被缓存。 当受害者浏览到恶意域时，攻击者的DNS服务器首先用托管恶意客户端代码的服务器的IP地址作出响应。 例如，他们可以将受害者的浏览器指向包含旨在在受害者计算机上执行的恶意JavaScript或Flash脚本的网站。<br>恶意客户端代码会对原始域名（例如attacker.com）进行额外访问。 这些都是由同源政策所允许的。 但是，当受害者的浏览器运行该脚本时，它会为该域创建一个新的DNS请求，并且攻击者会使用新的IP地址进行回复。 例如，他们可以使用内部IP地址或互联网上某个目标的IP地址进行回复。</p>
+</blockquote>
+<p>TTL是一条域名解析记录在DNS服务器中的存留时间。把这个值设置的非常小可以防止DNS解析结果被缓存，进而使得每次获取DNS解析结果是不同的。</p>
+<p>简单理一下这个过程：</p>
+<ol>
+<li>攻击者配置了一台DNS服务器用于解析某域名</li>
+<li>每次请求后返回的解析结果不一样，分别是一个合法地址，一个是恶意地址</li>
+<li>当服务器在第一次请求的时候返回合法地址，第二次请求时返回的是恶意地址。就可以绕过限制进行利用</li>
+</ol>
+<p>当然有师傅会觉得比较麻烦，还需要搭DNS服务器啥的，这里提供两个方式可以降低利用复杂度。不需要自己去搭建一个DNS服务器来进行利用，可以使用一些平台来构造。</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="http://ceye.io/">http://ceye.io/</a></li>
+<li><a target="_blank" rel="noopener" href="https://lock.cmpxchg8b.com/rebinder.html">https://lock.cmpxchg8b.com/rebinder.html</a></li>
+</ol>
+<h2 id="DNS-Rebinding-题目场景"><a href="#DNS-Rebinding-题目场景" class="headerlink" title="DNS Rebinding 题目场景"></a>DNS Rebinding 题目场景</h2><p>这次huaweictf中有一道题就是利用<code>DNS Rebinding</code>来绕过SSRF检测拿到flag。题目环境中存在一个疑似可利用的SSRF漏洞，各种条件限制的非常严格。题目部分代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">app.get(<span class="string">&#x27;/flag&#x27;</span>, function(req, res)&#123;</span><br><span class="line">    <span class="keyword">if</span> (req.ip === <span class="string">&#x27;127.0.0.1&#x27;</span>) &#123;</span><br><span class="line">        res.status(<span class="number">200</span>).send(env.parsed.flag)</span><br><span class="line">    &#125; <span class="keyword">else</span> res.status(<span class="number">403</span>).end(<span class="string">&#x27;not so simple&#x27;</span>);</span><br><span class="line">&#125;); // 这里可以获取flag</span><br><span class="line"></span><br><span class="line">app.post(&#x27;/admin&#x27;, (req, res) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> ( !req.body.fileurl || !check(req.body.fileurl) ) &#123;</span><br><span class="line">        res.end(<span class="string">&quot;Invalid file link&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    let file = req.body.fileurl;</span><br><span class="line"></span><br><span class="line">    //dont DOS attack, i will sleep before request</span><br><span class="line">    cp.execSync(<span class="string">&#x27;sleep 5&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    let options = &#123;url : file, timeout : <span class="number">3000</span>&#125;</span><br><span class="line">    request.get(options ,(error, httpResponse, body) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (!error) &#123;</span><br><span class="line">            res.<span class="built_in">set</span>(&#123;<span class="string">&quot;Content-Type&quot;</span> : <span class="string">&quot;text/html; charset=utf-8&quot;</span>&#125;)</span><br><span class="line">            res.end(body)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            res.end( JSON.stringify(&#123;<span class="string">&quot;code&quot;</span> : <span class="string">&quot;-1&quot;</span>, <span class="string">&quot;message&quot;</span> : error.toString()&#125;) )</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这里会接收一个<code>fileurl</code>的参数，使用<code>check</code>函数对其进行检查，如果通过，则使用<code>request.get</code>发起请求并返回结果。获取flag的页面对来源<code>ip</code>进行了限制，只允许<code>127.0.0.1</code>进行获取。那这里的利用思路就比较直接，绕过这个<code>check</code>函数，拿到<code>flag</code>。</p>
+<p>来看下这个<code>check</code>函数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">const cp = require(<span class="string">&#x27;child_process&#x27;</span>)</span><br><span class="line">const ip = require(<span class="string">&#x27;ip&#x27;</span>)</span><br><span class="line">const url = require(<span class="string">&#x27;url&#x27;</span>);</span><br><span class="line">const &#123;docker&#125; = require(<span class="string">&quot;./docker.js&quot;</span>)</span><br><span class="line"></span><br><span class="line">const checkip = function (value) &#123;</span><br><span class="line">    let pattern = /^\d&#123;<span class="number">1</span>,<span class="number">3</span>&#125;(\.\d&#123;<span class="number">1</span>,<span class="number">3</span>&#125;)&#123;<span class="number">3</span>&#125;$/;</span><br><span class="line">    <span class="keyword">if</span> (!pattern.exec(value))</span><br><span class="line">        <span class="keyword">return</span> false;</span><br><span class="line">    let ary = value.split(<span class="string">&#x27;.&#x27;</span>);</span><br><span class="line">    <span class="keyword">for</span>(let key <span class="keyword">in</span> ary)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (parseInt(ary[key]) &gt; <span class="number">255</span>)</span><br><span class="line">            <span class="keyword">return</span> false;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> true ;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">const dnslookup = function(s) &#123;</span><br><span class="line">    <span class="keyword">if</span> (typeof(s) == <span class="string">&#x27;string&#x27;</span> &amp;&amp; !s.match(/[^\w-.]/)) &#123;</span><br><span class="line">        let query = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            query = JSON.parse(cp.execSync(`curl http://ip-api.com/json/$&#123;s&#125;`)).query</span><br><span class="line">        &#125; catch (e) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&#x27;wrong&#x27;</span></span><br><span class="line">        &#125;</span><br><span class="line">        return checkip(query) ? query : &#x27;wrong&#x27;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">return</span> <span class="string">&#x27;wrong&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">const check = function(s) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!typeof (s) == <span class="string">&#x27;string&#x27;</span> || !s.match(/^http\:\/\//))</span><br><span class="line">        <span class="keyword">return</span> false</span><br><span class="line"></span><br><span class="line">    let blacklist = [<span class="string">&#x27;wrong&#x27;</span>, <span class="string">&#x27;127.&#x27;</span>, <span class="string">&#x27;local&#x27;</span>, <span class="string">&#x27;@&#x27;</span>, <span class="string">&#x27;flag&#x27;</span>]</span><br><span class="line">    let host, port, dns;</span><br><span class="line"></span><br><span class="line">    host = url.parse(s).hostname</span><br><span class="line">    port = url.parse(s).port</span><br><span class="line">    <span class="keyword">if</span> ( host == null || port == null)</span><br><span class="line">        <span class="keyword">return</span> false</span><br><span class="line"></span><br><span class="line">    dns = dnslookup(host); // 这里要获取主机的dns信息</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( ip.isPrivate(dns) || dns != docker.ip || [<span class="string">&#x27;80&#x27;</span>,<span class="string">&#x27;8080&#x27;</span>].includes(port) )</span><br><span class="line">        <span class="keyword">return</span> false</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (let i = <span class="number">0</span>; i &lt; blacklist.length; i++)</span><br><span class="line">    &#123;</span><br><span class="line">        let regex = new RegExp(blacklist[i], <span class="string">&#x27;i&#x27;</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (ip.fromLong(s.replace(/[^\d]/g,<span class="string">&#x27;&#x27;</span>).substr(<span class="number">0</span>,<span class="number">10</span>)).match(regex))</span><br><span class="line">                <span class="keyword">return</span> false</span><br><span class="line">        &#125; catch (e) &#123;&#125;</span><br><span class="line">        <span class="keyword">if</span> (s.match(regex))</span><br><span class="line">            <span class="keyword">return</span> false</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> true</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">exports.check = check</span><br></pre></td></tr></table></figure>
+
+<p>针对<code>fileurl</code>的检查流程是由三个函数所组成的，主要检查的内容如下：</p>
+<ol>
+<li>检查是否是字符串类型，是否以<code>http://</code>开头</li>
+<li>使用<code>url.parse</code>获取<code>hostname</code>和<code>port</code>，其中一个都不能为<code>null</code></li>
+<li>调用<code>curl http://ip-api.com/json/$&#123;s&#125;</code>获取域名的DNS最终的解析地址，dns地址必须为<code>docker.ip</code>。(这个地址是题目中已经定义好了的一个ip地址)</li>
+<li><code>port</code>不能是<code>80</code>或者<code>8080</code>端口</li>
+<li>整个url中不能有包含<code>[&#39;wrong&#39;, &#39;127.&#39;, &#39;local&#39;, &#39;@&#39;, &#39;flag&#39;]</code></li>
+</ol>
+<p>通过这个检查流程，可以拦截绝大多数绕过SSRF的方式。但是这里存在一个问题，判断dns地址是否<code>docker.ip</code>和真正请求地址是分开的，分别是两个不同的请求。所以这里可以利用<code>DNS rebinding</code>方式进行绕过，让上面的第3步获取到的dns地址是<code>docker.ip</code>，而后面真正请求的时候，则获取到的是我们构造的恶意服务器地址。</p>
+<p>这里我用了第二个平台来进行利用，A一个绑定了我的vps地址，B绑定了<code>docker.ip</code>:</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/24/16087250521006.jpg" alt="-w800"></p>
+<p>下面生成了一个地址，可以用<code>https://tool.chinaz.com/dns/</code>查询一下，在结果中可以看到不同的地区查询出来的最终解析地址是不一样的，一个是我的vps地址，另一个是题目的<code>docker.ip</code>。并且这里的TTL都为1。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/24/16087251753711.jpg" alt="-w800"></p>
+<p>在<code>vps</code>上起一个web服务，端口不为<code>80</code>与<code>8080</code>，写一个<code>index.php</code>页面用于跳转：(我这里用的端口为9024)</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    header(<span class="string">&quot;Location:http://127.0.0.1/flag&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>由于<code>flag</code>这个字符是在跳转里的，并没有在url中，自然也就不会被拦截了。这样，我们只需要给admin页面传入<code>fileurl=http://xxxxxx.7925af9a.rbndr.us:9024/</code>就可以绕过检测来进行SSRF漏洞的利用了。</p>
+<p>服务器那边解析不一定就会按照预想的来，需要不停的发包来碰撞。最终拿到flag如下：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/24/16087257962369.jpg" alt="-w881"></p>
+<h2 id="修复"><a href="#修复" class="headerlink" title="修复"></a>修复</h2><ol>
+<li>如果应用服务所接收的url是一个固定的域名或者域名范围可控，就应该创建白名单来校验域名。</li>
+<li>如果接收的url的域名是不可控的，则可以考虑用一个沙箱环境来进行数据请求，实现内网分离。</li>
+<li>…</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u011721501/article/details/54667714">https://blog.csdn.net/u011721501/article/details/54667714</a></li>
+</ul>
+
+    </div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
