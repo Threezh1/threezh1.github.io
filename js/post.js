@@ -292,6 +292,12 @@ function maximizeWindow() {
   const win = document.getElementById('main-window');
   const btn = document.getElementById('max-btn');
   isMaximized = !isMaximized;
+  if (isMaximized) {
+    win.style.position = '';
+    win.style.left = '';
+    win.style.top = '';
+    win.style.margin = '';
+  }
   win.classList.toggle('maximized', isMaximized);
   btn.innerHTML = isMaximized ? '&#10697;' : '&#9633;';
   btn.title = isMaximized ? '还原' : '最大化';
