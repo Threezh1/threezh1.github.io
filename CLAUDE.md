@@ -62,7 +62,6 @@ summary: 一句话摘要
 ## GitHub Deployment
 
 - **主仓库**: `git@github.com:Threezh1/threezh1.github.io.git`（GitHub Pages，域名 threezh1.github.io）
-- **备份仓库**: `git@github.com:Threezh1/back.threezh1.github.io.git`
 - **默认分支**: `master`（不用 main）
 - **SSH 认证**：已配置，邮箱 makefoxm@qq.com
 
