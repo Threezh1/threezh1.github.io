@@ -1161,6 +1161,11 @@ body, input, button, select, textarea {
     display: none;
   }
 
+  /* Push systray to the right on mobile */
+  .xp-systray {
+    margin-left: auto;
+  }
+
   /* Start menu: full width */
   .xp-start-menu {
     width: 100%;
