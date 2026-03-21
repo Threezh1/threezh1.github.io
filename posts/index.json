@@ -1,0 +1,415 @@
+[
+  {
+    "id": "2024-01-01-demo",
+    "title": "JavaScript 闭包原理与实战",
+    "date": "2024-01-01",
+    "tags": ["JavaScript", "闭包", "作用域", "基础"],
+    "summary": "从词法作用域讲起，深入理解 JavaScript 闭包的形成机制、内存模型与常见应用场景，通过模块模式、函数柯里化等实例展示闭包的强大威力。"
+  },
+  {
+    "id": "2021-02-26-云原生安全Cheat_Sheet",
+    "title": "云原生安全初认识之容器安全 Cheat Sheet",
+    "date": "2021-02-26",
+    "tags": ["云原生", "容器安全", "Docker", "Kubernetes"],
+    "summary": "云原生安全入门之容器安全速查手册，涵盖 Docker 容器逃逸、Kubernetes 安全配置、镜像安全等云原生环境下的攻防要点。"
+  },
+  {
+    "id": "2021-01-02-JAVA_JNDI_Learn",
+    "title": "Java JNDI 注入基础与高版本限制绕过",
+    "date": "2021-01-02",
+    "tags": ["Java", "JNDI", "LDAP", "漏洞分析"],
+    "summary": "Java JNDI 注入基础原理与高版本 JDK 限制绕过，结合 LDAP 协议分析 Fastjson 漏洞链中 JNDI 注入的完整利用过程。"
+  },
+  {
+    "id": "2020-12-28-华为HCIE的第一课 Writeup",
+    "title": "华为 HCIE 的第一课 Writeup",
+    "date": "2020-12-28",
+    "tags": ["CTF", "Writeup", "HarmonyOS", "Web安全"],
+    "summary": "XCTF HarmonyOS 与 HMS 专场赛题 Writeup，记录华为 HCIE 第一课题目的完整分析思路与解题过程。"
+  },
+  {
+    "id": "2020-12-23-DNS Rebinding Bypass SSRF",
+    "title": "DNS Rebinding Bypass SSRF",
+    "date": "2020-12-23",
+    "tags": ["Web安全", "SSRF", "DNS重绑定", "Bypass"],
+    "summary": "DNS 重绑定攻击原理详解，介绍如何通过控制 DNS TTL 与 IP 轮换机制绕过服务端请求伪造（SSRF）的 IP 黑名单过滤。"
+  },
+  {
+    "id": "2020-12-19-JAVA_RMI_Learn",
+    "title": "Java RMI 反序列化攻击 & JEP290 Bypass 分析",
+    "date": "2020-12-19",
+    "tags": ["Java", "RMI", "反序列化", "漏洞分析"],
+    "summary": "从 RPC 原理出发，系统学习 Java RMI 反序列化攻击手法，并深入分析 JEP290 安全机制的绕过方式。"
+  },
+  {
+    "id": "2020-12-11-DevTools里的JSFinder与油猴脚本",
+    "title": "DevTools 里的 JSFinder 与油猴脚本",
+    "date": "2020-12-11",
+    "tags": ["JavaScript", "DevTools", "工具开发", "油猴脚本"],
+    "summary": "基于 Chrome DevTools 与 Tampermonkey 油猴脚本实现 JSFinder 功能，在浏览器中直接从 JS 文件提取 URL 与子域名。"
+  },
+  {
+    "id": "2020-12-10-JAVA反序列化基础_CommonCollection31分析",
+    "title": "Java 反序列化基础 & Commons-Collections 3.1 分析",
+    "date": "2020-12-10",
+    "tags": ["Java", "反序列化", "Commons-Collections", "漏洞分析"],
+    "summary": "从 Java 序列化原理出发，深度分析 Commons-Collections 3.1 反序列化利用链的构造过程与执行流程。"
+  },
+  {
+    "id": "2020-12-06-Mysql8新特性绕过SELECT过滤",
+    "title": "利用 MySQL 8.0 新特性绕过 SELECT 过滤",
+    "date": "2020-12-06",
+    "tags": ["SQL注入", "MySQL", "Bypass", "CTF"],
+    "summary": "通过嘶吼 CTF 赛题介绍利用 MySQL 8.0 新增的 TABLE 语句替代 SELECT，在关键字被过滤场景下实现 SQL 注入的技巧。"
+  },
+  {
+    "id": "2020-11-21-2020 祥云杯 Web Writeup",
+    "title": "2020 祥云杯 Web Writeup",
+    "date": "2020-11-21",
+    "tags": ["CTF", "Writeup", "Web安全", "命令执行"],
+    "summary": "2020 祥云杯 Web 方向完整 Writeup，重点记录命令执行 Bypass 的 payload 构造思路与解题过程。"
+  },
+  {
+    "id": "2020-10-31-express-validator 6.6.0 原型链污染分析",
+    "title": "express-validator 6.6.0 原型链污染分析",
+    "date": "2020-10-31",
+    "tags": ["Node.js", "JavaScript", "原型链污染", "漏洞分析"],
+    "summary": "结合 X-AUCN2020 赛题，深度分析 express-validator 6.6.0 原型链污染漏洞，复现任意属性污染的利用过程。"
+  },
+  {
+    "id": "2020-08-21-第十三届全国大学生信息安全竞赛 WEB Writeup",
+    "title": "第十三届全国大学生信息安全竞赛 WEB Writeup",
+    "date": "2020-08-21",
+    "tags": ["CTF", "Writeup", "PHP", "Web安全"],
+    "summary": "第十三届全国大学生信息安全竞赛 Web 方向 Writeup，记录 easyphp 等题目的 fuzz 思路与漏洞利用过程。"
+  },
+  {
+    "id": "2020-05-24-GraphQL漏洞笔记及案例",
+    "title": "GraphQL 漏洞笔记及案例",
+    "date": "2020-05-24",
+    "tags": ["Web安全", "GraphQL", "信息泄露", "越权"],
+    "summary": "GraphQL 漏洞系统整理与真实案例分析，涵盖信息泄露、越权访问、内省滥用、批量查询攻击等 GraphQL 特有安全问题。"
+  },
+  {
+    "id": "2020-05-20-HTTP请求走私的学习",
+    "title": "HTTP 请求走私的学习",
+    "date": "2020-05-20",
+    "tags": ["Web安全", "HTTP请求走私", "漏洞利用", "BurpSuite"],
+    "summary": "结合 DEFCON 赛题与 BurpSuite 实验室系统学习 HTTP 请求走私，深入梳理 CL.TE、TE.CL、TE.TE 等攻击类型与利用场景。"
+  },
+  {
+    "id": "2020-05-12-网鼎杯2020_部分Writeup",
+    "title": "网鼎杯 2020 部分 Writeup",
+    "date": "2020-05-12",
+    "tags": ["CTF", "Writeup", "Node.js", "反序列化"],
+    "summary": "网鼎杯 2020 部分题目 Writeup，重点记录一道 Node.js 反序列化题目的完整利用思路与解题过程。"
+  },
+  {
+    "id": "2020-05-12-De1ctf2020_复盘",
+    "title": "De1CTF 2020 题目复盘",
+    "date": "2020-05-12",
+    "tags": ["CTF", "Writeup", "Web安全"],
+    "summary": "De1CTF 2020 赛后复盘，对两道纯 Web 题目进行详细的漏洞复现与利用链分析。"
+  },
+  {
+    "id": "2020-04-30-CSP_Bypass",
+    "title": "CSP & Bypass",
+    "date": "2020-04-30",
+    "tags": ["Web安全", "CSP", "Bypass", "XSS"],
+    "summary": "内容安全策略（CSP）原理与绕过技巧全面总结，整理各类 CSP 配置缺陷对应的 Bypass 方法，助力 XSS 防御绕过研究。"
+  },
+  {
+    "id": "2020-04-29-xxe_payload",
+    "title": "常见 XXE Payload 整理",
+    "date": "2020-04-29",
+    "tags": ["Web安全", "XXE", "Payload", "备忘录"],
+    "summary": "XML 外部实体注入（XXE）常见 payload 备忘录，涵盖文件读取、SSRF、OOB 带外数据外传等多种利用场景。"
+  },
+  {
+    "id": "2020-04-28-Markdown_Self_xss",
+    "title": "偶遇 Markdown 类型的 Self-XSS",
+    "date": "2020-04-28",
+    "tags": ["Web安全", "XSS", "Markdown", "Self-XSS"],
+    "summary": "记录在 Markdown 编辑器中发现 Self-XSS 漏洞的过程，探讨 Markdown 渲染器对 XSS payload 的处理缺陷与利用方式。"
+  },
+  {
+    "id": "2020-04-27-对缓存投毒的学习与总结",
+    "title": "对缓存投毒的学习与总结",
+    "date": "2020-04-27",
+    "tags": ["Web安全", "缓存投毒", "HTTP", "漏洞利用"],
+    "summary": "Web 缓存投毒漏洞原理与利用总结，介绍缓存键机制、未键入请求头的滥用，以及如何通过投毒影响全站用户。"
+  },
+  {
+    "id": "2020-04-04-XSS_XHR_LFI",
+    "title": "XSS + XHR 两个案例的记录",
+    "date": "2020-04-04",
+    "tags": ["Web安全", "XSS", "XHR", "LFI"],
+    "summary": "记录两个有趣的 XSS 案例：通过 XMLHttpRequest 跨域读取数据，以及 XSS 结合本地文件包含（LFI）构成的漏洞攻击链。"
+  },
+  {
+    "id": "2020-02-25-XSS_postMessage_localstorage_xss",
+    "title": "跨窗口通信 & LocalStorage => XSS",
+    "date": "2020-02-25",
+    "tags": ["Web安全", "XSS", "postMessage", "LocalStorage"],
+    "summary": "分析跨窗口通信（postMessage）与 LocalStorage 结合产生 XSS 漏洞的完整案例，总结 postMessage 安全使用规范。"
+  },
+  {
+    "id": "2020-02-25-CSRF绕过整理",
+    "title": "CSRF 的绕过与利用",
+    "date": "2020-02-25",
+    "tags": ["Web安全", "CSRF", "Bypass", "漏洞利用"],
+    "summary": "CSRF 漏洞绕过与利用方法整理，涵盖 Origin/Referer 头校验绕过、Null 值利用、Content-Type 绕过等多种攻击技巧。"
+  },
+  {
+    "id": "2020-02-19-CORS原理及利用整理",
+    "title": "CORS 原理及利用整理",
+    "date": "2020-02-19",
+    "tags": ["Web安全", "CORS", "跨域", "漏洞利用"],
+    "summary": "跨域资源共享（CORS）原理及漏洞利用系统整理，从 CORS 配置缺陷到实际利用场景，分析 Origin 反射、通配符错误配置等问题。"
+  },
+  {
+    "id": "2020-02-16-Vulnerability-goapp-Writeup",
+    "title": "Vulnerability-goapp：Go 语言漏洞平台审计过程",
+    "date": "2020-02-16",
+    "tags": ["Go语言", "代码审计", "Web安全", "Writeup"],
+    "summary": "对 Vulnerability-goapp Go 语言漏洞靶场的审计过程，通过审计了解 Go Web 框架的基础漏洞类型与代码审计方法。"
+  },
+  {
+    "id": "2020-02-02-Hacktm-Nodejs",
+    "title": "HackTM CTF 一道 Node.js 题分析（Draw with us）",
+    "date": "2020-02-02",
+    "tags": ["CTF", "Writeup", "Node.js", "Web安全"],
+    "summary": "HackTM CTF 2020 Node.js 题 Draw with us 详细分析，梳理 WebSocket 与原型链污染结合的漏洞利用链构造思路。"
+  },
+  {
+    "id": "2020-01-30-NodeJsVulns",
+    "title": "Node.js 常见漏洞学习与总结",
+    "date": "2020-01-30",
+    "tags": ["Node.js", "Web安全", "漏洞分析", "JavaScript"],
+    "summary": "Node.js 常见 Web 安全漏洞系统整理，涵盖 eval() 命令注入、路径遍历、原型链污染、反序列化等漏洞的原理与利用示例。"
+  },
+  {
+    "id": "2019-12-18-论如何优雅的复制一个网站的所有页面",
+    "title": "Python 之如何优雅的复制一个网站的所有页面",
+    "date": "2019-12-18",
+    "tags": ["Python", "爬虫", "工具开发", "网站备份"],
+    "summary": "介绍使用 Python 编写脚本优雅镜像复制整个网站所有页面的方法，包含 HTML、CSS、JS 及静态资源的完整保存方案。"
+  },
+  {
+    "id": "2019-12-18-2019 Redhat决赛 Writeup",
+    "title": "2019 RedHat 杯决赛 Writeup",
+    "date": "2019-12-18",
+    "tags": ["CTF", "Writeup", "PHP", "代码审计"],
+    "summary": "2019 RedHat 杯决赛 Web 方向 Writeup，四道题均为 PHP 代码审计，记录 TPshop 框架漏洞等题目的利用思路。"
+  },
+  {
+    "id": "2019-10-07-OKLite 1.2.25 几处getshell审计分析",
+    "title": "OKLite 1.2.25 几处 Getshell 审计分析",
+    "date": "2019-10-07",
+    "tags": ["PHP", "代码审计", "Getshell", "CMS漏洞"],
+    "summary": "OKLite 1.2.25 企业站系统多处 Getshell 漏洞审计分析，深入分析路由机制，覆盖文件上传、模板注入等多个漏洞点的利用过程。"
+  },
+  {
+    "id": "2019-10-04-PHP反序列化进阶学习与总结",
+    "title": "PHP 反序列化进阶学习与总结",
+    "date": "2019-10-04",
+    "tags": ["PHP", "反序列化", "POP链", "漏洞分析"],
+    "summary": "PHP 反序列化漏洞进阶学习总结，深入分析 private/protected 成员序列化差异、POP 链构造与 Session 反序列化等高级利用场景，首发先知社区。"
+  },
+  {
+    "id": "2019-09-13-boringcode",
+    "title": "ByteCTF boringcode 分析与 PHP 无参数函数利用",
+    "date": "2019-09-13",
+    "tags": ["CTF", "Writeup", "PHP", "无参数函数"],
+    "summary": "通过 ByteCTF boringcode 题目学习 PHP 无参数函数的利用技巧，分析在严格过滤下如何通过 getallheaders()、scandir() 等无参函数实现代码执行。"
+  },
+  {
+    "id": "2019-09-09-phar反序列化",
+    "title": "Phar 反序列化",
+    "date": "2019-09-09",
+    "tags": ["PHP", "反序列化", "Phar", "Web安全"],
+    "summary": "PHP Phar 反序列化漏洞详解，介绍 Phar 文件结构组成，分析可触发反序列化的文件操作函数，并演示实际漏洞利用方式。"
+  },
+  {
+    "id": "2019-08-22-简单的协程利用框架",
+    "title": "协程初体验之简单的利用框架",
+    "date": "2019-08-22",
+    "tags": ["Python", "协程", "asyncio", "工具开发"],
+    "summary": "基于 Python asyncio 协程构建简单的并发安全利用框架，通过 functools.partial 封装目标函数，方便复用于需要高并发的安全脚本开发。"
+  },
+  {
+    "id": "2019-07-12-Python动态加载模块的几种方式",
+    "title": "Python 动态加载模块、类、函数的几种方式",
+    "date": "2019-07-12",
+    "tags": ["Python", "模块", "编程技巧", "importlib"],
+    "summary": "对比 exec()、importlib、__import__() 等多种方式实现 Python 运行时动态加载模块、类和函数，分析各方法的适用场景与优劣。"
+  },
+  {
+    "id": "2019-07-11-关于易语言与Python的一点想法",
+    "title": "关于易语言与 Python 的一点想法",
+    "date": "2019-07-11",
+    "tags": ["Python", "易语言", "编程感想"],
+    "summary": "从个人学习经历出发，对比易语言与 Python 的上手难度、GUI 开发体验与适用场景，探讨学习第一门编程语言的意义。"
+  },
+  {
+    "id": "2019-06-10-JSFinder",
+    "title": "JSFinder：从 JS 文件中提取 URL 和子域名的工具",
+    "date": "2019-06-10",
+    "tags": ["工具", "JavaScript", "信息收集", "子域名"],
+    "summary": "JSFinder 工具介绍与使用说明，一款自动从网页 JavaScript 文件中批量提取 URL 和子域名的信息收集工具。"
+  },
+  {
+    "id": "2019-06-09-从CTF题中学习几种有趣(奇怪)的SQL注入",
+    "title": "从 CTF 题中学习几种有趣的 SQL 注入",
+    "date": "2019-06-09",
+    "tags": ["CTF", "SQL注入", "Web安全", "注入技巧"],
+    "summary": "从 CTF 实战题目中总结几种非常规 SQL 注入技巧，包含罕见注入方式与 WAF 绕过方法，文章已投稿至先知社区。"
+  },
+  {
+    "id": "2019-06-06-初探Docker之搭建CTF平台",
+    "title": "初探 Docker 之搭建 CTF 平台",
+    "date": "2019-06-06",
+    "tags": ["Docker", "CTF", "运维", "环境搭建"],
+    "summary": "使用腾讯云学生机初探 Docker，记录基于 CTFd 框架与 Docker 容器技术搭建 CTF 竞赛平台的完整过程。"
+  },
+  {
+    "id": "2019-05-29-PHP代码审计之SQL注入与审计流程",
+    "title": "PHP 代码审计之 SQL 注入与审计流程",
+    "date": "2019-05-29",
+    "tags": ["PHP", "代码审计", "SQL注入", "审计流程"],
+    "summary": "PHP 代码审计 SQL 注入专题，结合先知社区入门审计文章梳理完整的代码审计流程，总结 SQL 注入常见挖掘点与利用方法。"
+  },
+  {
+    "id": "2019-05-26-强网杯upload Writeup与简单分析",
+    "title": "强网杯 upload Writeup 与简单分析",
+    "date": "2019-05-26",
+    "tags": ["CTF", "Writeup", "文件上传", "代码审计"],
+    "summary": "强网杯文件上传题目 Writeup，通过 dirsearch 扫到源码后分析竞争条件漏洞，结合 PHP 代码执行完成完整的利用链构造。"
+  },
+  {
+    "id": "2019-05-18-PHP代码审计之重装漏洞",
+    "title": "PHP 代码审计之重装漏洞",
+    "date": "2019-05-18",
+    "tags": ["PHP", "代码审计", "重装漏洞", "Getshell"],
+    "summary": "PHP 代码审计重装漏洞专题，归纳七种重装漏洞类型，复现 vauditdemo 中因 header() 后未 exit 导致配置信息写入 Getshell 的漏洞。"
+  },
+  {
+    "id": "2019-05-17-JWT备忘录",
+    "title": "JWT 备忘录",
+    "date": "2019-05-17",
+    "tags": ["Web安全", "JWT", "身份认证", "备忘录"],
+    "summary": "JWT（JSON Web Token）漏洞攻击备忘录，总结算法混淆（HS256/RS256）、alg:none 空签名、弱密钥爆破等常见 JWT 安全问题。"
+  },
+  {
+    "id": "2019-05-15-川师线下CTF-Web-Writeup",
+    "title": "川师线下 CTF Web Writeup",
+    "date": "2019-05-15",
+    "tags": ["CTF", "Writeup", "Web安全", "SQL注入"],
+    "summary": "川师线下 CTF 赛后复盘，涵盖 418 错误页面 Cookie 伪造、SQL 注入绕过等多道 Web 题目的解题思路与学习总结。"
+  },
+  {
+    "id": "2019-04-27-2019全国大学生信息安全竞赛WEB1_Writeup",
+    "title": "2019 全国大学生信息安全竞赛反序列化题目复现",
+    "date": "2019-04-27",
+    "tags": ["CTF", "Writeup", "PHP", "反序列化", "文件包含"],
+    "summary": "2019 全国大学生信息安全竞赛 Web 反序列化题目复现，利用 PHP 伪协议读取源码，结合 parse_url 特性绕过过滤并构造反序列化利用链。"
+  },
+  {
+    "id": "2019-04-19-DDCTF 部分Writeup",
+    "title": "DDCTF 部分题目 Writeup",
+    "date": "2019-04-19",
+    "tags": ["CTF", "Writeup", "PHP", "反序列化"],
+    "summary": "DDCTF 部分 Web 赛题 Writeup，包含 Base64 多重解码读取任意文件、PHP 反序列化等漏洞的完整利用过程记录。"
+  },
+  {
+    "id": "2019-04-16-Upload-labs-Writeup",
+    "title": "Upload-labs Writeup",
+    "date": "2019-04-16",
+    "tags": ["CTF", "文件上传", "Web安全", "Writeup"],
+    "summary": "Upload-labs 文件上传漏洞靶场完整 Writeup，系统覆盖 JS 绕过、MIME 类型伪造、.htaccess 解析、文件名截断等各类绕过技巧。"
+  },
+  {
+    "id": "2019-01-01-XXE_Note",
+    "title": "了解 XML 与 XXE 注入",
+    "date": "2019-01-01",
+    "tags": ["Web安全", "XXE", "XML", "笔记"],
+    "summary": "XML 基础语法与 XXE（XML 外部实体注入）漏洞学习笔记，介绍实体类型、DTD 声明方式及 XXE 漏洞的读文件、SSRF 等利用场景。"
+  },
+  {
+    "id": "2019-01-01-XSS_02_XSS备忘录",
+    "title": "XSS 备忘录",
+    "date": "2019-01-01",
+    "tags": ["Web安全", "XSS", "Bypass", "备忘录"],
+    "summary": "XSS 漏洞完整备忘录，涵盖 HTML 标签间/内、JavaScript 上下文、事件触发等各类注入场景及常见编码绕过技巧。"
+  },
+  {
+    "id": "2019-01-01-XSS_01_从浏览器编码开始说起",
+    "title": "XSS_01：从浏览器编码开始说起",
+    "date": "2019-01-01",
+    "tags": ["Web安全", "XSS", "浏览器编码", "渲染引擎"],
+    "summary": "从浏览器工作原理出发理解 XSS，分析渲染引擎的低级解析顺序、HTML/URL/JS 编码优先级对 XSS payload 绕过的影响。"
+  },
+  {
+    "id": "2019-01-01-XPath",
+    "title": "了解 XPath 注入",
+    "date": "2019-01-01",
+    "tags": ["Web安全", "XPath", "XML", "注入"],
+    "summary": "XPath 语法基础与 XPath 注入漏洞学习笔记，介绍节点选择、谓语过滤等核心语法，以及盲注枚举数据的利用技巧。"
+  },
+  {
+    "id": "2019-01-01-Open_Redirect",
+    "title": "学习 Open Redirect",
+    "date": "2019-01-01",
+    "tags": ["Web安全", "开放重定向", "Bypass", "笔记"],
+    "summary": "开放重定向（Open Redirect）漏洞学习笔记，整理 @符号、?、锚点、xip.io 等多种 URL 过滤绕过技巧。"
+  },
+  {
+    "id": "2019-01-01-Linux_basis",
+    "title": "Linux 学习笔记",
+    "date": "2019-01-01",
+    "tags": ["Linux", "运维", "笔记", "基础"],
+    "summary": "Linux 系统基础学习笔记，涵盖 RPM 包管理、Yum 软件仓库、用户权限管理、Shell 脚本、网络配置等核心知识点。"
+  },
+  {
+    "id": "2019-01-01-HPP_Subdomain_takeover",
+    "title": "了解 HTTP 参数污染与子域名接管",
+    "date": "2019-01-01",
+    "tags": ["Web安全", "HTTP参数污染", "子域名接管", "笔记"],
+    "summary": "HTTP 参数污染（HPP）与子域名接管漏洞学习笔记，介绍 HPP 的测试步骤、利用场景及子域名接管的发现与利用方法。"
+  },
+  {
+    "id": "2019-01-01-Head First Javascript",
+    "title": "Head First JavaScript 笔记",
+    "date": "2019-01-01",
+    "tags": ["JavaScript", "笔记", "编程基础"],
+    "summary": "Head First JavaScript 入门学习笔记，记录变量声明、定时器、DOM 操作、函数等 JavaScript 基础语法要点。"
+  },
+  {
+    "id": "2019-01-01-CRLF",
+    "title": "了解 CRLF 注入",
+    "date": "2019-01-01",
+    "tags": ["Web安全", "CRLF注入", "HTTP", "笔记"],
+    "summary": "CRLF（回车换行）注入漏洞学习笔记，介绍如何通过 %0d%0a 注入 HTTP 响应头，实施 HTTP 响应拆分与 Cookie 注入攻击。"
+  },
+  {
+    "id": "2018-01-01-湖湘杯check_code",
+    "title": "湖湘杯的一个 check code 题",
+    "date": "2018-01-01",
+    "tags": ["CTF", "Writeup", "SQL注入", "加密解密"],
+    "summary": "湖湘杯 CTF 赛题 Writeup，分析 AES 加密参数的解密过程，结合 PHP 源码审计发现并利用 SQL 注入漏洞获取 flag。"
+  },
+  {
+    "id": "2018-01-01-phpmyadmin 4.8.1任意文件包含漏洞-CTF",
+    "title": "phpMyAdmin 4.8.1 任意文件包含漏洞 CTF",
+    "date": "2018-01-01",
+    "tags": ["CTF", "Writeup", "文件包含", "phpMyAdmin"],
+    "summary": "CTF 题目复现 phpMyAdmin 4.8.1 任意文件包含漏洞，通过 mb_substr 路径截断绕过白名单过滤，利用 PHP Session 文件包含实现代码执行。"
+  },
+  {
+    "id": "2018-01-01-Typecho反序列化漏洞分析",
+    "title": "Typecho 反序列化漏洞分析",
+    "date": "2018-01-01",
+    "tags": ["PHP", "反序列化", "漏洞分析", "Typecho"],
+    "summary": "深入分析 Typecho CMS 反序列化漏洞利用链，从 _typecho_config Cookie 触发点出发，梳理 __toString、__get 魔术方法串联实现 RCE 的 POC 构造过程。"
+  }
+]

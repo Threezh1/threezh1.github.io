@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章 - 三之的博客</title>
+  <link rel="stylesheet" href="css/xp.css">
+</head>
+<body class="xp-desktop">
+
+  <!-- Desktop Icons -->
+  <div class="xp-desktop-icons">
+    <div class="xp-desktop-icon" ondblclick="location.href='index.html'">
+      <div class="di-icon"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/ie.png" alt="三之的博客"></div>
+      <div class="di-label">三之的博客</div>
+    </div>
+    <div class="xp-desktop-icon" ondblclick="location.href='index.html'">
+      <div class="di-icon"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/computer.png" alt="我的电脑"></div>
+      <div class="di-label">我的电脑</div>
+    </div>
+    <div class="xp-desktop-icon">
+      <div class="di-icon"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/recycle.png" alt="回收站"></div>
+      <div class="di-label">回收站</div>
+    </div>
+  </div>
+
+  <!-- Main Window -->
+  <div class="xp-window" id="main-window">
+
+    <!-- Title Bar -->
+    <div class="xp-titlebar" id="titlebar">
+      <div class="xp-titlebar-icon"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/ie.png" width="16" height="16" alt=""></div>
+      <div class="xp-titlebar-text" id="window-title">加载中... - Windows Internet Explorer</div>
+      <div class="xp-titlebar-buttons">
+        <button class="xp-title-btn xp-btn-min" title="最小化" onclick="minimizeWindow()">&#95;</button>
+        <button class="xp-title-btn xp-btn-max" title="最大化" id="max-btn" onclick="maximizeWindow()">&#9633;</button>
+        <button class="xp-title-btn xp-btn-close" title="关闭" onclick="closeWindow()">&#10005;</button>
+      </div>
+    </div>
+
+    <!-- Menu Bar -->
+    <div class="xp-menubar">
+      <span class="xp-menu-item">文件(F)</span>
+      <span class="xp-menu-item">编辑(E)</span>
+      <span class="xp-menu-item">查看(V)</span>
+      <span class="xp-menu-item">收藏夹(A)</span>
+      <span class="xp-menu-item">工具(T)</span>
+      <span class="xp-menu-item">帮助(H)</span>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="xp-toolbar">
+      <button class="xp-toolbar-btn" onclick="location.href='index.html'">
+        <span class="btn-icon">⬅</span>
+        <span class="btn-label">后退</span>
+      </button>
+      <button class="xp-toolbar-btn disabled" id="btn-forward">
+        <span class="btn-icon">➡</span>
+        <span class="btn-label">前进</span>
+      </button>
+      <button class="xp-toolbar-btn" onclick="location.reload()">
+        <span class="btn-icon">🔄</span>
+        <span class="btn-label">刷新</span>
+      </button>
+      <button class="xp-toolbar-btn" onclick="location.href='index.html'">
+        <span class="btn-icon">🏠</span>
+        <span class="btn-label">主页</span>
+      </button>
+      <div class="xp-toolbar-separator"></div>
+      <div class="xp-address-bar">
+        <span class="xp-address-label">地址</span>
+        <input type="text" class="xp-address-input" id="address-input"
+               readonly>
+        <button class="xp-go-btn">转到</button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="xp-content-area">
+
+      <!-- Sidebar -->
+      <div class="xp-sidebar">
+        <div class="xp-sidebar-panel" id="toc-panel" style="display:none">
+          <div class="xp-sidebar-panel-header">▼ 文章目录</div>
+          <div class="xp-sidebar-panel-content" id="toc-content"></div>
+        </div>
+        <div class="xp-sidebar-panel">
+          <div class="xp-sidebar-panel-header">▼ 博客导航</div>
+          <div class="xp-sidebar-panel-content">
+            <a class="xp-sidebar-link" href="index.html">🏠 首页</a>
+            <a class="xp-sidebar-link" href="index.html">📋 所有文章</a>
+            <a class="xp-sidebar-link" href="about.html">👤 关于三之</a>
+          </div>
+        </div>
+        <div class="xp-sidebar-panel">
+          <div class="xp-sidebar-panel-header">▼ 最新文章</div>
+          <div class="xp-sidebar-panel-content" id="recent-posts-nav">
+            <span class="xp-sidebar-link" style="color:#888">加载中...</span>
+          </div>
+        </div>
+        <div class="xp-sidebar-panel">
+          <div class="xp-sidebar-panel-header">▼ 相关标签</div>
+          <div class="xp-sidebar-panel-content" id="post-tags-panel">
+            <span class="xp-sidebar-link" style="color:#888">加载中...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+
+      <!-- Main Content -->
+      <div class="xp-main-content" id="scroll-container">
+        <div id="post-container">
+          <div class="xp-loading">⏳ 正在加载文章...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Status Bar -->
+    <div class="xp-statusbar">
+      <div class="xp-status-text" id="status-text">正在连接...</div>
+      <div class="xp-status-zone"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/ie.png" width="14" height="14" alt="" style="vertical-align:middle;margin-right:3px"> Internet</div>
+    </div>
+
+  </div><!-- /main-window -->
+
+  <!-- Taskbar -->
+  <div class="xp-taskbar">
+    <button class="xp-start-btn" onclick="toggleStartMenu()">
+      <span class="xp-start-icon"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/logo.svg" width="22" height="22" alt="" style="vertical-align:middle"></span>
+      开始
+    </button>
+    <div class="xp-taskbar-tasks">
+      <button class="xp-taskbar-btn active" onclick="restoreWindow()"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/ie.png" width="16" height="16" alt="" style="vertical-align:middle;margin-right:3px"> 三之的博客</button>
+    </div>
+    <div class="xp-systray">
+      <span title="音量">🔊</span>
+      <span title="网络"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/ie.png" width="14" height="14" alt="" style="vertical-align:middle"></span>
+      <span id="taskbar-clock">00:00</span>
+    </div>
+  </div>
+
+  <!-- Start Menu -->
+  <div class="xp-start-menu" id="start-menu" style="display:none">
+    <div class="start-menu-header">
+      <div class="start-menu-user-icon">👨‍💻</div>
+      <div class="start-menu-username">三之</div>
+    </div>
+    <div class="start-menu-body">
+      <div class="start-menu-left">
+        <div class="start-menu-item" onclick="location.href='index.html'; closeStartMenu()">
+          <span class="sm-icon"><img src="https://raw.githubusercontent.com/faisalAkhtar/windows-xp/main/assets/ie.png" width="22" height="22" alt=""></span>
+          <div>
+            <div style="font-weight:bold;font-size:12px">三之的博客</div>
+            <div style="font-size:10px;color:#666">浏览所有文章</div>
+          </div>
+        </div>
+        <div class="start-menu-sep"></div>
+        <div class="start-menu-item">
+          <span class="sm-icon">📄</span>最新文章
+        </div>
+        <div class="start-menu-item">
+          <span class="sm-icon">🏷️</span>标签索引
+        </div>
+      </div>
+      <div class="start-menu-right">
+        <div class="start-menu-item">
+          <span class="sm-icon">👤</span><a href="about.html" style="color:inherit;text-decoration:none">关于作者</a>
+        </div>
+        <div class="start-menu-item">
+          <span class="sm-icon">📧</span>联系我
+        </div>
+        <div class="start-menu-sep"></div>
+        <div class="start-menu-item">
+          <span class="sm-icon">⚙️</span>控制面板
+        </div>
+      </div>
+    </div>
+    <div class="start-menu-footer">
+      <div class="start-footer-btn">
+        <span>🌙</span> 注销
+      </div>
+      <div class="start-footer-btn" onclick="closeWindow()">
+        <span>⏻</span> 关机
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="js/post.js?v=14"></script>
+</body>
+</html>
