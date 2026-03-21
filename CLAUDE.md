@@ -58,3 +58,18 @@ summary: 一句话摘要
 
 1. Create `posts/YYYY-MM-DD-slug.md` with the frontmatter above.
 2. **Regenerate `posts/index.json`** — add the new post's metadata (id, title, date, tags, summary) in descending date order.
+
+## GitHub Deployment
+
+- **主仓库**: `git@github.com:Threezh1/threezh1.github.io.git`（GitHub Pages，域名 threezh1.github.io）
+- **备份仓库**: `git@github.com:Threezh1/back.threezh1.github.io.git`
+- **默认分支**: `master`（不用 main）
+- **SSH 认证**：已配置，邮箱 makefoxm@qq.com
+
+### 发布步骤
+
+```bash
+git add <files>
+git commit -m "描述"
+git push origin master
+```
