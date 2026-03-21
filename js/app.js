@@ -24,7 +24,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadPosts() {
   setStatus('正在连接...');
   try {
-    // 1. Fetch directory listing and extract .md filenames
+    // 1. Try loading from pre-built index.json (works on GitHub Pages)
+    const indexRes = await fetch('posts/index.json');
+    if (indexRes.ok) {
+      allPosts = await indexRes.json();
+      allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      filteredPosts = allPosts;
+      renderPosts(1);
+      renderSidebar();
+      setStatus('完成');
+      return;
+    }
+  } catch (_) {}
+
+  try {
+    // 2. Fallback: fetch directory listing (local Python HTTP server)
     const dirRes = await fetch('posts/');
     if (!dirRes.ok) throw new Error(`HTTP ${dirRes.status}`);
     const html = await dirRes.text();
@@ -35,10 +49,7 @@ async function loadPosts() {
 
     if (filenames.length === 0) throw new Error('posts/ 目录中未找到任何 .md 文件');
 
-    // 2. Fetch all .md files in parallel and parse frontmatter
     allPosts = await Promise.all(filenames.map(fetchPostMeta));
-
-    // Sort newest first
     allPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
     filteredPosts = allPosts;
     renderPosts(1);
