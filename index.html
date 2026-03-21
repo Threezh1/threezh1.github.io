@@ -50,6 +50,7 @@
 
     <!-- Toolbar -->
     <div class="xp-toolbar">
+      <button class="mobile-sidebar-toggle" onclick="toggleMobileSidebar()" title="菜单">☰</button>
       <button class="xp-toolbar-btn disabled" id="btn-back" onclick="history.back()">
         <span class="btn-icon">⬅</span>
         <span class="btn-label">后退</span>
@@ -195,5 +196,18 @@
   </div>
 
   <script src="js/app.js?v=8"></script>
+  <script>
+    function toggleMobileSidebar() {
+      document.querySelector('.xp-sidebar').classList.toggle('mobile-open');
+    }
+    // Close sidebar when clicking a link inside it (on mobile)
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.xp-sidebar').addEventListener('click', e => {
+        if (e.target.closest('a') && window.innerWidth <= 768) {
+          document.querySelector('.xp-sidebar').classList.remove('mobile-open');
+        }
+      });
+    });
+  </script>
 </body>
 </html>

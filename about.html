@@ -50,6 +50,7 @@
 
     <!-- Toolbar -->
     <div class="xp-toolbar">
+      <button class="mobile-sidebar-toggle" onclick="toggleMobileSidebar()" title="菜单">☰</button>
       <button class="xp-toolbar-btn" onclick="location.href='index.html'">
         <span class="btn-icon">⬅</span>
         <span class="btn-label">后退</span>
@@ -164,5 +165,17 @@
   <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="js/about.js"></script>
+  <script>
+    function toggleMobileSidebar() {
+      document.querySelector('.xp-sidebar').classList.toggle('mobile-open');
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('.xp-sidebar').addEventListener('click', e => {
+        if (e.target.closest('a') && window.innerWidth <= 768) {
+          document.querySelector('.xp-sidebar').classList.remove('mobile-open');
+        }
+      });
+    });
+  </script>
 </body>
 </html>

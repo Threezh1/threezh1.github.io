@@ -1017,3 +1017,219 @@ body, input, button, select, textarea {
   height: 16px;
   width: 16px;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVE (≤ 768px)
+   ============================================================ */
+
+/* Mobile sidebar toggle button — hidden on desktop */
+.mobile-sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  background: linear-gradient(180deg, #f4f4ec, #d4d0c8);
+  border: 2px outset #d4d0c8;
+  cursor: pointer;
+  font-size: 15px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.mobile-sidebar-toggle:hover {
+  background: linear-gradient(180deg, #fffbe8, #ffd878);
+  border-color: #c8a818;
+}
+
+@media (max-width: 768px) {
+  /* Desktop: remove padding, fill screen */
+  .xp-desktop {
+    padding: 0 0 40px;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  /* Hide desktop icons (they overlap the window) */
+  .xp-desktop-icons {
+    display: none;
+  }
+
+  /* Window: fill full width, no rounding */
+  .xp-window {
+    max-width: 100%;
+    width: 100%;
+    height: calc(100vh - 40px);
+    border-radius: 0;
+    margin: 0;
+  }
+
+  /* Hide min/max buttons — window is already full screen */
+  .xp-btn-min,
+  .xp-btn-max {
+    display: none;
+  }
+
+  /* Title bar: smaller icon, tighter */
+  .xp-titlebar {
+    border-radius: 0;
+  }
+
+  /* Hide menu bar */
+  .xp-menubar {
+    display: none;
+  }
+
+  /* Toolbar: compact, show toggle button */
+  .xp-toolbar {
+    height: auto;
+    padding: 3px 4px;
+    gap: 3px;
+    flex-wrap: nowrap;
+  }
+
+  /* Hide text labels on toolbar buttons */
+  .xp-toolbar-btn .btn-label {
+    display: none;
+  }
+
+  .xp-toolbar-btn {
+    min-width: 32px;
+    padding: 2px 4px;
+  }
+
+  /* Show mobile sidebar toggle */
+  .mobile-sidebar-toggle {
+    display: flex;
+  }
+
+  /* Address label: hide on mobile */
+  .xp-address-label {
+    display: none;
+  }
+
+  /* Content area: stack sidebar on top */
+  .xp-content-area {
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Sidebar: collapsed by default, expands on toggle */
+  .xp-sidebar {
+    width: 100% !important;
+    min-width: 0;
+    max-height: 0;
+    overflow: hidden;
+    border-right: none;
+    border-bottom: 1px solid #c0bdb0;
+    transition: max-height 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .xp-sidebar.mobile-open {
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  /* Sidebar panels: horizontal scroll for tags */
+  #tags-cloud {
+    white-space: nowrap;
+    overflow-x: auto;
+    padding: 4px 8px;
+  }
+
+  /* Hide resize handle */
+  .sidebar-resize-handle {
+    display: none;
+  }
+
+  /* Main content: full width, less padding */
+  .xp-main-content {
+    flex: 1;
+    padding: 14px 14px;
+    overflow-y: auto;
+  }
+
+  /* Status bar: hide on mobile */
+  .xp-statusbar {
+    display: none;
+  }
+
+  /* Taskbar: hide task buttons, keep start + clock */
+  .xp-taskbar-tasks {
+    display: none;
+  }
+
+  /* Start menu: full width */
+  .xp-start-menu {
+    width: 100%;
+    left: 0;
+    right: 0;
+    border-radius: 8px 8px 0 0;
+  }
+
+  /* Article list: date above title on small screens */
+  .article-item-top {
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-start;
+  }
+
+  .article-date {
+    order: -1;
+    font-size: 11px;
+  }
+
+  .article-title-link {
+    font-size: 14px;
+  }
+
+  /* Post content: no max-width, smaller code */
+  #post-container {
+    max-width: 100%;
+  }
+
+  .post-title {
+    font-size: 18px;
+  }
+
+  .post-content pre {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+
+  .post-content pre code {
+    font-size: 12px;
+  }
+
+  /* Tables: allow horizontal scroll */
+  .post-content table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* TOC links: slightly larger touch target */
+  .toc-link {
+    line-height: 2.2;
+  }
+
+  /* Pagination: wrap and center */
+  .xp-pagination {
+    justify-content: center;
+  }
+
+  /* Blog header: smaller */
+  .blog-title {
+    font-size: 16px;
+  }
+
+  .blog-subtitle {
+    font-size: 11px;
+  }
+
+  /* Scrollbar: thinner on mobile */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-button:single-button { display: none; }
+}
