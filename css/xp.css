@@ -1047,12 +1047,17 @@ body, input, button, select, textarea {
   .xp-desktop {
     padding: 0 0 40px;
     align-items: stretch;
-    overflow: hidden;
+    overflow: clip; /* clip scroll without creating fixed-pos containing block */
   }
 
-  /* Hide desktop icons (they overlap the window) */
+  /* Desktop icons: keep visible (show on wallpaper when window closed) */
   .xp-desktop-icons {
-    display: none;
+    z-index: 1;
+  }
+
+  /* Window sits above icons */
+  .xp-window {
+    z-index: 2;
   }
 
   /* Window: fill full width, no rounding */
