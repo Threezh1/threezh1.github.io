@@ -53,6 +53,17 @@ async function loadPost() {
 }
 
 async function fetchAllPostsMeta() {
+  // Try index.json first (GitHub Pages compatible)
+  try {
+    const indexRes = await fetch('posts/index.json');
+    if (indexRes.ok) {
+      const posts = await indexRes.json();
+      posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      return posts;
+    }
+  } catch (_) {}
+
+  // Fallback: directory listing (local Python HTTP server)
   const dirRes = await fetch('posts/');
   if (!dirRes.ok) return [];
   const html = await dirRes.text();
