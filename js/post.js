@@ -166,7 +166,6 @@ function renderPost(meta, body, postId) {
     </div>`;
 
   document.getElementById('post-container').innerHTML = `
-    ${navHtml}
     <div class="post-header">
       <div class="post-title">${escapeHtml(title)}</div>
       <div class="post-meta">
