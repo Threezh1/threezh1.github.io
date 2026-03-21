@@ -1154,6 +1154,7 @@ body, input, button, select, textarea {
     flex: 1;
     padding: 14px 14px;
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   /* Status bar: hide on mobile */
