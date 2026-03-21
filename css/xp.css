@@ -1231,9 +1231,16 @@ body, input, button, select, textarea {
     justify-content: center;
   }
 
-  /* Blog header: smaller */
+  /* Blog header: stack vertically on mobile */
+  .blog-header {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+
   .blog-title {
     font-size: 16px;
+    white-space: nowrap;
   }
 
   .blog-subtitle {
